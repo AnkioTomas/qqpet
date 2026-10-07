@@ -6,8 +6,11 @@ import { rand } from './rand'
 import { info, save, update } from './store'
 import { dayStart } from './vip'
 
-/** Today's face pokes, trips, goods eaten, cleaned with and played with, and minutes of games; Travel2: provinces visited since the tour was last finished. */
-export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Game' | 'Travel2'
+/**
+ * Today's face pokes, trips, goods eaten, cleaned with and played with, shifts, lessons, games and minutes of games;
+ * Travel2: provinces visited since the tour was last finished.
+ */
+export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Work' | 'Study' | 'GameRound' | 'Game' | 'Travel2'
 export type Tab = 'daily' | 'ddw' | 'travel'
 
 interface Task {
@@ -159,8 +162,15 @@ export function resetTasks(): void {
   store()
 }
 
-/** Kinds of daily task; one the pet `needs` right now is three times as likely, and says so. */
-const KINDS: { obj: Exclude<Counter, 'Travel2'>; label: string; num: [number, number]; needs: () => boolean; msg: [string, string] }[] = [
+/** Kinds of daily task; one the pet `needs` right now (`off`: a day off) is three times as likely, and says so; one it `can`not do is left out. */
+const KINDS: {
+  obj: Exclude<Counter, 'Travel2'>
+  label: string
+  num: [number, number]
+  needs: (off: boolean) => boolean
+  can?: () => boolean
+  msg: [string, string]
+}[] = [
   {
     obj: 'Eat',
     label: '喂我吃东西{n}次',
@@ -177,26 +187,44 @@ const KINDS: { obj: Exclude<Counter, 'Travel2'>; label: string; num: [number, nu
   },
   { obj: 'Toy', label: '陪我玩玩具{n}次', num: [2, 4], needs: () => info.mood < 500, msg: ['人家不开心，陪我玩一会儿嘛~', '一起玩最开心啦~'] },
   { obj: 'Amusing', label: '逗逗我{n}次', num: [10, 20], needs: () => info.mood < 500, msg: ['心情不好，逗我笑一笑吧~', DDW] },
+  {
+    obj: 'Work',
+    label: '去打工{n}次',
+    num: [1, 3],
+    needs: () => info.yb < 500,
+    can: () => save.petComputedlInfo.level >= 2,
+    msg: ['家里没钱啦，我去打工赚元宝吧~', '勤劳致富，打工去咯~'],
+  },
+  { obj: 'Study', label: '去上学{n}次', num: [1, 2], needs: (off) => !off, msg: ['上学日要好好学习哦~', '书山有路勤为径~'] },
+  {
+    obj: 'GameRound',
+    label: '玩{n}局小游戏',
+    num: [2, 4],
+    needs: (off) => off,
+    msg: ['放假啦，痛快玩几局吧~', '换个小游戏玩玩吧~'],
+  },
   { obj: 'Game', label: '陪我玩小游戏{n}分钟', num: [5, 15], needs: () => info.mood < 500, msg: ['好无聊呀，陪我玩会儿小游戏吧~', '一起玩小游戏吧~'] },
   {
     obj: 'Travel1',
     label: '带我去旅游{n}次',
     num: [1, 2],
-    needs: () => [0, 6].includes(new Date().getDay()),
-    msg: ['周末啦，出去走走吧~', '读万卷书，行万里路~'],
+    needs: (off) => off,
+    msg: ['放假啦，出去走走吧~', '读万卷书，行万里路~'],
   },
 ]
 
-/** Today's three tasks drawn by the pet's needs, plus one on statutory holidays; made once per day. */
+/** Today's four tasks drawn by the pet's needs, plus one on statutory holidays; made once per day. */
 export function rollDaily(today?: CalendarDay): void {
   if (progress.dailyDay === dayStart()) return
-  const pool = KINDS.flatMap((k) => Array<typeof k>(k.needs() ? 3 : 1).fill(k))
+  // Offline, weekends are the days off; the calendar knows holidays and make-up working days.
+  const off = today?.holiday ? today.holiday.off : [0, 6].includes(new Date().getDay())
+  const pool = KINDS.filter((k) => k.can?.() ?? true).flatMap((k) => Array<typeof k>(k.needs(off) ? 3 : 1).fill(k))
   const daily: Task[] = []
-  while (daily.length < 3) {
+  while (daily.length < 4) {
     const k = pool[rand(0, pool.length - 1)]
     const num = rand(...k.num)
     if (!daily.some((t) => t.obj === k.obj))
-      daily.push({ label: k.label.replace('{n}', String(num)), msg: k.msg[k.needs() ? 0 : 1], obj: k.obj, num, reroll: 1, good: [`_yb*${rand(2, 5) * 10}`] })
+      daily.push({ label: k.label.replace('{n}', String(num)), msg: k.msg[k.needs(off) ? 0 : 1], obj: k.obj, num, reroll: 1, good: [`_yb*${rand(2, 5) * 10}`] })
   }
   const h = today?.holiday
   if (h?.off) daily.push({ label: `${h.name}快乐`, msg: `过节啦，陪我玩5次玩具一起庆祝吧~`, obj: 'Toy', num: 5, reroll: 2, good: ['_yb*100'] })

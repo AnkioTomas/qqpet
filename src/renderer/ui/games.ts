@@ -14,6 +14,7 @@ const DAY_MINUTES = 60
 
 window.qqpet.onGamePlayed((minutes) => {
   if (minutes < 1) return
+  addCount('GameRound')
   const m = Math.min(Math.floor(minutes), DAY_MINUTES - count('Game'))
   if (m <= 0) return speak({ s: '[host]，今天小游戏玩得够多啦，休息一下眼睛吧~', now: true }, 'speak')
   addCount('Game', m)

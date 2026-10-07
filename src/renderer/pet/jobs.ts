@@ -86,6 +86,7 @@ export function work(g: Good): boolean {
   const end = (): void => {
     addInfo('yb', g.yb!)
     apply(g)
+    addCount('Work')
     speak({ c: 'state', s: 'overWork', now: true }, 'speak')
   }
   speak({ s: '[host]，我开始工作了哦~', now: true }, 'speak', { start: () => startTask({ key: 'work', minutes: g.useTime!, end }, g.id) })
@@ -127,6 +128,7 @@ export function study(g: Good): boolean {
   const end = (early: boolean): void => {
     learn(subjectOf(g))
     apply(g)
+    addCount('Study')
     if (lessons(g) === g.classNum) examPrompt(g)
     else speak({ c: 'state', s: early ? 'cententStudy' : 'overStudy', now: true }, 'speak')
   }
