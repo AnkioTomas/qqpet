@@ -22,6 +22,9 @@ export function createPetWindow(): BrowserWindow {
       preload: join(import.meta.dirname, '../preload/index.cjs'),
       sandbox: true,
       contextIsolation: true,
+      // macOS may report this overlay as occluded (Space switches, wake from sleep);
+      // throttled, Ruffle stops drawing and bubble buttons stop responding.
+      backgroundThrottling: false,
     },
   })
   win.setAlwaysOnTop(true, 'screen-saver')
