@@ -1,3 +1,4 @@
+import { description, version } from '../../../package.json'
 import { allGoods, type GoodType } from '../pet/data/goods'
 import { give } from '../pet/items'
 import { speak } from '../pet/pet'
@@ -190,7 +191,17 @@ const TABS: { label: string; options: Option[] }[] = [
       return aiOptions()
     },
   },
-  { label: '关于', options: [{ type: 'see', label: '基本信息', value: '版本：T800' }] },
+  {
+    label: '关于',
+    options: [
+      { type: 'see', label: '软件', value: `QQPet v${version}` },
+      { type: 'see', label: '简介', value: description },
+      { type: 'see', label: '作者', value: 'Ankio' },
+      { type: 'see', label: '邮箱', value: 'ankio@ankio.net' },
+      { type: 'see', label: '项目地址', value: 'https://github.com/AnkioTomas/qqpet' },
+      { type: 'see', label: '声明', value: 'QQ 宠物相关素材版权归腾讯所有，本项目仅供学习交流，请勿用于商业用途' },
+    ],
+  },
 ]
 
 function option(o: Option, redraw: () => void): HTMLElement {

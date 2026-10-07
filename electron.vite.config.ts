@@ -1,5 +1,6 @@
 import { join, normalize, resolve } from 'node:path'
 import { defineConfig } from 'electron-vite'
+import { normalizePath } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { hidpiSvg } from './src/main/hidpi'
 
@@ -41,7 +42,8 @@ export default defineConfig({
         },
       },
       viteStaticCopy({
-        targets: [{ src: resolve('node_modules/@ruffle-rs/ruffle') + '/*', dest: 'ruffle', rename: { stripBase: true } }],
+        // Globs need forward slashes; resolve() yields backslashes on Windows.
+        targets: [{ src: normalizePath(resolve('node_modules/@ruffle-rs/ruffle')) + '/*', dest: 'ruffle', rename: { stripBase: true } }],
       }),
     ],
   },
