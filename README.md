@@ -37,6 +37,29 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T8
 
 存档位于 `userData/save.json`，导入时旧存档备份为 `save.json.bak`。
 
+## 下载安装
+
+从 [Releases](https://github.com/AnkioTomas/qqpet/releases/latest) 下载对应平台的安装包：
+
+| 平台 | 文件 |
+|---|---|
+| Windows | `QQPet.Setup.<版本>.exe` |
+| macOS（Apple 芯片） | `QQPet-<版本>-arm64.dmg` |
+| macOS（Intel） | `QQPet-<版本>.dmg` |
+| Linux | `QQPet-<版本>.AppImage` 或 `qqpet_<版本>_amd64.deb` |
+
+安装包**没有代码签名**，系统会拦截首次运行：
+
+- **Windows**：SmartScreen 提示「Windows 已保护你的电脑」时，点「更多信息」→「仍要运行」。
+- **macOS**：把 QQPet 拖进「应用程序」后，若提示「已损坏，无法打开」或「无法验证开发者」，在终端执行一次：
+
+  ```bash
+  xattr -cr /Applications/QQPet.app
+  ```
+
+  也可以先打开一次，再到「系统设置 → 隐私与安全性」底部点「仍要打开」。
+- **Linux**：AppImage 需要可执行权限，`chmod +x QQPet-*.AppImage` 后运行；Ubuntu 22.04 起若报缺少 FUSE，安装 `libfuse2`（24.04 为 `libfuse2t64`）。deb 包用 `sudo apt install ./qqpet_*_amd64.deb` 安装。
+
 ## 开发
 
 ```bash
