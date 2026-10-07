@@ -32,11 +32,15 @@ window.BubbleAPI = {
 /** Bubble skin follows the VIP flags: 1 plain, 2 pink diamond, 3 sweetheart, 4 both. */
 const skinOf = (): number => (info.pinkDiamond ? (info.sweetHeart ? 4 : 2) : info.sweetHeart ? 3 : 1)
 
+let lift = 0
+/** Room the action bar takes above the pet (0 when it is hidden or below). */
+export const setBubbleLift = (px: number): void => void (lift = px)
+
 function place(): void {
   const size = petSize()
   const left = Math.min(Math.max(info.lastX + size / 2 - W / 2, 0), innerWidth - W)
   // Above the pet; below it when there is no room at the top.
-  const top = info.lastY < H ? info.lastY + size : info.lastY - H
+  const top = info.lastY < H ? info.lastY + size : info.lastY - H - lift
   el.style.left = `${left}px`
   el.style.top = `${top}px`
 }

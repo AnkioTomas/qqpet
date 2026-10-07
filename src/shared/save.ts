@@ -69,6 +69,9 @@ export type SelfGoodDatas = Record<
   string[]
 >
 
+/** Timed goods in effect (`selfGoodUseOption` in the original's localStorage). */
+export type SelfGoodUseOption = Record<'background' | 'food' | 'clean' | 'toy', { id: string; left: number } | null>
+
 export interface GameSaveDatas {
   fishing_harvestfish: number
   travel_china: unknown[]
@@ -87,6 +90,8 @@ export interface SaveData {
   studyInfo: StudyInfo
   activeOption: ActiveOption
   selfGoodDatas: SelfGoodDatas
+  /** Minutes left per timed good. */
+  selfGoodUseOption: SelfGoodUseOption
   gameSaveDatas: GameSaveDatas
   illustrated: unknown[]
   /** Feature-owned JSON blobs (email, task, signin, fishs), stored as strings. */

@@ -43,10 +43,10 @@ body {
   pointer-events: all;
   background: url(/pet/face/click.svg) 0 0 / 100% 100%;
   cursor: url(/pet/img_res/hand/focus/press.cur), default;
-  animation: pulse 2s ease-in-out infinite;
+  animation: point-pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes point-pulse {
   50% {
     transform: scale(1.3);
     opacity: 0.2;
@@ -160,4 +160,17 @@ body {
 .adopt {
   width: 607px;
   height: 455px;
+}
+
+/* The original "boxOneImg" window frame; later windows stack on top. */
+.boxFrame {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 700;
+}
+.boxFrame .backgroundImage {
+  background-repeat: no-repeat;
+  background-size: cover;
 }

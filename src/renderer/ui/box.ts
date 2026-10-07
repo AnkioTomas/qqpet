@@ -17,6 +17,28 @@ function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
 }
 
 /**
+ * Drags a frame centered by `translate(-50%, -50%)`, unless the press starts
+ * inside `keep` (content that needs its own mouse input, e.g. a SWF).
+ * No pointer capture: it would retarget clicks on buttons inside the frame.
+ */
+function draggable(frame: HTMLElement, keep?: HTMLElement): void {
+  let dx = 0
+  let dy = 0
+  frame.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || keep?.contains(e.target as Node)) return
+    const sx = e.clientX - dx
+    const sy = e.clientY - dy
+    const move = (m: PointerEvent): void => {
+      dx = m.clientX - sx
+      dy = m.clientY - sy
+      frame.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`
+    }
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', () => document.removeEventListener('pointermove', move), { once: true })
+  })
+}
+
+/**
  * The original's framed window ("box" component): centered, draggable by its
  * frame, with a close button. Returns a function that removes it.
  */
@@ -44,21 +66,24 @@ export function openBox(content: HTMLElement, opts: { vip?: boolean; onClose?: (
     close()
     opts.onClose?.()
   })
-
-  let dx = 0
-  let dy = 0
-  frame.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || content.contains(e.target as Node)) return
-    const sx = e.clientX - dx
-    const sy = e.clientY - dy
-    const move = (m: PointerEvent): void => {
-      dx = m.clientX - sx
-      dy = m.clientY - sy
-      frame.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`
-    }
-    frame.setPointerCapture(e.pointerId)
-    frame.addEventListener('pointermove', move)
-    frame.addEventListener('pointerup', () => frame.removeEventListener('pointermove', move), { once: true })
-  })
+  draggable(frame, content)
   return close
+}
+
+/**
+ * The original's single-image window ("boxOneImg"): `content` on an optional
+ * background image, centered and draggable. Returns a function that removes it.
+ */
+export function openFrame(content: HTMLElement, background?: string): () => void {
+  const frame = document.createElement('div')
+  frame.className = 'boxFrame focusPress'
+  frame.dataset.hit = ''
+  const bg = document.createElement('div')
+  bg.className = 'backgroundImage'
+  if (background) bg.style.backgroundImage = `url('${background}')`
+  bg.appendChild(content)
+  frame.appendChild(bg)
+  document.body.appendChild(frame)
+  draggable(frame)
+  return () => frame.remove()
 }

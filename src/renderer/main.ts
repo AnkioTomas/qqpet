@@ -1,6 +1,7 @@
 import { startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
+import { scheduleHide, showControl } from './ui/control'
 import './ui/face'
 
 const petEl = document.getElementById('pet')!
@@ -56,6 +57,7 @@ window.qqpet.onCursor((p) => {
 
 petEl.addEventListener('pointerdown', (e) => {
   if (e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
+  showControl()
   dragging = true
   const dx = e.clientX - info.lastX
   const dy = e.clientY - info.lastY
@@ -71,6 +73,7 @@ petEl.addEventListener('pointerdown', (e) => {
       dragging = false
       petEl.removeEventListener('pointermove', move)
       clampPosition()
+      scheduleHide()
     },
     { once: true },
   )

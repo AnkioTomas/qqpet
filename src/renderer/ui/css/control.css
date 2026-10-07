@@ -1,0 +1,269 @@
+.ui-control .control {
+  position: absolute;
+  z-index: 120;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  display: none;
+  font-size: 10px;
+  color: #353535af;
+}
+.ui-control .showControl {
+  opacity: 1;
+  display: unset !important;
+}
+.ui-control .showControl .menus {
+  transform: translateY(20px);
+}
+.ui-control .menus {
+  height: 40px;
+}
+.ui-control .menuItem {
+  margin: 16px 5px 3px;
+  transition: all 0.2s;
+  border-radius: 50%;
+  position: relative;
+}
+.ui-control .menuItemIcon {
+  height: 100%;
+  width: 100%;
+}
+.ui-control .menuItemIconBox {
+  background-image: url(/pet/control/icons/bk/2.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 30px;
+  transition: all 0.2s;
+  position: relative;
+}
+.ui-control .menuItemIconBox:after {
+  position: absolute;
+  background-image: url(/pet/control/icons/bk/6.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  content: "";
+  display: inline-block;
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+.ui-control .menuItem:hover .menuItemIconBox {
+  transform: rotate(45deg);
+  background-image: url(/pet/control/icons/bk/8.svg);
+  height: 40px;
+  width: 40px;
+}
+.ui-control .menuItem:hover .menuItemIconBox:after {
+  height: 120%;
+  width: 120%;
+  left: -10%;
+  top: -10%;
+  animation-name: loading;
+  animation-duration: 1s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  opacity: 1;
+}
+.ui-control .hoverMenuItemIcon {
+  background-image: url(/pet/control/icons/bk/8.svg);
+  height: 40px;
+  width: 40px;
+}
+.ui-control .menuTip {
+  position: absolute;
+  left: 50%;
+  white-space: nowrap;
+  top: 0;
+  background-image: url(/pet/control/icons/bk/12.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  padding: 2px 5px 6px;
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  color: #dfdfdfc3;
+}
+.ui-control .menuItem:hover .menuTip {
+  opacity: 1 !important;
+}
+.ui-control .childrenMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-left: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s;
+}
+.ui-control .menuItem:hover .childrenMenu {
+  opacity: 1 !important;
+  pointer-events: all !important;
+}
+.ui-control .childrenMenuItem {
+  white-space: nowrap;
+  background-image: url(/pet/control/icons/bk/30.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 25px;
+  width: 100px;
+  font-size: 12px;
+  margin: 5px 0;
+  position: relative;
+  color: #dfdfdfc3;
+}
+.ui-control .childrenMenuItem:after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: calc(100% + 6px);
+  position: absolute;
+  left: -5px;
+  top: -8px;
+  background-color: #311d0eaf;
+  border-radius: 40px;
+}
+.ui-control .childrenMenuItemIcon {
+  width: 25px;
+  height: 25px;
+  margin: 0 5px;
+}
+.ui-control .childrenMenuItem:hover {
+  background-image: url(/pet/control/icons/bk/32.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .goodList {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  transform: translate(-50%);
+  width: 314px;
+  height: 138px;
+  background-image: url(/pet/control/icons/active/2.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .goodTypeIcon {
+  width: 25px;
+  height: 25px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.ui-control .goodListMain {
+  position: absolute;
+  left: 0;
+  top: 25px;
+  width: 100%;
+  height: calc(100% - 25px);
+  padding: 5px;
+}
+.ui-control .toLeft,
+.ui-control .toRight {
+  width: 11px;
+  height: 16px;
+}
+.ui-control .toLeft {
+  background-image: url(/pet/control/icons/active/50.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .toLeft:hover {
+  background-image: url(/pet/control/icons/active/52.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .toLeft:active {
+  background-image: url(/pet/control/icons/active/54.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .toRight {
+  background-image: url(/pet/control/icons/active/57.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .toRight:hover {
+  background-image: url(/pet/control/icons/active/59.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .toRight:active {
+  background-image: url(/pet/control/icons/active/61.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.ui-control .goodClose {
+  height: 25px;
+  width: 25px;
+  background-image: url(/pet/control/icons/active/42.svg);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.ui-control .toShoppingMall {
+  position: absolute;
+  right: 50px;
+  top: 0;
+  color: #fff;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+.ui-control .goodClose:hover {
+  background-image: url(/pet/control/icons/active/44.svg);
+}
+.ui-control .goodClose:active {
+  background-image: url(/pet/control/icons/active/46.svg);
+}
+.ui-control .goodItem {
+  width: 65px;
+  height: 65px;
+  background-color: #fff;
+  padding: 3px;
+  margin: 3px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 1px 1px #0003;
+}
+.ui-control .goodItemIcon,
+.ui-control .goodItemIconBox {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.ui-control .goodInfo {
+  position: absolute;
+  left: 100%;
+  background-color: #5b2900b7;
+  top: 0;
+  border-radius: 6px;
+  padding: 6px 8px 5px;
+  z-index: 10;
+  display: none;
+  pointer-events: none;
+}
+.ui-control .goodItemIconBox:hover .goodInfo {
+  display: unset;
+}
+.ui-control .goodName {
+  white-space: nowrap;
+  color: #86ff05b9;
+  font-size: 12px;
+  border-bottom: 1px solid #ff7c02;
+  padding-bottom: 6px;
+}
+.ui-control .goodDatas {
+  color: #ffffffb4;
+  white-space: nowrap;
+  font-size: 11px;
+  padding-top: 2px;
+}
+.ui-control .progress {
+  margin-top: 3px;
+  margin-bottom: 3px;
+  height: 15px;
+  z-index: -1;
+}

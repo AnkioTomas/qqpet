@@ -76,6 +76,7 @@ const RULES: Record<string, Record<string, Rule>> = {
       return v
     },
   },
+  selfGoodUseOption: { background: nullable, food: nullable, clean: nullable, toy: nullable },
   gameSaveDatas: {
     fishing_harvestfish: num(0, ANY, 0),
     travel_china: list,
@@ -135,6 +136,7 @@ function fresh(): SaveData {
       toy: ['_t0002*1'],
       nums: [],
     },
+    selfGoodUseOption: { background: null, food: null, clean: null, toy: null },
     gameSaveDatas: { fishing_harvestfish: 0, travel_china: [], travel_china_num: 0, ddw: 0, yyds: 0 },
     illustrated: [],
     saveJsonData: { email: '{}', task: '{}', signin: '{}', fishs: '{}' },

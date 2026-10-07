@@ -1,0 +1,598 @@
+.ui-shop .shoppingMall {
+  color: #000000ae;
+  font-size: 12px;
+}
+.ui-shop .leftSelfHeadBk {
+  width: 345px;
+  height: 254px;
+  background-image: url(/pet/shppingMall/bk/mall_03.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .leftSelfCenterBk {
+  width: 345px;
+  height: 51px;
+  background-image: url(/pet/shppingMall/bk/mall2_03.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .leftSelfGoodsBk {
+  width: 347px;
+  height: 247px;
+  background-image: url(/pet/shppingMall/bk/user_mallconbg.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .leftSelfFootBk {
+  width: 345px;
+  height: 42px;
+  background-image: url(/pet/shppingMall/bk/mall2_25.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .mallFoot {
+  width: 800px;
+  height: 7px;
+  background-image: url(/pet/shppingMall/bk/mall2_40.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .rightSelfHeadBk {
+  width: 443px;
+  height: 68px;
+  background-image: url(/pet/shppingMall/bk/Sale_Tag_BG.png);
+  background-size: 100% 100%;
+  position: absolute;
+  top: 3px;
+  z-index: 10;
+}
+.ui-shop .rightSelfCenterBk {
+  width: 456px;
+  height: 594px;
+  background-image: url(/pet/shppingMall/bk/rt_bg_04.gif);
+  background-size: 100% 100%;
+}
+.ui-shop .petImgBox {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.ui-shop .petImg {
+  transform-origin: center bottom;
+}
+.ui-shop .backgroundImg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 130px;
+  height: 130px;
+  border-radius: 8px;
+}
+.ui-shop .lscb_top {
+  width: 100%;
+}
+.ui-shop .lscb_t_onve {
+  display: inline-block;
+  width: 82px;
+  height: 27px;
+  background-size: 100% 100%;
+}
+.ui-shop .selfwy {
+  background-image: url(/pet/shppingMall/menu/mall_25.gif);
+}
+.ui-shop .selfwy.active {
+  background-image: url(/pet/shppingMall/menu/mall1_25.gif);
+}
+.ui-shop .selfgn {
+  background-image: url(/pet/shppingMall/menu/mall_26.gif);
+}
+.ui-shop .selfgn.active {
+  background-image: url(/pet/shppingMall/menu/mall1_26.gif);
+}
+.ui-shop .selfrw {
+  background-image: url(/pet/shppingMall/menu/mall_27.gif);
+}
+.ui-shop .selfrw.active {
+  background-image: url(/pet/shppingMall/menu/mall1_27.gif);
+}
+.ui-shop .selfzb {
+  background-image: url(/pet/shppingMall/menu/mall_24.gif);
+}
+.ui-shop .selfzb.active {
+  background-image: url(/pet/shppingMall/menu/mall1_24.gif);
+}
+.ui-shop .lscb_dowm {
+  height: 22px;
+  position: relative;
+  top: -3px;
+  padding: 0 13px;
+}
+.ui-shop .lscb_dowmOnce {
+  display: inline-block;
+  background-image: url(/pet/shppingMall/menu/lmenu_31.png);
+  background-size: 100% 100%;
+  height: 22px;
+  margin-right: 2px;
+  font-size: 12px;
+  padding: 0 6px;
+  font-weight: 900;
+}
+.ui-shop .lscb_dowmOnceText {
+  position: relative;
+  top: 3px;
+}
+.ui-shop .lscb_dowmOnce.active {
+  background-image: url(/pet/shppingMall/menu/Items_SubTag_Selected.png);
+}
+.ui-shop .lscb_b_onve {
+  display: inline-block;
+  height: 22px;
+}
+.ui-shop .selfGoodList {
+  width: 100%;
+  flex-wrap: wrap;
+  padding: 2px 10px;
+}
+.ui-shop .selfGood {
+  width: 157px;
+  height: 76px;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/Card_Items.png);
+  position: relative;
+  margin: 2px;
+}
+.ui-shop .selfGoodImgBox {
+  margin: 0 10px 0 8px;
+  padding-left: 7px;
+}
+.ui-shop .selfGoodImg {
+  width: 50px;
+  height: 50px;
+}
+.ui-shop .selfGoodUse {
+  width: 49px;
+  height: 26px;
+  position: absolute;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/Sale_SubTag.png);
+  right: 2px;
+  bottom: 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ui-shop .lsfb_pageMsg {
+  position: absolute;
+  right: 17px;
+  top: 11px;
+}
+.ui-shop .lsfb_yb {
+  position: absolute;
+  left: 75px;
+  top: 13px;
+  font-weight: 900;
+  font-size: 12px;
+}
+.ui-shop .lsfb_text {
+  width: 50px;
+  margin-left: 5px;
+  position: relative;
+  top: -2px;
+}
+.ui-shop .lsfb_up {
+  width: 27px;
+  height: 22px;
+  margin-left: 2px;
+  background-size: 100% 100%;
+}
+.ui-shop .lsfb_up:hover {
+  background-image: url(/pet/shppingMall/bk/page_left.png);
+}
+.ui-shop .lsfb_upMore {
+  width: 37px;
+  height: 22px;
+  background-size: 100% 100%;
+}
+.ui-shop .lsfb_upMore:hover {
+  background-image: url(/pet/shppingMall/bk/page_first.png);
+}
+.ui-shop .lsfb_down {
+  width: 27px;
+  height: 22px;
+  background-size: 100% 100%;
+}
+.ui-shop .lsfb_down:hover {
+  background-image: url(/pet/shppingMall/bk/page_right.png);
+}
+.ui-shop .lsfb_downMore {
+  margin-left: 2px;
+  width: 37px;
+  height: 22px;
+  background-size: 100% 100%;
+}
+.ui-shop .lsfb_downMore:hover {
+  background-image: url(/pet/shppingMall/bk/page_last.png);
+}
+.ui-shop .rscb_top {
+  width: 100%;
+}
+.ui-shop .rscb_t_onve {
+  display: inline-block;
+  width: 86px;
+  height: 34px;
+  background-size: 100% 100%;
+}
+.ui-shop .shopTj {
+  background-image: url(/pet/shppingMall/menu/mall_06.gif);
+}
+.ui-shop .shopTj.active {
+  background-image: url(/pet/shppingMall/menu/mal_06.gif);
+}
+.ui-shop .shopWy {
+  background-image: url(/pet/shppingMall/menu/mall_07.gif);
+}
+.ui-shop .shopWy.active {
+  background-image: url(/pet/shppingMall/menu/mal_07.gif);
+}
+.ui-shop .shopGN {
+  background-image: url(/pet/shppingMall/menu/mall_09.gif);
+}
+.ui-shop .shopGN.active {
+  background-image: url(/pet/shppingMall/menu/mal_09.gif);
+}
+.ui-shop .shopZB {
+  background-image: url(/pet/shppingMall/menu/mall_08.gif);
+}
+.ui-shop .shopZB.active {
+  background-image: url(/pet/shppingMall/menu/mal_08.gif);
+}
+.ui-shop .rscb_dowm {
+  height: 22px;
+  position: relative;
+  padding: 0 5px;
+}
+.ui-shop .rGoodList {
+  width: 100%;
+  flex-wrap: wrap;
+  padding: 2px 10px;
+  position: relative;
+  top: 74px;
+}
+.ui-shop .rGoods {
+  width: 216px;
+  height: 119px;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/s09.gif);
+  position: relative;
+}
+.ui-shop .rG_title {
+  font-weight: 900;
+  font-size: 15px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding-left: 9px;
+}
+.ui-shop .rG_rightInfo {
+  font-weight: 900;
+  font-size: 12px;
+}
+.ui-shop .rG_leftImgBox {
+  width: 60px;
+  height: 60px;
+  margin-top: 8px;
+  margin-left: 12px;
+  border-radius: 8px;
+}
+.ui-shop .dpPay {
+  color: #d91754;
+}
+.ui-shop .rG_buts {
+  font-weight: 900;
+  font-size: 12px;
+  color: #03a29a;
+  padding-left: 13px;
+  height: 25px;
+}
+.ui-shop .rG_cart {
+  width: 27px;
+  height: 18px;
+  margin: 0 0 4px;
+  z-index: 1;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/btn_empty.gif);
+  opacity: 0;
+}
+.ui-shop .rG_cart:hover {
+  opacity: 0.4;
+}
+.ui-shop .rG_pay {
+  width: 35px;
+  height: 18px;
+  margin: 0 43px 4px 0;
+  z-index: 1;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/btn_empty.gif);
+  background-color: #03a29a;
+  opacity: 0;
+}
+.ui-shop .rG_pay:hover {
+  opacity: 0.4;
+}
+.ui-shop .disablePay {
+  opacity: 0.8 !important;
+  background-color: #000000ca;
+}
+.ui-shop .rightSelfPaging {
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  z-index: 10;
+}
+.ui-shop .rsfb_text {
+  width: 60px;
+  margin-right: 10px;
+}
+.ui-shop .rsfb_up {
+  width: 27px;
+  height: 22px;
+  margin-right: 10px;
+  background-size: 100% 100%;
+}
+.ui-shop .rsfb_up:hover {
+  background-image: url(/pet/shppingMall/bk/page_left.png);
+}
+.ui-shop .rsfb_upMore {
+  width: 37px;
+  margin-right: 3px;
+  height: 22px;
+  background-size: 100% 100%;
+}
+.ui-shop .rsfb_upMore:hover {
+  background-image: url(/pet/shppingMall/bk/page_first.png);
+}
+.ui-shop .rsfb_down {
+  width: 27px;
+  height: 22px;
+  background-size: 100% 100%;
+  margin-right: 4px;
+}
+.ui-shop .rsfb_down:hover {
+  background-image: url(/pet/shppingMall/bk/page_right.png);
+}
+.ui-shop .rsfb_downMore {
+  margin-right: 6px;
+  width: 35px;
+  height: 22px;
+  background-size: 100% 100%;
+}
+.ui-shop .rsfb_downMore:hover {
+  background-image: url(/pet/shppingMall/bk/page_last.png);
+}
+.ui-shop .shoppingCart {
+  width: 110px;
+  height: 30px;
+  margin-right: 15px;
+}
+.ui-shop .shoppingCartNum {
+  position: absolute;
+  background-color: #b24c11;
+  font-size: 16px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  right: 0;
+  top: 0;
+  transform: translate(50%, -50%);
+  color: #fff;
+  font-weight: 900;
+}
+.ui-shop .goodFloatMsg {
+  pointer-events: none;
+  min-width: 130px;
+  position: absolute;
+  left: -2px;
+  top: 0;
+  transform: translate(-100%);
+  color: #fff;
+  background-color: #542e037b;
+  border-radius: 5px;
+  border: 1px solid #fff;
+  padding: 6px 8px 5px;
+  display: none;
+  z-index: 999;
+}
+.ui-shop .goodName {
+  white-space: nowrap;
+  color: #86ff05b9;
+  font-size: 12px;
+  border-bottom: 1px solid #ff7c02;
+  padding-bottom: 6px;
+}
+.ui-shop .goodDatas {
+  color: #ffffffb4;
+  white-space: nowrap;
+  font-size: 11px;
+  padding-top: 2px;
+}
+.ui-shop .rG_leftImgBox:hover .goodFloatMsg,
+.ui-shop .selfGoodImgBox:hover .goodFloatMsg {
+  display: unset !important;
+}
+.ui-shop .PD {
+  width: 22px;
+  height: 22px;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/133.svg);
+  position: absolute;
+  top: -2px;
+  left: -2px;
+}
+.ui-shop .close {
+  width: 40px;
+  height: 40px;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/rightclose.gif);
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 100;
+}
+.ui-shop .close:hover {
+  top: 1px;
+}
+.ui-shop .shoppingCartMain {
+  width: 536px;
+  height: 331px;
+  background-size: 100% 100%;
+  background-image: url(/pet/shppingMall/bk/shopping_cartbg.gif);
+  color: #0202029f;
+}
+.ui-shop .cartClose {
+  width: 26px;
+  height: 25px;
+  background-size: 100% 100%;
+  position: absolute;
+  right: 7px;
+  top: 4px;
+}
+.ui-shop .cartClose:hover {
+  background-image: url(/pet/shppingMall/bk/buttom_03.gif);
+}
+.ui-shop .cartGoodList {
+  position: absolute;
+  left: 12px;
+  top: 65px;
+  width: 510px;
+  height: 135px;
+  overflow: hidden auto;
+}
+.ui-shop .cartGood {
+  font-size: 14px;
+  border-bottom: 1px solid #3d3d3d36;
+  padding: 2px 0;
+}
+.ui-shop .cg_name {
+  width: 108px;
+}
+.ui-shop .cg_num {
+  width: 94px;
+}
+.ui-shop .cg_type {
+  width: 108px;
+}
+.ui-shop .cg_price {
+  width: 100px;
+}
+.ui-shop .totalMsg {
+  position: absolute;
+  left: 12px;
+  top: 231px;
+  width: 279px;
+  height: 50px;
+}
+.ui-shop .attributeTotal {
+  position: absolute;
+  left: 296px;
+  top: 231px;
+  width: 227px;
+  height: 50px;
+  overflow: hidden auto;
+}
+.ui-shop .qrzf {
+  width: 74px;
+  height: 29px;
+  background-size: 100% 100%;
+  position: absolute;
+  left: 132px;
+  top: 291px;
+}
+.ui-shop .qrzf:hover {
+  background-image: url(/pet/shppingMall/bk/shoping_33.gif);
+}
+.ui-shop .jxgw {
+  width: 74px;
+  height: 29px;
+  background-size: 100% 100%;
+  position: absolute;
+  left: 344px;
+  top: 291px;
+}
+.ui-shop .jxgw:hover {
+  background-image: url(/pet/shppingMall/bk/shoping_30.gif);
+}
+.ui-shop .cg_cut {
+  background-image: url(/pet/shppingMall/bk/shoping_07.gif);
+  width: 18px;
+  height: 18px;
+  background-size: 100% 100%;
+  margin-right: 5px;
+}
+.ui-shop .cg_add {
+  background-image: url(/pet/shppingMall/bk/shoping_09.gif);
+  width: 18px;
+  height: 18px;
+  margin-left: 5px;
+  background-size: 100% 100%;
+}
+.ui-shop .cg_cutUp {
+  background-image: url(/pet/shppingMall/cut.svg);
+  width: 18px;
+  height: 18px;
+  background-size: 100% 100%;
+  margin-right: 5px;
+}
+.ui-shop .cg_addDown {
+  background-image: url(/pet/shppingMall/add.svg);
+  width: 18px;
+  height: 18px;
+  margin-left: 5px;
+  background-size: 100% 100%;
+}
+.ui-shop .cg_total {
+  flex: 0.6;
+}
+.ui-shop .markFullNone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 200;
+  pointer-events: none;
+}
+.ui-shop .backgroundTime {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  color: #000000ae;
+  font-size: 12px;
+  transform: translate(-50%);
+  opacity: 0;
+  transition: all 0.5s;
+}
+.ui-shop .leftSelfHeadBk:hover .backgroundTime {
+  opacity: 1;
+}
+.ui-shop .rscb_dowmOnce {
+  display: inline-block;
+  background-image: url(/pet/shppingMall/menu/Sale_SubTag.png);
+  background-size: 100% 100%;
+  height: 26px;
+  font-size: 12px;
+  padding: 0 12px;
+  font-weight: 900;
+}
+.ui-shop .rscb_dowmOnceText {
+  position: relative;
+  top: 3px;
+}
+.ui-shop .rscb_dowmOnce.active {
+  background-image: url(/pet/shppingMall/menu/Sale_SubTag_Selected.png);
+}
+.ui-shop .vips {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #03a29a;
+  width: 100%;
+  height: calc(100% - 120px);
+  z-index: 99;
+  transform: translateY(80px);
+}

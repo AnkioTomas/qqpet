@@ -3,6 +3,7 @@ import { floatMood } from '../ui/float'
 import { say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
+import { tickTimed } from './goods'
 import { Machine, type Pose } from './machine'
 import { rand } from './rand'
 import {
@@ -165,6 +166,7 @@ function tick(): void {
     setInfo('hunger', Math.max(info.hunger - rand(2, 3) * minutes, 0))
     setInfo('clean', Math.max(info.clean - rand(2, 3) * minutes, 0))
     addInfo('growth', +(growthPerMinute() * grown).toFixed(8))
+    for (const type of tickTimed(grown)) speak({ c: 'state', s: `${type}Over`, now: true }, 'speak')
   }
   lastTick = now
   update('nowTimeLine', now)

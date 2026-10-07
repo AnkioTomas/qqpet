@@ -1,0 +1,34 @@
+.ui-progress .progress {
+  height: 100%;
+  border-radius: 60px;
+  overflow: hidden;
+}
+.ui-progress .progress .hoverNum {
+  opacity: 0;
+}
+.ui-progress .progress:hover .hoverNum {
+  opacity: 1;
+}
+.ui-progress .seeNum {
+  font-size: 11px !important;
+  font-weight: 600;
+  position: relative;
+  top: 0;
+  text-shadow:
+    -1px -1px 0.5px #ffffff,
+    -1px 1px 0.5px #ffffff,
+    1px 1px 0.5px #ffffff,
+    1px -1px 0.5px #ffffff;
+  padding: 0 15px;
+}
+.ui-progress .progress:after {
+  content: "";
+  display: inline-block;
+  background-color: #3f3f3f;
+  border-radius: 30px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  position: absolute;
+  left: 1px;
+  top: 1.3px;
+}

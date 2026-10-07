@@ -1,5 +1,6 @@
 import type { TrayState } from '../../shared/ipc'
 import type { PetInfo, SaveData, SavePatch } from '../../shared/save'
+import { goodOf, type TimedType } from './data/goods'
 import { levelOf, stageOf, type Stage } from './level'
 import type { Mood } from './router'
 
@@ -61,8 +62,9 @@ export const petSize = (): number => ((144 + 2 * Math.min(save.petComputedlInfo.
 export function growthPerMinute(): number {
   if (info.mood <= 0) return 10 / 60
   const rate = MOODS.find(([min]) => info.mood >= min)![2]
-  const perHour = (80 * rate + (info.pinkDiamond ? 10 : 0)) * (info.sweetHeartOverTime ? 1.1 : 1)
-  return perHour / 60
+  let perHour = 80 * rate + (info.pinkDiamond ? 10 : 0)
+  for (const [type, t] of Object.entries(save.selfGoodUseOption)) if (t) perHour += goodOf(type as TimedType, t.id).group ?? 0
+  return (perHour * (info.sweetHeartOverTime ? 1.1 : 1)) / 60
 }
 
 const busy = (): boolean => Boolean(activity('work') || activity('study') || activity('trip'))
