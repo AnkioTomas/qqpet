@@ -33,8 +33,14 @@ window.BubbleAPI = {
 const skinOf = (): number => (info.pinkDiamond ? (info.sweetHeart ? 4 : 2) : info.sweetHeart ? 3 : 1)
 
 let lift = 0
-/** Room the action bar takes above the pet (0 when it is hidden or below). */
-export const setBubbleLift = (px: number): void => void (lift = px)
+/**
+ * Room the action bar takes above the pet (0 when it is hidden or below).
+ * The bar calls this whenever the pet moves or grows, so the bubble follows.
+ */
+export function setBubbleLift(px: number): void {
+  lift = px
+  place()
+}
 
 function place(): void {
   const size = petSize()
