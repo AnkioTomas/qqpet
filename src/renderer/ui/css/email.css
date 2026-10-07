@@ -1,0 +1,26 @@
+.ui-email .Email {width:200px;min-height:180px;max-height:350px;color:#000000bc;font-size:12px}
+.ui-email .titleBox {width:100%;height:28px}
+.ui-email .title {width:118px;background-image:url(/pet/email/notice_title.png);background-repeat:no-repeat;font-size:14px;color:#fff}
+.ui-email .titleImg {height:100px;position:absolute}
+.ui-email .reGet {width:29px;height:19px;background-image:url(/pet/email/shuaxin01.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;left:4px;top:4px}
+.ui-email .reGet:hover {background-image:url(/pet/email/shuaxin02.png)}
+.ui-email .reGet:active {background-image:url(/pet/email/shuaxin00.png)}
+.ui-email .close {width:20px;height:20px;background-image:url(/pet/email/close_normal.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:4px;top:4px}
+.ui-email .close:hover {background-image:url(/pet/email/close_click.png)}
+.ui-email .close:active {background-image:url(/pet/email/close_over.png)}
+.ui-email .emails {overflow:hidden auto}
+.ui-email .leftType {width:37px;height:32px;margin:0 5px;background-size:100% 100%}
+.ui-email .uyjImg {background-image:url(/pet/email/uyj.png)}
+.ui-email .yjImg {background-image:url(/pet/email/yj.png)}
+.ui-email .email {border-bottom:1px solid rgba(203,203,203,.834);padding:5px 0}
+.ui-email .e_goodImgs {width:20px;height:20px}
+.ui-email .e_goodImgsBox {white-space:nowrap;width:100%;overflow:auto hidden}
+.ui-email .rgetEmail {width:35px;height:20px;background-image:url(/pet/email/5.svg);background-size:100% 100%;background-repeat:no-repeat;margin-right:5px}
+.ui-email .rgetEmail:hover {background-image:url(/pet/email/9.svg)}
+.ui-email .rgetEmail:active {background-image:url(/pet/email/11.svg)}
+.ui-email .getEmail {width:35px;height:20px;background-image:url(/pet/email/5.svg);background-size:100% 100%;background-repeat:no-repeat;margin-right:5px}
+.ui-email .getEmail:hover {background-image:url(/pet/email/9.svg)}
+.ui-email .getEmail:active {background-image:url(/pet/email/11.svg)}
+.ui-email .getEmails,
+.ui-email .rgetEmails {width:60px;margin:4px}
+.ui-email .e_time {font-size:9px;color:#9f9f9f}

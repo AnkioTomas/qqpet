@@ -108,6 +108,12 @@ function medicine(g: Good, take: () => boolean): void {
   speak({ s: right ? ill.successTolk : ill.errTolk, now: true }, 'cure', right ? { start: effect } : { end: effect })
 }
 
+/** Puts won goods in the inventory and has the pet say `text`. */
+export function give(goods: Good[], text: string): void {
+  for (const g of goods) addGood(g.type, g.id, g.num)
+  speak({ s: text, now: true }, 'speak')
+}
+
 /** Unit price; pink diamond members get 20% off. */
 export const price = (g: Good): number => g.price! * (info.pinkDiamond ? 0.8 : 1)
 

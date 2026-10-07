@@ -26,6 +26,8 @@ import {
   syncLevel,
   update,
 } from './store'
+import { resetSignIn, tickGift } from './signin'
+import { resetTasks } from './tasks'
 import { dayStart, newDay } from './vip'
 
 let idleTimer = 0
@@ -156,11 +158,14 @@ function tick(): void {
   if (save.nowTimeLine <= today) {
     setInfo('onlineDataTime', 0)
     newDay(today)
+    resetTasks()
+    resetSignIn()
   }
   if (lastTick !== null) {
     const minutes = +((now - lastTick) / 60).toFixed(5)
     addInfo('onlineDataTime', minutes)
     addInfo('onLineTime', minutes)
+    tickGift(minutes)
     // Work, study and travel wear the pet out faster.
     const extra = busy() ? 1 : 0
     const moodRate = rand(1, 2) + extra

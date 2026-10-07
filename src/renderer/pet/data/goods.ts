@@ -16,6 +16,8 @@ export interface Good {
   needLevel?: number
   /** Pink diamond members only. */
   PD?: boolean
+  /** No longer sold; only won. */
+  outOfPrint?: boolean
   hunger?: number
   clean?: number
   mood?: number
@@ -58,6 +60,12 @@ export const allGoods = (type: GoodType): Good[] => Object.values(TABLE[type]).m
 export function findGood(id: string): Good {
   const type = (Object.keys(TABLE) as GoodType[]).find((t) => TABLE[t][`_${id}`])!
   return goodOf(type, id)
+}
+
+/** A good from its `_<id>*<count>` code (count defaults to 1). */
+export function parseGood(code: string): Good {
+  const [id, n] = code.slice(1).split('*')
+  return { ...findGood(id), num: +(n ?? 1) }
 }
 
 /** " 魅力+1 智力+2"-style attribute gains, or ''. */

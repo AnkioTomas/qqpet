@@ -2,7 +2,9 @@ import { FACE } from '../pet/data/face'
 import { machine } from '../pet/pet'
 import { rand } from '../pet/rand'
 import { info, mood, save, setInfo, stage, update } from '../pet/store'
+import { addCount } from '../pet/tasks'
 import { floatMood } from './float'
+import { windowView } from './window-view'
 
 const HOVER_MS = 300
 
@@ -13,6 +15,8 @@ petEl.appendChild(layer)
 
 function poke(key: string, s = 1, e = s): void {
   layer.replaceChildren()
+  addCount('Amusing')
+  if (!save.gameSaveDatas.ddw) windowView({ title: '逗逗我~~', msg: '恭喜成功开启逗宠成就~~', goods: [{ url: 'pet/achievement/ddw.svg', name: '逗宠成就' }] })
   update('gameSaveDatas', { ddw: save.gameSaveDatas.ddw + 1 })
   const v = rand(5, 15)
   void floatMood(v)

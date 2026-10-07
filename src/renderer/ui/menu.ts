@@ -8,6 +8,8 @@ import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
 import { openShop } from './shop'
 
+const ditu = (n: number): string => `pet/Menu/ditu0${n}.png`
+
 const WIDTH = 110
 
 interface Item {
@@ -96,7 +98,7 @@ function list(entries: Item[], toLeft: boolean): HTMLElement {
   return div(
     'menuList fC py6',
     ...entries.map((it) => {
-      const sub = it.children && div(`r_cMain${toLeft ? ' toLeft' : ''}`, frame(div('CMenuList fC py6', ...it.children.map(child)), 'pet/Menu/ditu', [12, 21]))
+      const sub = it.children && div(`r_cMain${toLeft ? ' toLeft' : ''}`, frame(div('CMenuList fC py6', ...it.children.map(child)), ditu, [12, 21]))
       if (sub) sub.style.width = `${WIDTH}px`
       const row = button(
         'menu fc',
@@ -122,7 +124,7 @@ export function openMenu(at: { x: number; y: number; pet: boolean }, adopt: () =
   closeMenu()
   const petRight = info.lastX + petSize()
   const toLeft = at.pet && petRight >= innerWidth - 220
-  const menu = div('rightMenu focusPress', frame(list(items(adopt), toLeft), 'pet/Menu/ditu', [12, 21]))
+  const menu = div('rightMenu focusPress', frame(list(items(adopt), toLeft), ditu, [12, 21]))
   menu.dataset.hit = ''
   menu.style.width = `${WIDTH}px`
   const { x, y } = at

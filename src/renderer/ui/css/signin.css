@@ -1,0 +1,40 @@
+.ui-signin {position:relative}
+.ui-signin .calendar {font-family:Arial,sans-serif;text-align:center;width:100%;font-size:12px}
+.ui-signin .weekdays {font-size:14px;margin-bottom:10px}
+.ui-signin .days {width:calc((100% / 7) - 4px);aspect-ratio:1;margin:2px;padding:4px 0;border-radius:5px}
+.ui-signin .hidden {opacity:0}
+.ui-signin .pass {background-color:#72727270;color:#fff}
+.ui-signin .haveGet {background-color:#e2295470!important;color:#fff}
+.ui-signin .nowDay {transform:scale(1.25)}
+.ui-signin .activeNum {position:relative;overflow:hidden}
+.ui-signin .nums {position:relative;transition:all .5s}
+.ui-signin .num {position:relative}
+.ui-signin .cd_title {font-size:14px;font-weight:900}
+.ui-signin .SignIn {width:737px;height:485px;color:#202020b5;background-color:#fdecdd;font-size:12px;padding:12px}
+.ui-signin .s_left {padding:5px;border-radius:8px;border:1px solid #f1ac65;background-color:#fff8e5}
+.ui-signin .sl_main {border:1px solid #f1ac65;width:100%;border-radius:8px;padding:5px;height:100%}
+.ui-signin .s_right {width:200px;margin-left:8px}
+.ui-signin .calendarBox {background-color:#fff8e5;padding:8px}
+.ui-signin .toCollect {background-color:#fff8e5;margin-top:8px;border-radius:5px}
+.ui-signin .yqd {padding:12px 3px;color:#edbd8c;font-size:14px;font-weight:700;text-shadow:.2px .2px 1px #000}
+.ui-signin .yqdTip {color:#c2c2c2}
+.ui-signin .s_toQDImg {width:32px;height:32px}
+.ui-signin .s_getGrowth {background-color:#efd8c9;border-radius:10px;width:80%}
+.ui-signin .sgt_top {width:60%;height:15px;background-color:#e4b69e;border-radius:0 0 10px 10px}
+.ui-signin .growths .gNum {font-weight:600;font-size:40px;background-color:#fdfeff;margin:0 2px;box-shadow:inset 2px 2px 2px #00000080,inset -2px -2px 2px #ffffffa2;padding:2px 5px}
+.ui-signin .sgt_tip {padding:8px;font-weight:900}
+.ui-signin .g0 {border-radius:10px 0 0 10px}
+.ui-signin .g2 {border-radius:0 10px 10px 0}
+.ui-signin .s_gift {width:100px;height:100px}
+.ui-signin .illustrated {overflow-y:auto}
+.ui-signin .il_title,
+.ui-signin .il_g_title {font-size:14px;font-weight:900}
+.ui-signin .il_tabbar {position:sticky;background-color:#fdecdd;top:0;z-index:40}
+.ui-signin .il_tt {padding:2px 8px;margin-left:2px;background-color:#efefef}
+.ui-signin .il_tt.active {padding:2px 8px;background-color:#e6ae77;color:#fff;border-radius:4px}
+.ui-signin .il_g_cardnot {filter:grayscale(80%) brightness(110%);width:50px;height:50px;margin:4px}
+.ui-signin .il_g_card {min-width:50px;min-height:50px;margin:4px;position:relative}
+.ui-signin .goodFloatMsg {pointer-events:none;min-width:130px;position:absolute;left:-2px;top:0;transform:translate(-100%);color:#fff;background-color:#542e037b;border-radius:5px;border:1px solid #fff;padding:6px 8px 5px;display:none;z-index:999}
+.ui-signin .p4:hover .goodFloatMsg {display:unset!important}
+.ui-signin .open {color:#518eff;font-weight:400}
+.ui-signin .closeOpen {max-height:0;overflow:hidden}

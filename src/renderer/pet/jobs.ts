@@ -3,14 +3,15 @@ import { openExam } from '../ui/exam'
 import { floatMood } from '../ui/float'
 import { windowView } from '../ui/window-view'
 import { startTask } from './activity'
-import { allGoods, attrs, findGood, goodOf, type Good } from './data/goods'
-import POOLS from './data/pool.json'
+import { allGoods, attrs, goodOf, type Good } from './data/goods'
 import PROVINCES from './data/travel.json'
 import { addGood } from './goods'
 import { apply } from './items'
+import { loot } from './loot'
 import { speak } from './pet'
 import { rand } from './rand'
 import { addInfo, busy, info, luck, save, setInfo, update } from './store'
+import { addCount } from './tasks'
 
 export { PROVINCES }
 
@@ -149,14 +150,14 @@ function visit(name: string): boolean {
 
 /** An encounter brings a random good back: from the better pool for a new province. */
 function souvenir(isNew: boolean): void {
-  const pool = POOLS[isNew ? 2 : 1]
-  const g = findGood(pool[rand(0, pool.length - 1)].slice(1))
+  const [g] = loot(1, isNew ? 2 : 1)
   addGood(g.type, g.id, 1)
   windowView({ title: '旅游奇遇~~', msg: '带回物品~~', goods: [g] })
 }
 
 function back(p: Province, early: boolean): void {
   const isNew = visit(p.name)
+  addCount('Travel1')
   void floatMood(20)
   setInfo('mood', Math.min(info.mood + 20, 1000))
   const e = p.extraordinaryEncounter[rand(0, p.extraordinaryEncounter.length - 1)]

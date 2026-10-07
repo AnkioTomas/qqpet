@@ -4,6 +4,7 @@ import { pay } from '../pet/items'
 import { PROVINCES, travel } from '../pet/jobs'
 import { speak } from '../pet/pet'
 import { activity, info, save, update } from '../pet/store'
+import { resetTour } from '../pet/tasks'
 import { openBox } from './box'
 import './css/travel.css'
 import { button, div, img } from './dom'
@@ -28,7 +29,10 @@ function finishTour(): void {
     title: '旅游~~',
     msg: '该操作将清除旅游数据，并且可重新做相关旅游任务，确认花费8888元宝进行完成旅游成就么？',
     ok: (close) => {
-      if (pay(8888)) update('gameSaveDatas', { travel_china: [], travel_china_num: save.gameSaveDatas.travel_china_num + 1 })
+      if (pay(8888)) {
+        update('gameSaveDatas', { travel_china: [], travel_china_num: save.gameSaveDatas.travel_china_num + 1 })
+        resetTour()
+      }
       close()
     },
   })

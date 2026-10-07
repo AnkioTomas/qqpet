@@ -130,7 +130,7 @@ function render(): void {
     ),
     div('foot fcb w100', heart, button(info.sweetHeart ? 'closeSweetHeart' : 'openSweetHeart', sweetHeart)),
   )
-  panel.replaceChildren(frame(content, 'pet/stateInfo/ditu', [32, 32]))
+  panel.replaceChildren(frame(content, (n) => `pet/stateInfo/ditu0${n}.png`, [32, 32]))
 }
 
 export function closeState(): void {

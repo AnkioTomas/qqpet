@@ -1,0 +1,13 @@
+.ui-task {position:relative}
+.ui-task .task {width:607px;height:455px;background-color:#fdecdd;font-size:12px;color:#202020b5}
+.ui-task .t_bottom {height:100px}
+.ui-task .t_top {padding:0 12px 12px;border-radius:8px}
+.ui-task .t_title {padding:8px 3px;color:#edbd8c;font-size:14px;font-weight:700;text-shadow:.2px .2px 1px #000}
+.ui-task .taskOnce {padding:5px 0;border-bottom:1px solid #f1ac65}
+.ui-task .tasks {border:1px solid #f1ac65;border-radius:8px;overflow:hidden auto;padding:16px}
+.ui-task .to_label {color:#f18922;font-size:14px;font-weight:500;text-shadow:.2px .2px 1px #000}
+.ui-task .to_msg {font-size:12px;font-weight:500;color:#535353c2}
+.ui-task .goodImg {width:30px;height:30px;margin-right:5px}
+.ui-task .t_tabs {white-space:nowrap}
+.ui-task .t_tab {display:inline-block;padding:3px 5px;border-radius:5px}
+.ui-task .active.t_tab {background-color:#edbd8c;color:#fff}

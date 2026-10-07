@@ -6,7 +6,7 @@ import { button, div, img } from './dom'
 interface Dialog {
   title?: string
   msg: string
-  goods?: Good[]
+  goods?: Pick<Good, 'url' | 'name'>[]
   /** Shows a quantity picker from 1 to max (initially max). */
   max?: number
   /** OK button; without it OK just closes. `num` is the picked quantity. */

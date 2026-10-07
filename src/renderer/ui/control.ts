@@ -8,9 +8,13 @@ import { openPinkDiamond } from '../pet/vip'
 import './css/control.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
+import { openEmail } from './email'
 import { progress } from './progress'
+import { openSetup } from './setup'
 import { openShop } from './shop'
+import { openSignIn } from './signin'
 import { setBubbleLift } from './talk'
+import { openTask } from './task'
 import { openTravel } from './travel'
 import { windowView } from './window-view'
 
@@ -106,6 +110,16 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       },
       { name: '旅游', icon: 'lvyou.png', run: openTravel },
       { name: '看病', icon: 'zhibing.png', run: doctor },
+    ],
+  },
+  {
+    name: '工具',
+    icon: 'renwu.png',
+    children: [
+      { name: '邮箱', icon: 'haoyou.png', run: openEmail },
+      { name: '任务', icon: 'renwu1.png', run: openTask },
+      { name: '签到', icon: 'juanzhou00.png', run: openSignIn },
+      { name: '设置', icon: 'guanli.png', run: openSetup },
     ],
   },
 ]
