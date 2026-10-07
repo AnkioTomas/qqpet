@@ -12,10 +12,12 @@ export function openMstx(): void {
   const host = div('mstx')
   const remove = openFrame(div('ui-mstx', host))
   window.qqpet.setFocusable(true)
-  window.closeFrame = () => {
-    remove()
-    window.qqpet.setFocusable(false)
-    open = false
-  }
+  // The SWF calls this from its own script, and Ruffle cannot destroy an instance until that call returns.
+  window.closeFrame = () =>
+    setTimeout(() => {
+      remove()
+      window.qqpet.setFocusable(false)
+      open = false
+    })
   void new SwfPlayer(host).load('pet/mstx/main_qq_mstx.swf', 'pet/mstx/')
 }
