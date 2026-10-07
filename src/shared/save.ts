@@ -94,6 +94,8 @@ export interface Settings {
   hidden: boolean
   /** High-resolution assets: @2x tray icons and SVG window frames. */
   hd: boolean
+  /** The pet reads out text copied to the clipboard. */
+  clip: boolean
 }
 
 export interface SaveData {

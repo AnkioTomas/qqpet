@@ -16,6 +16,7 @@ export const IPC = {
   setTrayState: 'tray:set-state',
   cursor: 'win:cursor',
   trayClick: 'tray:click',
+  clipboard: 'clipboard:text',
 } as const
 
 export interface Point {
@@ -76,4 +77,6 @@ export interface QQPetApi {
   /** Cursor position in window coordinates, pushed ~30 times per second. */
   onCursor(listener: (p: Point) => void): void
   onTrayClick(listener: (e: TrayClick) => void): void
+  /** New clipboard text, while the clip setting is on. */
+  onClipboard(listener: (text: string) => void): void
 }

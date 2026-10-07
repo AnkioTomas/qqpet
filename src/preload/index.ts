@@ -22,6 +22,7 @@ const api: QQPetApi = {
   setTrayState: send(IPC.setTrayState),
   onCursor: (listener) => ipcRenderer.on(IPC.cursor, (_e, p) => listener(p)),
   onTrayClick: (listener) => ipcRenderer.on(IPC.trayClick, (_e, c) => listener(c)),
+  onClipboard: (listener) => ipcRenderer.on(IPC.clipboard, (_e, text) => listener(text)),
 }
 
 contextBridge.exposeInMainWorld('qqpet', api)
