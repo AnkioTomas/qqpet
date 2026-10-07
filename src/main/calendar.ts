@@ -12,7 +12,8 @@ interface Reply {
 }
 
 async function fetchDay(date: string): Promise<CalendarDay> {
-  const { data: d } = (await (await net.fetch(API + date)).json()) as Reply
+  // The day's tasks and mail wait for this; a stalled network must not hold them back.
+  const { data: d } = (await (await net.fetch(API + date, { signal: AbortSignal.timeout(10_000) })).json()) as Reply
   const h = Array.isArray(d.holidays) ? null : d.holidays
   return { date, lunar: `${d.lunar_month_chinese}${d.lunar_day_chinese}`, term: d.term, holiday: h && { name: h.name, off: h.isOffDay } }
 }
