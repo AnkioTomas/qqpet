@@ -40,6 +40,10 @@ const REWORD =
 /** Small talk while idle, starting from one of the original lines. */
 export const IDLE = '主人在旁边忙，没有说话。结合你现在的状态、时间和日期，主动对主人说一句话；只输出这句话，不要解释。可以参考这句：'
 
+/** The original encounter lines say 你 for the pet and never mention it is back; reworded they read as if the host were there. */
+export const tripBack = (city: string): string =>
+  `你刚从${city}旅游回来，下面是你在旅途中遇到的一件奇遇，句中的「你」指的是你自己。先告诉主人你回来了，再用你的口吻把这件奇遇讲给主人听；只输出这句话，不要解释。奇遇：`
+
 /** Small models cannot tell the language reliably, so the code picks the request. */
 const REMARK = '主人刚复制了下面这段中文，用一句话俏皮地点评它。只输出这句话，不要解释。文字：'
 const TRANSLATE = '主人刚复制了下面这段文字。如果是代码或网址，用一句话猜猜它是干什么的；否则把它翻译成中文，以「翻译：」开头。只输出这句话，不要解释。文字：'

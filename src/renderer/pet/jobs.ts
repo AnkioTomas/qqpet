@@ -4,6 +4,7 @@ import { openExam } from '../ui/exam'
 import { floatMood } from '../ui/float'
 import { windowView } from '../ui/window-view'
 import { startTask, type Task } from './activity'
+import { tripBack } from './ai'
 import { isBuddy, takePhoto } from './album'
 import { allGoods, attrs, goodOf, type Good } from './data/goods'
 import PROVINCES from './data/travel.json'
@@ -185,12 +186,12 @@ function back(p: Province, early: boolean): void {
   void floatMood(20)
   setInfo('mood', Math.min(info.mood + 20, 1000))
   const e = p.extraordinaryEncounter[rand(0, p.extraordinaryEncounter.length - 1)]
-  speak({ s: e.tolk, b: e.submitText, now: true }, 'speak', early ? { ok: () => souvenir(isNew) } : {})
+  speak({ s: e.tolk, b: e.submitText, now: true, ai: tripBack(p.name) }, 'speak', early ? { ok: () => souvenir(isNew) } : {})
   const shot = takePhoto(p.name)
   if (!shot) return
   mailPhoto(shot)
   const s = isBuddy(shot.id) ? '[host]，我在路上遇到了旅游搭子，一起拍了张合照，寄到邮箱啦~' : `[host]，我在${p.name}拍了张明信片寄给你，快去邮箱看看吧~`
-  speak({ s, b: '这就去' }, 'speak', { ok: openEmail })
+  speak({ s, b: '这就去', ai: false }, 'speak', { ok: openEmail })
 }
 
 /** An hour in a random province; a lucky pet comes back early from an encounter. */
