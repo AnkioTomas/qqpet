@@ -1,3 +1,4 @@
+import { resumeTask } from './pet/jobs'
 import { startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
@@ -102,5 +103,7 @@ window.qqpet.onTrayClick((c) => {
   else adoptPet()
 })
 
-if (save.havePet) begin()
-else adoptPet()
+if (save.havePet) {
+  resumeTask()
+  begin()
+} else adoptPet()

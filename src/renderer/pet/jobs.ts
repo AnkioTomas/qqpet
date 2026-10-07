@@ -2,7 +2,7 @@ import type { StudyInfo } from '../../shared/save'
 import { openExam } from '../ui/exam'
 import { floatMood } from '../ui/float'
 import { windowView } from '../ui/window-view'
-import { startTask } from './activity'
+import { startTask, type Task } from './activity'
 import { allGoods, attrs, goodOf, type Good } from './data/goods'
 import PROVINCES from './data/travel.json'
 import { addGood } from './goods'
@@ -10,7 +10,7 @@ import { apply } from './items'
 import { loot } from './loot'
 import { speak } from './pet'
 import { rand } from './rand'
-import { addInfo, busy, info, luck, save, setInfo, update } from './store'
+import { activity, addInfo, busy, info, luck, save, setInfo, update } from './store'
 import { addCount } from './tasks'
 
 export { PROVINCES }
@@ -83,15 +83,20 @@ export function work(g: Good): boolean {
     speak({ s: no, now: true }, 'speak')
     return false
   }
-  const end = (): void => {
+  speak({ s: '[host]，我开始工作了哦~', now: true }, 'speak', { start: () => startTask(workTask(g), g.id) })
+  return true
+}
+
+const workTask = (g: Good): Task => ({
+  key: 'work',
+  minutes: g.useTime!,
+  end: () => {
     addInfo('yb', g.yb!)
     apply(g)
     addCount('Work')
     speak({ c: 'state', s: 'overWork', now: true }, 'speak')
-  }
-  speak({ s: '[host]，我开始工作了哦~', now: true }, 'speak', { start: () => startTask({ key: 'work', minutes: g.useTime!, end }, g.id) })
-  return true
-}
+  },
+})
 
 /** Each subject's lesson at the school its progress is in. */
 export const studyGoods = (): Good[] =>
@@ -124,20 +129,27 @@ export function study(g: Good): boolean {
     examPrompt(g)
     return false
   }
-  const minutes = g.useTime!
-  const end = (early: boolean): void => {
-    learn(subjectOf(g))
-    apply(g)
-    addCount('Study')
-    if (lessons(g) === g.classNum) examPrompt(g)
-    else speak({ c: 'state', s: early ? 'cententStudy' : 'overStudy', now: true }, 'speak')
-  }
-  // A clever pet may be let out of the last five minutes.
-  const early = (done: number): boolean => done > minutes - 5 && rand(0, Math.max(200, 3000 - info.intel / 10)) <= 10
   speak({ s: `[host]，我被分配到${rand(1e6, 9999999)}班学习${g.object},我放学就回来，不要太想念我哦~~~`, now: true }, 'speak', {
-    start: () => startTask({ key: 'study', minutes, early, end }, g.id),
+    start: () => startTask(studyTask(g), g.id),
   })
   return true
+}
+
+function studyTask(g: Good): Task {
+  const minutes = g.useTime!
+  return {
+    key: 'study',
+    minutes,
+    // A clever pet may be let out of the last five minutes.
+    early: (done) => done > minutes - 5 && rand(0, Math.max(200, 3000 - info.intel / 10)) <= 10,
+    end: (early) => {
+      learn(subjectOf(g))
+      apply(g)
+      addCount('Study')
+      if (lessons(g) === g.classNum) examPrompt(g)
+      else speak({ c: 'state', s: early ? 'cententStudy' : 'overStudy', now: true }, 'speak')
+    },
+  }
 }
 
 type Province = (typeof PROVINCES)[number]
@@ -170,8 +182,33 @@ function back(p: Province, early: boolean): void {
 export function travel(): void {
   if (cannot('旅行了', '去旅游哦')) return
   const p = PROVINCES[rand(0, PROVINCES.length - 1)]
-  const early = (done: number): boolean => done > 55 && rand(0, 1000 - luck() * 10) <= 10
-  speak({ s: `[host]，我开始去${p.name}了哦~`, now: true }, 'speak', {
-    start: () => startTask({ key: 'trip', minutes: 60, early, end: (e) => back(p, e) }, p.name),
-  })
+  speak({ s: `[host]，我开始去${p.name}了哦~`, now: true }, 'speak', { start: () => startTask(tripTask(p), p.name) })
+}
+
+const tripTask = (p: Province): Task => ({
+  key: 'trip',
+  minutes: 60,
+  early: (done) => done > 55 && rand(0, 1000 - luck() * 10) <= 10,
+  end: (e) => back(p, e),
+})
+
+/** Rebuilds a task from its activeOption value; null for a job or city this version does not know. */
+const REBUILD: Record<Task['key'], (v: string) => Task | null> = {
+  work: (v) => (goodOf('work', v).useTime ? workTask(goodOf('work', v)) : null),
+  study: (v) => (goodOf('study', v).useTime ? studyTask(goodOf('study', v)) : null),
+  trip: (v) => {
+    const p = PROVINCES.find((x) => x.name === v)
+    return p ? tripTask(p) : null
+  },
+}
+
+/** Picks up the task running when the app quit, the time it was closed counting too; one already due ends once growth starts. */
+export function resumeTask(): void {
+  const key = (['work', 'study', 'trip'] as const).find((k) => activity(k))
+  const value = key ? activity(key)! : ''
+  update('activeOption', { work: null, study: null, trip: null })
+  const t = key && info.health > 0 ? REBUILD[key](value) : null
+  if (!t) return
+  const offline = Math.max(Date.now() / 1000 - save.nowTimeLine, 0) / 60
+  startTask(t, value, Math.min(Number(save.saveJsonData.activity ?? 0) + offline, t.minutes))
 }

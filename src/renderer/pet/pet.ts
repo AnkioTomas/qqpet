@@ -257,6 +257,8 @@ async function daily(): Promise<void> {
 
 function startGrowth(): void {
   grow()
+  // A task resumed after a restart may be due already.
+  advanceTask(0)
   setInterval(grow, 60_000)
 }
 

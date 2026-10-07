@@ -126,9 +126,8 @@ export function refreshTray(): void {
   else setTray('normal')
 }
 
-// Load-time fixups from the original setDefaultPetInfoData: activities do not
-// survive a restart and a sick pet always has an illness line.
-update('activeOption', { work: null, study: null, trip: null })
+// Load-time fixups from the original setDefaultPetInfoData: a sick pet always
+// has an illness line. Unlike the original, activities survive a restart (resumeTask).
 update('petInfo', { lastX: info.lastX | 0, lastY: info.lastY | 0 })
 if (info.health < 5 && !activity('ill')) setActivity('ill', '1-')
 syncLevel()
