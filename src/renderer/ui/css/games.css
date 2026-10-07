@@ -1,0 +1,22 @@
+.ui-games .games {width:700px;height:600px;padding:8px 0 0;position:relative}
+.ui-games .gamesLeftControl {width:150px;height:100%;color:#0000009c;font-size:14px;font-weight:500;overflow:hidden auto}
+.ui-games .glc_openChildrenIcon {transform:rotate(180deg);color:#fff}
+.ui-games .glc_main {max-height:0px;transition:all .5s;overflow:hidden}
+.ui-games .glc_openChildren {max-height:auto}
+.ui-games .glc_item {height:25px;padding:5px;border-radius:8px;border-bottom:1px solid #00000017;cursor:pointer;white-space:nowrap}
+.ui-games .glc_menu {border-radius:8px;border-bottom:1px solid #00000017;cursor:pointer;padding:5px 5px 5px 7px}
+.ui-games .glc_menuNC:hover,
+.ui-games .glc_item:hover {background-color:#1989fa3b;color:#fff}
+.ui-games .glc_menu.active,
+.ui-games .glc_item.active {background-color:#1989fa88;color:#fff}
+.ui-games .glc_title {display:flex;align-items:center}
+.ui-games .glc_cicon {font-size:16px;transition:all .5s;margin-left:8px}
+.ui-games .glc_open {width:50px;height:30px;font-size:25px;cursor:pointer;transition:all .5s;display:flex;align-items:center;justify-content:center;transform:rotate(180deg)}
+.ui-games .glc_open.glc_openIcon {transform:rotate(0)}
+.ui-games .topSee {height:50px;width:100%;display:flex;align-items:center;position:sticky;top:0}
+.ui-games .isOpenMenu {width:20px!important;overflow:0;transition:all .2s}
+.ui-games .isOpenMenu:hover {width:50px!important;overflow:0}
+.ui-games .toGetFocusable {position:absolute;right:5px;top:15px;background-color:#fff;border-radius:10px;color:red;z-index:100000;font-size:12px;padding:2px 5px;opacity:.6}
+.ui-games .toGetFocusable:hover {opacity:1}
+.ui-games .FullWindow {right:225px}
+.ui-games .dontDragMain {width:100%;height:100%;position:absolute;left:0;top:0}

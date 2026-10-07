@@ -1,3 +1,4 @@
+import { resetFish } from './fishing'
 import { info, setInfo } from './store'
 
 const DAY = 86400
@@ -28,7 +29,8 @@ function settle(today: number): void {
 /** Opens pink diamond for `days` from today's 06:00, or extends a running one. */
 export function openPinkDiamond(days: number): void {
   const today = dayStart()
-  if (info.pinkDiamond) {
+  const extend = info.pinkDiamond
+  if (extend) {
     setInfo('PDiamondExpirationDate', info.PDiamondExpirationDate + days * DAY)
   } else {
     setInfo('PDiamondExpirationDate', today + days * DAY)
@@ -36,6 +38,8 @@ export function openPinkDiamond(days: number): void {
   }
   setInfo('PDgrowthValue', 20)
   settle(today)
+  // Opening grants today's pond speed-ups; extending does not refill them.
+  if (!extend) resetFish()
 }
 
 /** Books sweetheart for `days` more, from today's 06:00 when none is booked, and switches it on. */

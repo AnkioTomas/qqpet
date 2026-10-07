@@ -10,6 +10,10 @@ declare global {
     BubbleAPI: { OnButtonClick(i: number): void }
     /** Called by reset/Adopt.swf: 0 GG, 1 MM. */
     ChooseAPI: { ChooseSex(n: number): void }
+    /** Called by fishing/main.swf: requests as `{head, data}` JSON, the pet's profile, and its close button (1). */
+    PETSendData(json: string): void
+    SNS_GetSelfPetInfo(): Record<string, unknown>
+    close_game(n: number): void
   }
 
   interface RuffleMetadata {

@@ -9,6 +9,8 @@ import './css/control.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
 import { openEmail } from './email'
+import { openFishing } from './fishing'
+import { openGames } from './games'
 import { progress } from './progress'
 import { openSetup } from './setup'
 import { openShop } from './shop'
@@ -120,6 +122,14 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       { name: '任务', icon: 'renwu1.png', run: openTask },
       { name: '签到', icon: 'juanzhou00.png', run: openSignIn },
       { name: '设置', icon: 'guanli.png', run: openSetup },
+    ],
+  },
+  {
+    name: '活动',
+    icon: 'gonggao.png',
+    children: [
+      { name: '池塘', icon: 'fish01.png', run: openFishing },
+      { name: '游戏', icon: 'game.svg', run: openGames },
     ],
   },
 ]

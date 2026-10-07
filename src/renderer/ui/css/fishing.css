@@ -1,0 +1,3 @@
+.ui-fishing .fishing {width:411px;height:320px}
+.ui-fishing .controlTF {position:absolute;left:0;top:125px;height:50px;width:50px;opacity:0;pointer-events:none}
+.ui-fishing .controlTFActive {pointer-events:all!important}

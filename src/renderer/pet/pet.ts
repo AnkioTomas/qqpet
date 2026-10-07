@@ -26,6 +26,7 @@ import {
   syncLevel,
   update,
 } from './store'
+import { resetFish } from './fishing'
 import { resetSignIn, tickGift } from './signin'
 import { resetTasks } from './tasks'
 import { dayStart, newDay } from './vip'
@@ -160,6 +161,7 @@ function tick(): void {
     newDay(today)
     resetTasks()
     resetSignIn()
+    resetFish()
   }
   if (lastTick !== null) {
     const minutes = +((now - lastTick) / 60).toFixed(5)

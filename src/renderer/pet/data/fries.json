@@ -1,0 +1,18 @@
+[
+  { "fryid": 2, "avator": 2, "flag": 0, "name": "金鱼", "level": 0, "price_yb": 2, "quantity": 5, "interval": 7200, "sell_price": 2 },
+  { "fryid": 1, "avator": 1, "flag": 0, "name": "秋刀鱼", "level": 3, "price_yb": 5, "quantity": 5, "interval": 7200, "sell_price": 3 },
+  { "fryid": 3, "avator": 3, "flag": 0, "name": "热带鱼", "level": 6, "price_yb": 8, "quantity": 5, "interval": 7200, "sell_price": 6 },
+  { "fryid": 33, "avator": 33, "flag": 0, "name": "章鱼", "level": 9, "price_yb": 11, "quantity": 5, "interval": 7200, "sell_price": 9 },
+  { "fryid": 5, "avator": 5, "flag": 1, "name": "刺须鲶鱼", "level": 15, "price_yb": 17, "quantity": 5, "interval": 7200, "sell_price": 15 },
+  { "fryid": 34, "avator": 34, "flag": 0, "name": "鲟鱼", "level": 12, "price_yb": 14, "quantity": 5, "interval": 7200, "sell_price": 12 },
+  { "fryid": 6, "avator": 6, "flag": 1, "name": "紫印鱼", "level": 18, "price_yb": 20, "quantity": 5, "interval": 10800, "sell_price": 18 },
+  { "fryid": 17, "avator": 17, "flag": 0, "name": "灯泡鱼", "level": 21, "price_yb": 23, "quantity": 5, "interval": 7200, "sell_price": 21 },
+  { "fryid": 8, "avator": 8, "flag": 0, "name": "大眼鱼", "level": 24, "price_yb": 26, "quantity": 5, "interval": 7200, "sell_price": 24 },
+  { "fryid": 9, "avator": 9, "flag": 0, "name": "孔雀鱼", "level": 27, "price_yb": 29, "quantity": 5, "interval": 10800, "sell_price": 27 },
+  { "fryid": 13, "avator": 13, "flag": 0, "name": "闪电鱼", "level": 33, "price_yb": 35, "quantity": 5, "interval": 7200, "sell_price": 33 },
+  { "fryid": 14, "avator": 14, "flag": 1, "name": "天使鱼", "level": 30, "price_yb": 32, "quantity": 5, "interval": 10800, "sell_price": 30 },
+  { "fryid": 11, "avator": 11, "flag": 0, "name": "虎皮鱼", "level": 39, "price_yb": 41, "quantity": 5, "interval": 7200, "sell_price": 39 },
+  { "fryid": 15, "avator": 15, "flag": 1, "name": "剑鱼", "level": 36, "price_yb": 38, "quantity": 5, "interval": 7200, "sell_price": 36 },
+  { "fryid": 16, "avator": 16, "flag": 0, "name": "石斑鱼", "level": 42, "price_yb": 44, "quantity": 5, "interval": 7200, "sell_price": 42 },
+  { "fryid": 20, "avator": 20, "flag": 1, "name": "小龙虾", "level": 45, "price_yb": 47, "quantity": 5, "interval": 7200, "sell_price": 45 }
+]
