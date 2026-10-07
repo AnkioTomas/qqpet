@@ -1,11 +1,17 @@
 import { SwfPlayer } from './swf/player'
 
 const SIZE = 140
-const ACTIONS = ['Appear', 'Stand', 'Stand1', 'Speak', 'Hide'].map((a) => `pet/Action/GG/Adult/peaceful/${a}.swf`)
+const MARGIN = 40
+
+const save = await window.qqpet.load()
+const actions = ['Appear', 'Stand', 'Stand1', 'Speak', 'Hide'].map((a) => `pet/Action/${save.petInfo.sex}/Adult/peaceful/${a}.swf`)
+window.qqpet.setTrayState('normal')
+window.qqpet.onTrayClick((c) => console.log('tray click', c))
 
 const petEl = document.getElementById('pet')!
-petEl.style.left = `${innerWidth - SIZE - 40}px`
-petEl.style.top = `${innerHeight - SIZE - 40}px`
+const { lastX, lastY } = save.petInfo
+petEl.style.left = `${lastX >= 0 ? lastX : innerWidth - SIZE - MARGIN}px`
+petEl.style.top = `${lastY >= 0 ? lastY : innerHeight - SIZE - MARGIN}px`
 
 // The window is click-through except while the cursor is over a [data-hit]
 // element (or a drag is in progress).
@@ -31,6 +37,7 @@ petEl.addEventListener(
     const up = (): void => {
       dragging = false
       removeEventListener('pointermove', move, true)
+      window.qqpet.save({ petInfo: { lastX: petEl.offsetLeft, lastY: petEl.offsetTop } })
     }
     addEventListener('pointermove', move, true)
     addEventListener('pointerup', up, { capture: true, once: true })
@@ -40,7 +47,7 @@ petEl.addEventListener(
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 1000 / 12))
 const player = new SwfPlayer(petEl)
-for (let i = 0; ; i = (i + 1) % ACTIONS.length) {
-  await player.load(ACTIONS[i])
+for (let i = 0; ; i = (i + 1) % actions.length) {
+  await player.load(actions[i])
   while (player.currentFrame < player.totalFrames - 1) await tick()
 }

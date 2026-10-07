@@ -1,0 +1,99 @@
+// Save format of the original Arctic Penguin T800 (`petInfoData` in its
+// config.json). Field names, including the misspelled `petComputedlInfo`, are
+// kept verbatim so old saves load without translation.
+
+export type Sex = 'GG' | 'MM'
+
+export interface PetInfo {
+  name: string
+  host: string
+  sex: Sex
+  growth: number
+  hunger: number
+  clean: number
+  /** 0 (dead) .. 5 (healthy) */
+  health: number
+  /** 0 .. 1000 */
+  mood: number
+  /** unix seconds */
+  birthDay: number
+  intel: number
+  charm: number
+  strong: number
+  onLineTime: number
+  lastX: number
+  lastY: number
+  /** 元宝 */
+  yb: number
+  lastLoginTime: number
+  onlineDataTime: number
+  pinkDiamond: boolean
+  PDgrowth: number
+  PDgrowthValue: number
+  PDgrowthValue_next: number
+  PDiamondLevel: number
+  PDiamondBeginDate: number
+  PDiamondExpirationDate: number
+  sweetHeart: boolean
+  sweetHeartOverTime: number
+}
+
+export interface PetComputedInfo {
+  level: number
+  upGrowth: number
+  nextGrowth: number
+  hungerMax: number
+  cleanMax: number
+  healthMax: number
+  moodMax: number
+}
+
+export interface StudyInfo {
+  chinese: number
+  mathematics: number
+  politics: number
+  music: number
+  art: number
+  manner: number
+  pe: number
+  labouring: number
+  wushu: number
+}
+
+/** In-progress activity per kind, or null when idle. Shape is owned by the renderer. */
+export type ActiveOption = Record<'work' | 'study' | 'trip' | 'ill' | 'die', unknown>
+
+/** Inventory entries are encoded as `_<goodsId>*<count>`. */
+export type SelfGoodDatas = Record<
+  'food' | 'clean' | 'medicine' | 'background' | 'toy' | 'nums' | 'service' | 'work' | 'study' | 'trip',
+  string[]
+>
+
+export interface GameSaveDatas {
+  fishing_harvestfish: number
+  travel_china: unknown[]
+  travel_china_num: number
+  ddw: number
+  yyds: number
+}
+
+export interface SaveData {
+  havePet: boolean
+  isBury: boolean
+  saveNum: number
+  nowTimeLine: number
+  petInfo: PetInfo
+  petComputedlInfo: PetComputedInfo
+  studyInfo: StudyInfo
+  activeOption: ActiveOption
+  selfGoodDatas: SelfGoodDatas
+  gameSaveDatas: GameSaveDatas
+  illustrated: unknown[]
+  /** Feature-owned JSON blobs (email, task, signin, fishs), stored as strings. */
+  saveJsonData: Record<string, string>
+}
+
+/** Object-valued groups are merged field by field; everything else is replaced. */
+export type SavePatch = {
+  [K in keyof SaveData]?: SaveData[K] extends unknown[] ? SaveData[K] : SaveData[K] extends object ? Partial<SaveData[K]> : SaveData[K]
+}

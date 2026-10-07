@@ -33,3 +33,23 @@
 ## 托盘
 
 `img_res/Tray/<sex>/<state>/<n>.ico` 每 300ms 轮播；状态与提示文本见 `traysModel`。
+
+## 新版对应（`window.qqpet`，定义见 `src/shared/ipc.ts`）
+
+| 原版 | 新版 |
+|---|---|
+| `main_m_h_bus` `load` 推送初始数据 | `load()` 主动拉取 |
+| `main_h_m_saveDatas` | `save(patch)`，合并语义不变 |
+| `main_h_m_mousePenetration` | `setClickThrough()`；悬停判断改由 `onCursor()` 推送的光标位置完成 |
+| bus `traysIco` | `setTrayState()`，图标改用导入时生成的 PNG |
+| bus `loginOut` / `exit` | `quit()` |
+| bus `showMessageBox` | `messageBox()` 返回按钮序号 |
+| bus `showMessageBox` + `fnType: relaunch` + `opt.bury` | `resetPet()`；清理 localStorage 由渲染层在调用前自行完成 |
+| bus `setFocusable` / `setAlwaysOnTop` / `startupSelf` | `setFocusable()` / `setAlwaysOnTop()` / `setAutoStart()` |
+| service `api: 'back'` `copy` | `copyText()` |
+| 托盘 click / right-click → bus `openPetStateInfoPage` / `openRightMenu` | `onTrayClick()`，`kind` 为 `state` / `menu`；Linux 上来自托盘菜单，无坐标 |
+| `main_m_h_gt` 时间线、`main_m_h_heartbeat`、`main_h_m_console` | 删除；时间统一用本地时钟 |
+| `main_h_m_service` 远程接口 | 删除；渲染层按"请求失败"路径处理 |
+| `before-quit` 吞掉第一次退出请求 | 删除，避免拦截系统关机 |
+
+存档文件改为 `userData/save.json`（只含原 `petInfoData` 内容，去掉 `machineId`/`oId`）。首次启动若不存在，会自动从 `appData/Arctic Penguin/config.json` 迁移。
