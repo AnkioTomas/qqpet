@@ -1,6 +1,6 @@
 import { app, clipboard, dialog, ipcMain } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
-import type { SavePatch } from '../shared/save'
+import type { SavePatch, Sex } from '../shared/save'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
@@ -28,8 +28,8 @@ app.whenReady().then(() => {
     if (patch.petInfo) tray.retip(getSave().petInfo)
     if (patch.settings?.hd !== undefined) tray.setState(getSave())
   })
-  ipcMain.on(IPC.resetPet, () => {
-    resetSave()
+  ipcMain.on(IPC.resetPet, (_e, sex?: Sex) => {
+    resetSave(sex)
     app.relaunch()
     app.exit(0)
   })

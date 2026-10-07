@@ -1,4 +1,4 @@
-import type { SaveData, SavePatch } from './save'
+import type { SaveData, SavePatch, Sex } from './save'
 
 export const IPC = {
   load: 'pet:load',
@@ -58,8 +58,8 @@ export interface QQPetApi {
   load(): Promise<SaveData>
   /** Merges object groups field by field, replaces other keys, then persists. */
   save(patch: SavePatch): void
-  /** Buries the pet and relaunches into egg selection. */
-  resetPet(): void
+  /** Buries the pet and relaunches into egg selection, or straight into a newborn of `sex`. */
+  resetPet(sex?: Sex): void
   /** Asks where to write the save; false when cancelled. */
   exportSave(): Promise<boolean>
   /** Asks for a save file (ours or the original's config.json), then relaunches with it. */

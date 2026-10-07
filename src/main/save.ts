@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { SaveData, SavePatch } from '../shared/save'
+import type { SaveData, SavePatch, Sex } from '../shared/save'
 
 const FILE = join(app.getPath('userData'), 'save.json')
 // Arctic Penguin T800 kept the same data under `petInfoData` in electron-store.
@@ -250,9 +250,14 @@ export function importSave(file: string): void {
   writeFileSync(FILE, JSON.stringify(pet))
 }
 
-/** Buries the pet: the next launch starts with egg selection. */
-export function resetSave(): void {
+/** Buries the pet: the next launch starts with egg selection, or with a newborn of `sex`. */
+export function resetSave(sex?: Sex): void {
   save.havePet = false
   save.isBury = false
+  write(save)
+  if (!sex) return
+  loadSave()
+  save.petInfo.sex = sex
+  save.havePet = true
   write(save)
 }
