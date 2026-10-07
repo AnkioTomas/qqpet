@@ -56,9 +56,11 @@ export function createPetWindow(): BrowserWindow {
 
 /** A normal, resizable window playing one game; the SWF scales with it. */
 export function openGameWindow(swf: string): void {
+  const area = screen.getPrimaryDisplay().workAreaSize
+  const scale = Math.min(1, (area.width * 0.9) / 1024, (area.height * 0.9) / 768)
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: Math.round(1024 * scale),
+    height: Math.round(768 * scale),
     useContentSize: true,
     backgroundColor: '#000',
     autoHideMenuBar: true,

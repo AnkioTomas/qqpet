@@ -1,11 +1,14 @@
+import type { CalendarDay } from '../../shared/ipc'
 import { parseGood, type Good } from './data/goods'
 import { give } from './items'
 import { loot } from './loot'
-import { save, update } from './store'
+import { rand } from './rand'
+import { info, save, update } from './store'
+import { dayStart } from './vip'
 
-/** Amusing: face pokes today; Travel1: trips today; Travel2: provinces visited since the tour was last finished. */
-type Counter = 'Amusing' | 'Travel1' | 'Travel2'
-export type Tab = 'ddw' | 'travel'
+/** Today's face pokes, trips and goods eaten, cleaned with and played with; Travel2: provinces visited since the tour was last finished. */
+export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Travel2'
+export type Tab = 'daily' | 'ddw' | 'travel'
 
 interface Task {
   label: string
@@ -14,15 +17,15 @@ interface Task {
   num: number
   /** City tasks stay taken across days. */
   keep?: boolean
-  /** Rerolled every day: that many random goods. */
+  /** Rerolled every day: that many random goods, besides `good`. */
   reroll?: number
   good?: string[]
 }
 
-export const TABS: Record<Tab, string> = { ddw: '逗逗我', travel: '旅游任务' }
+export const TABS: Record<Tab, string> = { daily: '今日任务', ddw: '逗逗我', travel: '旅游任务' }
 
 const DDW = '鼠标点击逗乐点位'
-const TASKS: Record<Tab, Task[]> = {
+const TASKS: Record<Exclude<Tab, 'daily'>, Task[]> = {
   ddw: [
     { label: '逗逗我~~', msg: DDW, obj: 'Amusing', num: 5, good: ['_102010001*1'] },
     { label: '逗逗我2~~', msg: DDW, obj: 'Amusing', num: 10, good: ['_10012002*1'] },
@@ -92,39 +95,50 @@ const TASKS: Record<Tab, Task[]> = {
   ],
 }
 
-/** Progress kept in saveJsonData.task, in the original's shape: entries line up with TASKS. */
+/**
+ * Progress kept in saveJsonData.task, in the original's shape: entries line up with TASKS.
+ * `daily` holds today's generated tasks, made on the day starting at `dailyDay`.
+ */
 interface Progress {
   doNums: Partial<Record<Counter, number>>
   taskList: Record<Tab, { take: boolean; good: Good[] }[]>
+  daily: Task[]
+  dailyDay: number
 }
 
-const rewards = (t: Task): Good[] => (t.reroll ? loot(t.reroll) : t.good!.map(parseGood))
+const rewards = (t: Task): Good[] => [...(t.reroll ? loot(t.reroll) : []), ...(t.good ?? []).map(parseGood)]
 
 function load(): Progress {
   const p: Partial<Progress> = JSON.parse(save.saveJsonData.task || '{}')
   // The original stored whole task objects, `take` only once claimed; the definitions here stay authoritative.
   const entry = (t: Task, e?: { take?: boolean; good: Good[] }) => (e ? { take: e.take === true, good: e.good } : { take: false, good: rewards(t) })
-  const list = (tab: Tab) => TASKS[tab].map((t, i) => entry(t, p.taskList?.[tab]?.[i]))
-  return { doNums: p.doNums ?? {}, taskList: { ddw: list('ddw'), travel: list('travel') } }
+  const list = (tab: 'ddw' | 'travel') => TASKS[tab].map((t, i) => entry(t, p.taskList?.[tab]?.[i]))
+  return {
+    doNums: p.doNums ?? {},
+    taskList: { daily: p.taskList?.daily ?? [], ddw: list('ddw'), travel: list('travel') },
+    daily: p.daily ?? [],
+    dailyDay: p.dailyDay ?? 0,
+  }
 }
 
 const progress = load()
 const store = (): void => update('saveJsonData', { task: JSON.stringify(progress) })
+const defs = (tab: Tab): Task[] => (tab === 'daily' ? progress.daily : TASKS[tab])
 
 export function count(obj: Counter): number {
   return obj === 'Travel2' ? save.gameSaveDatas.travel_china.length : (progress.doNums[obj] ?? 0)
 }
 
-export function addCount(obj: 'Amusing' | 'Travel1'): void {
+export function addCount(obj: Exclude<Counter, 'Travel2'>): void {
   progress.doNums[obj] = count(obj) + 1
   store()
 }
 
-export const tasks = (tab: Tab) => TASKS[tab].map((t, i) => ({ ...t, ...progress.taskList[tab][i], done: count(t.obj) }))
+export const tasks = (tab: Tab) => defs(tab).map((t, i) => ({ ...t, ...progress.taskList[tab][i], done: count(t.obj) }))
 
 /** Hands out a finished task's goods; false when it is not finished yet. */
 export function claim(tab: Tab, i: number): Good[] | false {
-  const t = TASKS[tab][i]
+  const t = defs(tab)[i]
   const p = progress.taskList[tab][i]
   if (p.take || count(t.obj) < t.num) return false
   p.take = true
@@ -135,14 +149,53 @@ export function claim(tab: Tab, i: number): Good[] | false {
 
 /** 06:00: daily tasks open again, with fresh random rewards, and the day's counters restart. */
 export function resetTasks(): void {
-  for (const tab of Object.keys(TASKS) as Tab[])
+  for (const tab of Object.keys(TASKS) as (keyof typeof TASKS)[])
     TASKS[tab].forEach((t, i) => {
       const p = progress.taskList[tab][i]
       if (!t.keep) p.take = false
       if (t.reroll) p.good = rewards(t)
     })
-  progress.doNums.Amusing = 0
-  progress.doNums.Travel1 = 0
+  progress.doNums = {}
+  store()
+}
+
+/** Kinds of daily task; one the pet `needs` right now is three times as likely, and says so. */
+const KINDS: { obj: Exclude<Counter, 'Travel2'>; label: string; num: [number, number]; needs: () => boolean; msg: [string, string] }[] = [
+  {
+    obj: 'Eat',
+    label: '喂我吃东西',
+    num: [2, 4],
+    needs: () => info.hunger < save.petComputedlInfo.hungerMax / 2,
+    msg: ['肚子咕咕叫啦，快给我吃点东西吧~', '吃饱饱才能长高高~'],
+  },
+  {
+    obj: 'Clean',
+    label: '帮我洗香香',
+    num: [1, 3],
+    needs: () => info.clean < save.petComputedlInfo.cleanMax / 2,
+    msg: ['身上脏脏的，好难受呀~', '香香的才招人喜欢~'],
+  },
+  { obj: 'Toy', label: '陪我玩玩具', num: [2, 4], needs: () => info.mood < 500, msg: ['人家不开心，陪我玩一会儿嘛~', '一起玩最开心啦~'] },
+  { obj: 'Amusing', label: '逗逗我', num: [10, 20], needs: () => info.mood < 500, msg: ['心情不好，逗我笑一笑吧~', DDW] },
+  { obj: 'Travel1', label: '带我去旅游', num: [1, 2], needs: () => [0, 6].includes(new Date().getDay()), msg: ['周末啦，出去走走吧~', '读万卷书，行万里路~'] },
+]
+
+/** Today's three tasks drawn by the pet's needs, plus one on statutory holidays; made once per day. */
+export function rollDaily(today?: CalendarDay): void {
+  if (progress.dailyDay === dayStart()) return
+  const pool = KINDS.flatMap((k) => Array<typeof k>(k.needs() ? 3 : 1).fill(k))
+  const daily: Task[] = []
+  while (daily.length < 3) {
+    const k = pool[rand(0, pool.length - 1)]
+    const num = rand(...k.num)
+    if (!daily.some((t) => t.obj === k.obj))
+      daily.push({ label: `${k.label}${num}次`, msg: k.msg[k.needs() ? 0 : 1], obj: k.obj, num, reroll: 1, good: [`_yb*${rand(2, 5) * 10}`] })
+  }
+  const h = today?.holiday
+  if (h?.off) daily.push({ label: `${h.name}快乐`, msg: `过节啦，陪我玩5次玩具一起庆祝吧~`, obj: 'Toy', num: 5, reroll: 2, good: ['_yb*100'] })
+  progress.daily = daily
+  progress.dailyDay = dayStart()
+  progress.taskList.daily = daily.map((t) => ({ take: false, good: rewards(t) }))
   store()
 }
 

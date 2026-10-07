@@ -31,7 +31,7 @@ import {
 } from './store'
 import { resetFish } from './fishing'
 import { resetSignIn, tickGift } from './signin'
-import { resetTasks } from './tasks'
+import { resetTasks, rollDaily } from './tasks'
 import { dayStart, newDay } from './vip'
 
 let idleTimer = 0
@@ -235,9 +235,10 @@ function grow(): void {
   healthRoll()
 }
 
-/** At start-up and at 06:00: the holiday greeting and the day's mail. */
+/** At start-up and at 06:00: the day's tasks, the holiday greeting and the day's mail. */
 async function daily(): Promise<void> {
   const today = await loadCalendar()
+  rollDaily(today)
   const f = today && festival(today)
   if (f) speak({ s: f }, 'speak')
   if (deliverMails(today)) speak({ s: '[host]，邮箱里来了新邮件，快去看看吧~', b: '这就去' }, 'speak', { ok: openEmail })

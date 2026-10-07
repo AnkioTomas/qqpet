@@ -11,7 +11,7 @@ export function openTask(): void {
   if (open) return
   open = true
   const root = div('ui-task')
-  let tab: Tab = 'ddw'
+  let tab: Tab = 'daily'
 
   const render = (): void => {
     const items = tasks(tab).map((t, i) =>

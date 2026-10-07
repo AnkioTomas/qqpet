@@ -1,4 +1,4 @@
-.ui-games {min-width:540px;font-size:13px;color:#333}
+.ui-games {min-width:540px;font-size:13px;color:#333;zoom:1.25}
 .ui-games .gameTabs {display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px;border-bottom:1px solid #0000001a}
 .ui-games .gameTab {padding:4px 12px;border-radius:12px;background:#0000000d;cursor:pointer}
 .ui-games .gameTab:hover {background:#1989fa3b}
