@@ -1,15 +1,38 @@
 import { goodOf } from '../pet/data/goods'
 import { diploma } from '../pet/jobs'
-import { fatigue, info, luck, save, setInfo, stage } from '../pet/store'
+import { fatigue, growthPerMinute, info, luck, save, setInfo, stage } from '../pet/store'
 import { openFrame } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
+import { progress } from './progress'
+import { age, status } from './state'
 
 let close = (): void => {}
 
 const small = (cls: string, label: string, value: string | number): HTMLElement =>
   div(`${cls} smallRow`, div('smallLabel', label), div('smallValue', String(value)))
+
+const cell = (label: string, ...value: (Node | string)[]): HTMLElement => div('statCell fc', div('label', label), ...value)
+const meter = (label: string, n: number, m: number, text?: string): HTMLElement => cell(label, div('statBar f1', progress(n, m, { graded: !text, text })))
+
+/** The tray status panel's numbers. */
+function fillStats(stats: HTMLElement): void {
+  const c = save.petComputedlInfo
+  stats.replaceChildren(
+    meter('成长：', info.growth - c.upGrowth, c.nextGrowth - c.upGrowth, `${Math.round(info.growth)} / ${c.nextGrowth}`),
+    meter('饥饿：', info.hunger, c.hungerMax),
+    meter('清洁：', info.clean, c.cleanMax),
+    meter('健康：', info.health, 5),
+    meter('心情：', info.mood, 1000),
+    cell('年龄：', age(info.onLineTime | 0)),
+    cell('成长速度：', `${Math.round(growthPerMinute() * 60)}/小时`),
+    cell('状态：', ...status()),
+    cell('在线时间：', `${info.onlineDataTime | 0}分钟`),
+    cell('粉钻：', info.pinkDiamond ? `${formatDate(info.PDiamondExpirationDate)}到期` : '未开通'),
+    cell('贴心宝贝：', info.sweetHeartOverTime ? `${formatDate(info.sweetHeartOverTime)}到期` : '未开通'),
+  )
+}
 
 function achievement(src: string, title: string, n: number): HTMLElement[] {
   return n ? [div('cjbox', Object.assign(img('cjImg', src), { title: `${title}*${n}` }))] : []
@@ -81,6 +104,9 @@ export function openPetInfo(): void {
   const diplomas = Object.entries(save.studyInfo)
     .map(([k, v]) => diploma(k, v))
     .filter(Boolean)
+  const stats = div('stats')
+  fillStats(stats)
+  const timer = setInterval(() => fillStats(stats), 1000)
 
   const main = div(
     'petInfoMain focusPress',
@@ -102,9 +128,12 @@ export function openPetInfo(): void {
     small('charm', '魅力：', info.charm),
     div('rightRow educationValue', div('label', '学历获得')),
     div('educationInfo smallRow', ...diplomas.map((d) => div('smallValue', `  ${d}  `))),
+    div('rightRow statusValue', div('label', '宠物状态')),
+    stats,
   )
-  const remove = openFrame(div('ui-petinfo', main), 'pet/info/2.png')
+  const remove = openFrame(div('ui-petinfo', main))
   close = (): void => {
+    clearInterval(timer)
     window.qqpet.setFocusable(false)
     remove()
     close = () => {}

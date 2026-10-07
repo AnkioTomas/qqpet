@@ -32,10 +32,10 @@ function bones(level: number): string[] {
   return [...out, ...Array<string>(n + 1).fill('dengji')]
 }
 
-function age(minutes: number): string {
+export function age(minutes: number): string {
   const h = minutes > 59 ? (minutes / 60) | 0 : 0
   const m = minutes - h * 60
-  return (h ? `${h}小时` : '') + (m ? `${m}分钟` : '')
+  return (h ? `${h}小时` : '') + (m || !h ? `${m}分钟` : '')
 }
 
 function stop(): void {
@@ -45,7 +45,8 @@ function stop(): void {
   render()
 }
 
-function status(): (Node | string)[] {
+/** What the pet is doing; busy states come with a stop button. */
+export function status(): (Node | string)[] {
   if (save.settings.paused) return ['暂停成长']
   if (info.health === 0) return ['已死亡']
   if (activity('ill')) return ['生病了']

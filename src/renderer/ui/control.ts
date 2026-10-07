@@ -135,7 +135,7 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       { name: '密室', icon: 'mstx.png', run: openMstx },
     ],
   },
-  { name: '档案', icon: 'gonggao1.png', run: openPetInfo },
+  { name: '档案', icon: 'dangan.png', run: openPetInfo },
 ]
 
 const control = div('control')

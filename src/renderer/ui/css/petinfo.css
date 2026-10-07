@@ -1,4 +1,4 @@
-.ui-petinfo .petInfoMain {font-size:14px;position:relative;font-size:12px;width:432px;height:276px;color:#2a1608eb}
+.ui-petinfo .petInfoMain {position:relative;font-size:12px;width:432px;height:420px;color:#2a1608eb;box-sizing:border-box;border:1px solid #7fa6b8;border-radius:12px;background:linear-gradient(#ddf2fb,#f6fcff 45%,#e2f3fb);box-shadow:2px 3px 5px #0005}
 .ui-petinfo .headImg {position:absolute;left:25px;top:25px;height:160px;width:160px;background-image:url(/pet/info/16.svg);background-repeat:no-repeat;background-size:cover;border-radius:10px}
 .ui-petinfo .headImg .img {width:90%;height:90%;transform-origin:center bottom;pointer-events:none;position:absolute;left:5%;top:5%}
 .ui-petinfo .name {position:absolute;left:25px;top:208px;width:160px;text-align:center}
@@ -22,6 +22,9 @@
 .ui-petinfo .close {width:20px;height:20px;background-image:url(/pet/info/9.svg);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:15px;top:5px}
 .ui-petinfo .close:hover {background-image:url(/pet/info/11.svg)}
 .ui-petinfo .close:active {background-image:url(/pet/info/13.svg)}
+.ui-petinfo .attributeValue,
+.ui-petinfo .educationValue,
+.ui-petinfo .statusValue {border-bottom:1px dotted #8aa}
 .ui-petinfo .attributeValue {position:absolute;top:105px}
 .ui-petinfo .intel {top:125px}
 .ui-petinfo .strong {top:125px;left:300px}
@@ -36,3 +39,8 @@
 .ui-petinfo .cjImg {width:100%;height:100%;position:relative}
 .ui-petinfo .cjImg:hover {width:200%;height:200%;z-index:10}
 .ui-petinfo .luckyFatigue {position:absolute;left:25px;top:246px;width:160px;color:#000}
+.ui-petinfo .statusValue {left:25px;top:272px;width:382px}
+.ui-petinfo .stats {position:absolute;left:25px;top:298px;width:382px;display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}
+.ui-petinfo .statCell {height:16px;white-space:nowrap}
+.ui-petinfo .statCell:first-child {grid-column:span 2}
+.ui-petinfo .statBar {height:14px;margin-left:4px}

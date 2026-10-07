@@ -1,5 +1,5 @@
 import { bury, machine, speak } from '../pet/pet'
-import { info, petSize, save, setPaused, setTray, update } from '../pet/store'
+import { info, save, setPaused, setTray, update } from '../pet/store'
 import { openGoods } from './control'
 import './css/menu.css'
 import { button, div } from './dom'
@@ -116,27 +116,19 @@ function list(entries: Item[], toLeft: boolean): HTMLElement {
 const child = (it: Item): HTMLElement => button('menuC fc', pick(it), div('chooseC py2'), div('cententC f1 py2', it.label), div('rightNormalC py2'))
 
 /**
- * Opens the context menu at window point (x, y). From the pet it hangs at the
- * pet's right side (left near the screen edge) at height y; from the tray it
- * opens from (x, y) toward the screen's middle.
+ * Opens the context menu at window point (x, y), toward the screen's middle:
+ * from the pet its corner sits at the cursor, from the tray it is centered on x.
  */
 export function openMenu(at: { x: number; y: number; pet: boolean }, adopt: () => void): void {
   closeMenu()
-  const petRight = info.lastX + petSize()
-  const toLeft = at.pet && petRight >= innerWidth - 220
-  const menu = div('rightMenu focusPress', frame(list(items(adopt), toLeft), ditu, [12, 21]))
+  const { x, y } = at
+  const left = Math.min(Math.max(at.pet ? x : x - WIDTH / 2, 0), innerWidth - WIDTH)
+  const menu = div('rightMenu focusPress', frame(list(items(adopt), left + 2 * WIDTH > innerWidth), ditu, [12, 21]))
   menu.dataset.hit = ''
   menu.style.width = `${WIDTH}px`
-  const { x, y } = at
-  if (at.pet) {
-    menu.style.left = `${toLeft ? info.lastX : petRight}px`
-    menu.style.top = `${y}px`
-    if (toLeft) menu.style.transform = 'translate(-100%, 0)'
-  } else {
-    menu.style.left = `${Math.min(Math.max(x - WIDTH / 2, 0), innerWidth - WIDTH)}px`
-    if (y < innerHeight / 2) menu.style.top = `${Math.max(y, 0)}px`
-    else menu.style.bottom = `${Math.max(innerHeight - y, 0)}px`
-  }
+  menu.style.left = `${left}px`
+  if (y < innerHeight / 2) menu.style.top = `${Math.max(y, 0)}px`
+  else menu.style.bottom = `${Math.max(innerHeight - y, 0)}px`
   current = div('ui-menu', menu)
   document.body.appendChild(current)
 }
