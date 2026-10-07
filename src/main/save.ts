@@ -18,8 +18,13 @@ const num =
     isNum(v) && v >= min && v <= max ? v : typeof fallback === 'function' ? fallback() : fallback
 const bool: Rule = (v) => (typeof v === 'boolean' ? v : false)
 const list: Rule = (v) => (Array.isArray(v) ? v : [])
+const str =
+  (fallback: string): Rule =>
+  (v) =>
+    typeof v === 'string' ? v : fallback
 const nullable: Rule = (v) => (v === undefined ? null : v)
 const ANY = Infinity
+const AI_URL = 'http://127.0.0.1:8000/v1'
 
 // Field repairs ported from the original main process: an invalid value is
 // replaced by the same fallback the original used.
@@ -93,6 +98,9 @@ const RULES: Record<string, Record<string, Rule>> = {
     hidden: bool,
     hd: bool,
     clip: bool,
+    aiUrl: str(AI_URL),
+    aiKey: str(''),
+    aiModel: str(''),
   },
 }
 
@@ -150,7 +158,19 @@ function fresh(): SaveData {
     gameSaveDatas: { fishing_harvestfish: 0, travel_china: [], travel_china_num: 0, ddw: 0, yyds: 0 },
     illustrated: [],
     saveJsonData: { email: '{}', task: '{}', signin: '{}', fishs: '{}' },
-    settings: { opacity: 1, faceClick: 2, quiet: false, autoStart: false, paused: false, hidden: false, hd: false, clip: false },
+    settings: {
+      opacity: 1,
+      faceClick: 2,
+      quiet: false,
+      autoStart: false,
+      paused: false,
+      hidden: false,
+      hd: false,
+      clip: false,
+      aiUrl: AI_URL,
+      aiKey: '',
+      aiModel: '',
+    },
   }
 }
 

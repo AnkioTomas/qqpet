@@ -5,7 +5,7 @@ import { rand } from '../pet/rand'
 import { addInfo, info, save, setInfo, update } from '../pet/store'
 import { openFrame } from './box'
 import './css/setup.css'
-import { button, div } from './dom'
+import { button, div, typeable } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
 
@@ -14,6 +14,7 @@ type Option = { label: string; title?: string } & (
   | { type: 'slider'; value: () => number; step: (d: number) => void }
   | { type: 'button'; run: () => void }
   | { type: 'see'; value: string }
+  | { type: 'input'; value: () => string; set: (v: string) => void }
 )
 
 function setOpacity(v: number): void {
@@ -65,6 +66,57 @@ function grant(type: GoodType): void {
   const g = { ...all[rand(0, all.length - 1)], num: 10 }
   give([g], `[host]，我获得了${g.num}个${g.name}！`)
 }
+
+/** The AI tab's model list and last result; `redraw` repaints the open panel once a request finishes. */
+let models: string[] = []
+let aiStatus = ''
+let redraw = (): void => {}
+
+const reason = (e: unknown): string => String(e instanceof Error ? e.message : e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+
+async function loadModels(): Promise<void> {
+  aiStatus = '正在获取模型列表…'
+  redraw()
+  try {
+    models = await window.qqpet.aiModels({ url: s.aiUrl, key: s.aiKey })
+    aiStatus = models.length ? '选择一个模型，选中后会自动测试，通过才会启用' : '接口没有返回任何模型'
+  } catch (e) {
+    models = []
+    aiStatus = `获取失败：${reason(e)}`
+  }
+  redraw()
+}
+
+/** A model is saved, and AI turned on, only if it answers. */
+async function testModel(model: string): Promise<void> {
+  update('settings', { aiModel: '' })
+  aiStatus = `正在测试 ${model}…`
+  redraw()
+  try {
+    const reply = await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model }, [{ role: 'user', content: '你好，用一句话打个招呼。' }])
+    update('settings', { aiModel: model })
+    aiStatus = `测试通过，已启用。回复：${reply.slice(0, 60)}`
+  } catch (e) {
+    aiStatus = `测试失败：${reason(e)}`
+  }
+  redraw()
+}
+
+/** Changing where to connect turns AI off until a model passes the test again. */
+const setAi = (patch: { aiUrl?: string; aiKey?: string }): void => {
+  update('settings', { ...patch, aiModel: '' })
+  models = []
+  aiStatus = ''
+}
+
+const aiOptions = (): Option[] => [
+  { type: 'input', label: '接口地址（OpenAI 兼容，以 /v1 结尾）', value: () => s.aiUrl, set: (v) => setAi({ aiUrl: v.trim() }) },
+  { type: 'input', label: 'API Key（本地服务可不填）', value: () => s.aiKey, set: (v) => setAi({ aiKey: v.trim() }) },
+  { type: 'button', label: '获取模型列表', run: () => void loadModels() },
+  ...models.map((m): Option => ({ type: 'radio', label: m, on: () => s.aiModel === m, run: () => void testModel(m) })),
+  { type: 'see', label: '状态', value: aiStatus || (s.aiModel ? `已启用：${s.aiModel}` : '未启用') },
+  ...(s.aiModel ? [{ type: 'button' as const, label: '关闭 AI', run: () => setAi({}) }] : []),
+]
 
 const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后，开启点位可进行点击~'
 const s = save.settings
@@ -120,6 +172,12 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '随机获得 10 个药品', run: () => grant('medicine') },
     ],
   },
+  {
+    label: 'AI',
+    get options() {
+      return aiOptions()
+    },
+  },
   { label: '关于', options: [{ type: 'see', label: '基本信息', value: '版本：T800' }] },
 ]
 
@@ -149,6 +207,13 @@ function option(o: Option, redraw: () => void): HTMLElement {
     inner = div('childrenIn fccC slider', div('label f1 w100', o.label), line)
   } else if (o.type === 'button') {
     inner = div('childrenIn fcc', div('label f1 w100 por butsLabel fcc tc', `${o.label} `, div('butsButs f1 w100 fcc', button('butsButs_submit', o.run))))
+  } else if (o.type === 'input') {
+    const input = typeable(Object.assign(document.createElement('input'), { className: 'textInput', value: o.value() }))
+    input.addEventListener(
+      'change',
+      act(() => o.set(input.value)),
+    )
+    inner = div('childrenIn fC', div('label', o.label), input)
   } else {
     inner = div('childrenIn fC', div('', `${o.label}：`), div('seeValue', o.value))
   }
@@ -173,6 +238,7 @@ export function openSetup(): void {
     right.replaceChildren(div('right_title ml16', TABS[tab].label), div('children', ...TABS[tab].options.map((o) => option(o, draw))))
   }
   draw()
+  redraw = draw
   const remove = openFrame(
     div(
       'ui-setup',

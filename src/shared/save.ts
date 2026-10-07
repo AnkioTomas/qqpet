@@ -96,6 +96,10 @@ export interface Settings {
   hd: boolean
   /** The pet reads out text copied to the clipboard. */
   clip: boolean
+  /** OpenAI-compatible endpoint; `aiModel` is set only once it passed the settings test, and AI is off while it is empty. */
+  aiUrl: string
+  aiKey: string
+  aiModel: string
 }
 
 export interface SaveData {

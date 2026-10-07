@@ -19,3 +19,21 @@ export function button(cls: string, onClick: () => void, ...children: (Node | st
   d.addEventListener('click', onClick)
   return d
 }
+
+/** The pet window is not focusable: `input` takes keyboard focus only while hovered, like the original. */
+export function typeable(input: HTMLInputElement): HTMLInputElement {
+  let on = false
+  input.addEventListener('mouseenter', () => {
+    on = true
+    window.qqpet.setFocusable(true)
+  })
+  const leave = (): void => {
+    if (!on) return
+    on = false
+    window.qqpet.setFocusable(false)
+    input.blur()
+  }
+  input.addEventListener('mouseout', leave)
+  input.addEventListener('blur', leave)
+  return input
+}

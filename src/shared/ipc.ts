@@ -9,6 +9,8 @@ export const IPC = {
   openGame: 'game:open',
   calendar: 'app:calendar',
   gamePlayed: 'game:played',
+  aiModels: 'ai:models',
+  aiChat: 'ai:chat',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -69,6 +71,18 @@ export interface CalendarDay {
   holiday: { name: string; off: boolean } | null
 }
 
+/** An OpenAI-compatible endpoint: `url` ends in /v1; `key` may be empty for local servers. */
+export interface AiConfig {
+  url: string
+  key: string
+  model: string
+}
+
+export interface AiMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
 /** Exposed to the renderer as `window.qqpet` by the preload script. */
 export interface QQPetApi {
   load(): Promise<SaveData>
@@ -84,6 +98,10 @@ export interface QQPetApi {
   openGame(swf: string): void
   /** Today and the next 30 days from the calendar API; empty while offline. */
   calendar(): Promise<CalendarDay[]>
+  /** Rejects with the server's error. */
+  aiModels(c: Omit<AiConfig, 'model'>): Promise<string[]>
+  /** The reply's text; rejects with the server's error. */
+  aiChat(c: AiConfig, messages: AiMessage[]): Promise<string>
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>

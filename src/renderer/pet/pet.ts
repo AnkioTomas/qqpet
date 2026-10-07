@@ -5,6 +5,7 @@ import { say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
 import { advanceTask, stopTask } from './activity'
+import { aiOn, idleTalk } from './ai'
 import { dateTalk, festival, greeting, loadCalendar } from './calendar'
 import { listGoods, tickTimed } from './goods'
 import { useItem } from './items'
@@ -43,17 +44,19 @@ export const machine = new Machine(new PetSwf(document.getElementById('pet')!), 
   next.s?.()
 })
 
+/** Answering the pet's small talk cheers it up. */
+function cheer(): void {
+  const v = rand(5, 15)
+  void floatMood(v)
+  setInfo('mood', Math.min(info.mood + v, 1000))
+}
+
 /** After 20-60 s of standing: play an animation, or chat for a small mood bonus. */
 function idle(): void {
   if (Math.random() < 0.8) return machine.add({ a: 'play' })
+  if (aiOn() && Math.random() < 0.5) return void idleTalk().then((s) => speak(s ? { s } : { c: 'smallTalk' }, 'speak', { ok: cheer }))
   const date = Math.random() < 0.3 ? dateTalk() : null
-  speak(date ? { s: date } : { c: 'smallTalk' }, 'speak', {
-    ok: () => {
-      const v = rand(5, 15)
-      void floatMood(v)
-      setInfo('mood', Math.min(info.mood + v, 1000))
-    },
-  })
+  speak(date ? { s: date } : { c: 'smallTalk' }, 'speak', { ok: cheer })
 }
 
 function line(c: string, s?: string): Line | null {

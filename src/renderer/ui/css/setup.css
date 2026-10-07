@@ -35,3 +35,4 @@
 .ui-setup .copy,
 .ui-setup .login {background-color:#e3b82b;border-radius:8px;padding:2px 5px;font-size:12px;cursor:pointer}
 .ui-setup .gradient-text2 {background:linear-gradient(90deg,#8a2be2,#ff1493,#8a2be2);background-size:200% 200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradient 4s ease infinite;text-shadow:0 0 8px rgba(0,0,0,.5)}
+.ui-setup .textInput {width:100%;height:22px;margin-top:4px;padding:0 6px;box-sizing:border-box;border:1px solid #c9a46b;border-radius:4px;outline:none;font-size:12px;background:#fffdf6}

@@ -4,7 +4,7 @@ import { fatigue, growthPerMinute, info, luck, save, setInfo, stage } from '../p
 import { openFrame } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
-import { button, div, img } from './dom'
+import { button, div, img, typeable } from './dom'
 import { progress } from './progress'
 import { age, status } from './state'
 
@@ -38,30 +38,14 @@ function achievement(src: string, title: string, n: number): HTMLElement[] {
   return n ? [div('cjbox', Object.assign(img('cjImg', src), { title: `${title}*${n}` }))] : []
 }
 
-/**
- * A name input. The window is not focusable, so it takes focus only while
- * hovered, like the original.
- */
 function nameRow(cls: string, label: string, key: 'name' | 'host', saved: () => void): HTMLElement {
-  const input = Object.assign(document.createElement('input'), { className: 'input', type: 'text', maxLength: 20, value: info[key] })
+  const input = typeable(Object.assign(document.createElement('input'), { className: 'input', type: 'text', maxLength: 20, value: info[key] }))
   const commit = (): void => {
     setInfo(key, input.value)
     saved()
   }
   const r = div(`${cls} rightRow fcb`, div('label', label), input, button('but focusPress', commit))
   r.title = '保持鼠标在输入框内 才可进行输入'
-  input.addEventListener('mouseenter', () => {
-    window.qqpet.setFocusable(true)
-    r.classList.add('fullInput')
-  })
-  const leave = (): void => {
-    if (!r.classList.contains('fullInput')) return
-    r.classList.remove('fullInput')
-    window.qqpet.setFocusable(false)
-    input.blur()
-  }
-  input.addEventListener('mouseout', leave)
-  input.addEventListener('blur', leave)
   return r
 }
 

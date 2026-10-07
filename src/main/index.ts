@@ -1,6 +1,7 @@
 import { app, clipboard, dialog, ipcMain } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
+import { aiChat, aiModels } from './ai'
 import { calendar } from './calendar'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
@@ -63,6 +64,8 @@ app.whenReady().then(() => {
     app.exit(0)
   })
   ipcMain.handle(IPC.calendar, () => calendar())
+  ipcMain.handle(IPC.aiModels, (_e, c) => aiModels(c))
+  ipcMain.handle(IPC.aiChat, (_e, c, messages) => aiChat(c, messages))
   ipcMain.on(IPC.openGame, (_e, swf: string) => {
     const start = Date.now()
     // Quitting with a game open closes the pet window first.

@@ -16,6 +16,14 @@ export async function loadCalendar(): Promise<CalendarDay | undefined> {
 
 const pick = <T>(list: T[]): T => list[rand(0, list.length - 1)]
 
+/** Today's date as the pet would put it: weekday, lunar date, holiday or solar term. */
+export function dayText(): string {
+  const [d] = days
+  const week = `星期${WEEK[new Date().getDay()]}`
+  if (!d) return week
+  return [week, `农历${d.lunar}`, d.holiday && (d.holiday.off ? `${d.holiday.name}放假` : `${d.holiday.name}调休上班`), d.term].filter(Boolean).join('，')
+}
+
 /** A launch greeting for the time of day. */
 export function greeting(): Line {
   const h = new Date().getHours()
