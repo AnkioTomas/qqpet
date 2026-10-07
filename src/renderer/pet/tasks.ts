@@ -11,7 +11,7 @@ import { dayStart } from './vip'
  * Travel2: provinces visited since the tour was last finished.
  */
 export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Work' | 'Study' | 'GameRound' | 'Game' | 'Travel2'
-export type Tab = 'daily' | 'ddw' | 'travel'
+export type Tab = 'daily' | 'ddw' | 'growth' | 'travel'
 
 interface Task {
   label: string
@@ -25,7 +25,7 @@ interface Task {
   good?: string[]
 }
 
-export const TABS: Record<Tab, string> = { daily: '今日任务', ddw: '逗逗我', travel: '旅游任务' }
+export const TABS: Record<Tab, string> = { daily: '今日任务', ddw: '逗逗我', growth: '学习打工', travel: '旅游任务' }
 
 const DDW = '鼠标点击逗乐点位'
 const TASKS: Record<Exclude<Tab, 'daily'>, Task[]> = {
@@ -35,6 +35,12 @@ const TASKS: Record<Exclude<Tab, 'daily'>, Task[]> = {
     { label: '逗逗我3~~', msg: DDW, obj: 'Amusing', num: 15, good: ['_10013004*1'] },
     { label: '逗逗我4~~', msg: DDW, obj: 'Amusing', num: 20, reroll: 1 },
     { label: '逗逗我5~~', msg: DDW, obj: 'Amusing', num: 25, reroll: 2 },
+  ],
+  growth: [
+    { label: '好好学习~~', msg: '去上一节课吧~', obj: 'Study', num: 1, good: ['_102010001*1'] },
+    { label: '勤学苦读~~', msg: '今天上3节课，学霸就是你~', obj: 'Study', num: 3, reroll: 1 },
+    { label: '勤劳致富~~', msg: '去打一次工吧~', obj: 'Work', num: 1, good: ['_yb*50'] },
+    { label: '打工达人~~', msg: '今天打工3次，元宝多多~', obj: 'Work', num: 3, reroll: 1 },
   ],
   travel: [
     { label: '每日1游~~', msg: '去旅游一次吧~', obj: 'Travel1', num: 1, good: ['_102010001*1'] },
@@ -115,10 +121,10 @@ function load(): Progress {
   const p: Partial<Progress> = JSON.parse(save.saveJsonData.task || '{}')
   // The original stored whole task objects, `take` only once claimed; the definitions here stay authoritative.
   const entry = (t: Task, e?: { take?: boolean; good: Good[] }) => (e ? { take: e.take === true, good: e.good } : { take: false, good: rewards(t) })
-  const list = (tab: 'ddw' | 'travel') => TASKS[tab].map((t, i) => entry(t, p.taskList?.[tab]?.[i]))
+  const list = (tab: keyof typeof TASKS) => TASKS[tab].map((t, i) => entry(t, p.taskList?.[tab]?.[i]))
   return {
     doNums: p.doNums ?? {},
-    taskList: { daily: p.taskList?.daily ?? [], ddw: list('ddw'), travel: list('travel') },
+    taskList: { daily: p.taskList?.daily ?? [], ddw: list('ddw'), growth: list('growth'), travel: list('travel') },
     daily: p.daily ?? [],
     dailyDay: p.dailyDay ?? 0,
   }
