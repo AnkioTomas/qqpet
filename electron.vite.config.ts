@@ -22,7 +22,7 @@ export default defineConfig({
     publicDir: resolve('resources'),
     build: {
       copyPublicDir: false,
-      rollupOptions: { input: resolve('src/renderer/index.html') },
+      rollupOptions: { input: { index: resolve('src/renderer/index.html'), game: resolve('src/renderer/game.html') } },
     },
     plugins: [
       viteStaticCopy({

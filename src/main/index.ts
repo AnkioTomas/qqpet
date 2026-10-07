@@ -4,7 +4,7 @@ import type { SavePatch, Sex } from '../shared/save'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
-import { createPetWindow } from './window'
+import { createPetWindow, openGameWindow } from './window'
 
 if (!app.requestSingleInstanceLock()) app.exit(0)
 
@@ -61,6 +61,7 @@ app.whenReady().then(() => {
     app.relaunch()
     app.exit(0)
   })
+  ipcMain.on(IPC.openGame, (_e, swf: string) => openGameWindow(swf))
   ipcMain.on(IPC.quit, () => app.quit())
   ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {
     const r = await dialog.showMessageBox(win, { type: 'none', buttons: ['取消', '确定'], ...o })

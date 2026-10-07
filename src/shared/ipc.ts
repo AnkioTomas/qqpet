@@ -6,6 +6,7 @@ export const IPC = {
   resetPet: 'pet:reset',
   exportSave: 'pet:export',
   importSave: 'pet:import',
+  openGame: 'game:open',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -65,6 +66,8 @@ export interface QQPetApi {
   exportSave(): Promise<boolean>
   /** Asks for a save file (ours or the original's config.json), then relaunches with it. */
   importSave(): void
+  /** Plays pet/game/<swf> in its own resizable window. */
+  openGame(swf: string): void
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>

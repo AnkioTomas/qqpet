@@ -114,6 +114,7 @@ body {
   background: url(/pet/windowTip/normal/beijing4.bmp) repeat-y;
 }
 .box .content2 {
+  flex: 1;
   background: url(/pet/windowTip/normal/bg.bmp);
 }
 .box .content3 {

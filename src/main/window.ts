@@ -4,6 +4,7 @@ import { IPC, type Point } from '../shared/ipc'
 import { APP_ORIGIN } from './protocol'
 
 const CURSOR_INTERVAL_MS = 33
+const PAGES = process.env.ELECTRON_RENDERER_URL ?? APP_ORIGIN
 
 /** Transparent, click-through overlay covering the primary display's work area. */
 export function createPetWindow(): BrowserWindow {
@@ -48,11 +49,22 @@ export function createPetWindow(): BrowserWindow {
   }, CURSOR_INTERVAL_MS)
   win.on('closed', () => clearInterval(timer))
 
-  if (process.env.ELECTRON_RENDERER_URL) {
-    win.loadURL(process.env.ELECTRON_RENDERER_URL)
-    win.webContents.openDevTools({ mode: 'detach' })
-  } else {
-    win.loadURL(`${APP_ORIGIN}/index.html`)
-  }
+  win.loadURL(`${PAGES}/index.html`)
+  if (process.env.ELECTRON_RENDERER_URL) win.webContents.openDevTools({ mode: 'detach' })
   return win
+}
+
+/** A normal, resizable window playing one game; the SWF scales with it. */
+export function openGameWindow(swf: string): void {
+  const win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    useContentSize: true,
+    backgroundColor: '#000',
+    autoHideMenuBar: true,
+    webPreferences: { sandbox: true },
+  })
+  win.webContents.on('will-navigate', (e) => e.preventDefault())
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  win.loadURL(`${PAGES}/game.html?swf=${encodeURIComponent(swf)}`)
 }
