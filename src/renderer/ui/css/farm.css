@@ -1,1 +1,5 @@
-.ui-farm .farm {width:700px;height:550px}
+.ui-farm .farm {position:relative;width:700px;height:550px}
+/* Over Farm.swf's empty TipBg slot, in stage pixels. */
+.ui-farm .avatar {position:absolute;left:9px;top:9px;width:86px;height:49px;overflow:hidden;pointer-events:none;z-index:1}
+/* pet/info/*.svg draw the penguin around (61, 74) of 121.5px; centre that in the slot. */
+.ui-farm .avatar img {position:absolute;width:88px;height:88px;left:-1px;top:-29px}

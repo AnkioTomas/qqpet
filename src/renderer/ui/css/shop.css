@@ -54,6 +54,8 @@
   transform: translate(-50%, -50%);
 }
 .ui-shop .petImg {
+  width: 121.5px;
+  height: 121.5px;
   transform-origin: center bottom;
 }
 .ui-shop .backgroundImg {

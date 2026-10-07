@@ -55,6 +55,8 @@ const MOODS: [number, Mood, number][] = [
 ]
 export const mood = (): Mood => MOODS.find(([min]) => info.mood >= min)![1]
 export const stage = (): Stage => stageOf(save.petComputedlInfo.level)
+/** The first frame of the pet's Stand.swf, framed like the original pet/info/*.svg portraits. */
+export const avatar = (): string => `pet/avatar/${info.sex}${stage()}.png`
 
 /** Base size grows from 144 (level 1) to 164 (level 10+) at 1920 px screen width. */
 export const petSize = (): number => ((144 + 2 * Math.min(save.petComputedlInfo.level, 10)) * innerWidth) / 1920

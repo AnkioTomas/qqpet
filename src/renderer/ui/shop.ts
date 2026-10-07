@@ -3,7 +3,7 @@ import SHOP from '../pet/data/shop.json'
 import { listGoods, onGoodsChange } from '../pet/goods'
 import { buy, price, useItem } from '../pet/items'
 import { speak } from '../pet/pet'
-import { info, onInfoChange, save, stage } from '../pet/store'
+import { avatar, info, onInfoChange, save } from '../pet/store'
 import { openFrame } from './box'
 import './css/shop.css'
 import { button, div, img } from './dom'
@@ -148,7 +148,7 @@ export function openShop(): void {
         div(
           'leftSelfHeadBk por',
           ...(bg ? [div('backgroundTime', ` 背景剩余时间： ${bg.left | 0}分钟 `), img('backgroundImg', goodOf('background', bg.id).url)] : []),
-          div('petImgBox fcc', img('petImg penguin_breathe', `pet/info/${info.sex}${stage()}.svg`)),
+          div('petImgBox fcc', img('petImg penguin_breathe', avatar())),
         ),
       ),
       div('leftSelfCenter', div('leftSelfCenterBk', ...tabs('lscb', MINE, mine.tab, mine.sub, (tab, sub) => ((mine = { tab, sub, page: 1 }), drawLeft())))),

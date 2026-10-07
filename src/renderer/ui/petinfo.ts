@@ -1,6 +1,6 @@
 import { goodOf } from '../pet/data/goods'
 import { diploma } from '../pet/jobs'
-import { fatigue, growthPerMinute, info, luck, save, setInfo, stage } from '../pet/store'
+import { avatar, fatigue, growthPerMinute, info, luck, save, setInfo } from '../pet/store'
 import { openFrame } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
@@ -61,7 +61,7 @@ export function openPetInfo(): void {
       ...achievement('pet/achievement/ddw.svg', '逗宠成就', g.ddw),
       ...achievement('pet/achievement/yyds.svg', '养鱼大师', g.yyds),
     ),
-    img('img penguin_breathe', `pet/info/${info.sex}${stage()}.svg`),
+    img('img penguin_breathe', avatar()),
   )
   head.style.backgroundImage = `url(${bg ? goodOf('background', bg.id).url : 'pet/info/16.svg'})`
 

@@ -1,9 +1,9 @@
-import { info, setInfo } from '../pet/store'
+import { avatar, info, setInfo } from '../pet/store'
 import { SwfPlayer } from '../swf/player'
 import { readSol, writeSol, type Sol } from '../swf/sol'
 import { openBox } from './box'
 import './css/farm.css'
-import { div } from './dom'
+import { div, img } from './dom'
 
 // Farm.swf keeps everything in SharedObject.getLocal("test", "/"); Ruffle names it after the SWF's host.
 const KEY = `${location.hostname}//test`
@@ -52,7 +52,7 @@ export function openFarm(): void {
   }
   const timer = setInterval(settle, 500)
 
-  const host = div('farm')
+  const host = div('farm', div('avatar', img('penguin_breathe', avatar())))
   window.qqpet.setFocusable(true)
   openBox(div('ui-farm', host), {
     vip: info.pinkDiamond,
