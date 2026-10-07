@@ -2,7 +2,28 @@
 
 QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T800 逆向重建。Flash 内容由 [Ruffle](https://ruffle.rs) 播放。
 
-美术资源和 SWF 版权归腾讯所有，仓库必须保持私有。
+> **版权声明**：QQ 宠物的美术资源与 SWF 版权归腾讯所有；旅行照片素材版权归《旅行青蛙·中国之旅》所有。本项目仅供学习交流，请勿用于商业用途。
+
+## 截图
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/pet.png" alt="桌面宠物与右键菜单"><br>桌面宠物与右键菜单</td>
+    <td width="50%"><img src="docs/screenshots/shop.png" alt="商城与背包"><br>商城与背包</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/petinfo.png" alt="宠物资料"><br>宠物资料</td>
+    <td><img src="docs/screenshots/signin.png" alt="图鉴与签到"><br>图鉴与签到</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/task.png" alt="今日任务"><br>今日任务</td>
+    <td><img src="docs/screenshots/travel.png" alt="全国旅游"><br>全国旅游</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/setup.png" alt="系统设置"><br>系统设置</td>
+    <td></td>
+  </tr>
+</table>
 
 ## 功能
 
@@ -12,7 +33,7 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T8
 - **任务与邮件**：今日任务（按宠物需求和节假日生成）、逗逗我、学习打工、旅游任务；签到与图鉴；节日、生日、旅行明信片邮件。
 - **活动**：池塘（养鱼）、农场（QQFarm，金币即元宝）、密室探险、6 类 98 个小游戏（独立窗口，按游戏时长奖励）。
 - **AI（可选）**：接入任意 OpenAI 兼容接口，宠物闲聊、改写台词、点评或翻译剪贴板文字。
-- **其他**：天气播报、节日问候、免打扰、透明度、开机自启、高清画质（@2x 素材）、存档导入导出（兼容原版 `config.json`，首次启动的选蛋页也可直接导入）。
+- **其他**：天气播报、节日问候、免打扰、透明度、开机自启、高清画质（重绘的 @2x 素材，适配高分屏，重启后生效）、存档导入导出（兼容原版 `config.json`，首次启动的选蛋页也可直接导入）。
 
 存档位于 `userData/save.json`，导入时旧存档备份为 `save.json.bak`。
 
@@ -30,7 +51,7 @@ npm run dev
 npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
 ```
 
-推送到 `main` 由 GitHub Actions 打出三平台安装包；推送 `v*` 标签自动发布 Release。
+推送 `v*` 标签时由 GitHub Actions 打出三平台安装包并发布 Release，其他推送不触发构建。
 
 ## 改过的 SWF
 
