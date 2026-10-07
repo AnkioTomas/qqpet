@@ -50,11 +50,19 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
   }
 
   let timer: NodeJS.Timeout | undefined
+  let current: TrayState = 'leave'
+  const retip = (pet: PetInfo): void => {
+    const { tip } = STATES[current]
+    if (tip) tray.setToolTip(tip.replace(/\[n\]/g, label(pet.name, '宠宝~')).replace(/\[h\]/g, label(pet.host, '主人~')))
+  }
   return {
+    /** Re-renders the tooltip, e.g. after a rename. */
+    retip,
     setState(state: TrayState, pet: PetInfo): void {
       clearTimeout(timer)
-      const { frames, tip } = STATES[state]
-      if (tip) tray.setToolTip(tip.replace(/\[n\]/g, label(pet.name, '宠宝~')).replace(/\[h\]/g, label(pet.host, '主人~')))
+      current = state
+      retip(pet)
+      const { frames } = STATES[state]
       if (frames === 0) return tray.setImage(icon(pet.sex, `${state}.png`))
       const images = Array.from({ length: frames }, (_, i) => icon(pet.sex, `${state}/${i + 1}.png`))
       const show = (i: number): void => {

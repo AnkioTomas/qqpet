@@ -23,7 +23,10 @@ app.whenReady().then(() => {
   app.on('before-quit', () => tray.destroy())
 
   ipcMain.handle(IPC.load, () => getSave())
-  ipcMain.on(IPC.save, (_e, patch: SavePatch) => patchSave(patch))
+  ipcMain.on(IPC.save, (_e, patch: SavePatch) => {
+    patchSave(patch)
+    if (patch.petInfo) tray.retip(getSave().petInfo)
+  })
   ipcMain.on(IPC.resetPet, () => {
     resetSave()
     app.relaunch()

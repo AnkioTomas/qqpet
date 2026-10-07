@@ -41,9 +41,12 @@ body {
   height: 10px;
   border-radius: 6px;
   pointer-events: all;
-  background: url(/pet/face/click.svg) 0 0 / 100% 100%;
   cursor: url(/pet/img_res/hand/focus/press.cur), default;
   animation: point-pulse 2s ease-in-out infinite;
+}
+
+.faceHint .point {
+  background: url(/pet/face/click.svg) 0 0 / 100% 100%;
 }
 
 @keyframes point-pulse {
@@ -173,6 +176,17 @@ body {
 .boxFrame .backgroundImage {
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+/* The opacity setting; windows stay at least faintly visible. */
+#pet,
+.ui-control {
+  opacity: var(--opacity, 1);
+}
+.box,
+.boxFrame,
+.ui-state .PetStateInfo {
+  opacity: max(0.1, var(--opacity, 1));
 }
 
 /* Hidden from the context menu: invisible and not clickable. */

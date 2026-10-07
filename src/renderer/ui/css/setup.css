@@ -1,0 +1,36 @@
+.ui-setup .setUp {width:350px;height:311px;color:#191919d4;font-size:14px}
+.ui-setup .leftScroll {position:absolute;left:13px;top:36px;width:93px;height:230px}
+.ui-setup .lm_once {width:85px;height:28px;background-image:url(/pet/sysSeting/yeqian00.png);background-size:100% 100%;background-repeat:no-repeat;margin-top:5px}
+.ui-setup .activeMenu {background-image:url(/pet/sysSeting/yeqian02.png)!important;color:#fff!important}
+.ui-setup .rightScroll {position:absolute;right:14px;top:36px;height:230px;width:225px;background-image:url(/pet/sysSeting/banshou.png)!important;background-size:100% 100%;background-repeat:no-repeat;overflow:hidden auto}
+.ui-setup .childrenIn {width:225px;padding:10px 20px}
+.ui-setup .footBUts {position:absolute;left:12px;bottom:5px;width:325px;height:40px;padding:0 20px}
+.ui-setup .f_submit {width:84px;height:40px;background-image:url(/pet/sysSeting/yingyong00.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-setup .f_submit:hover {background-image:url(/pet/sysSeting/yingyong01.png)}
+.ui-setup .f_submit:active {background-image:url(/pet/sysSeting/yingyong02.png)}
+.ui-setup .f_submit.unDo {background-image:url(/pet/sysSeting/yingyong02.png)!important}
+.ui-setup .butsButs {position:absolute;left:0;top:0;width:100%;height:100%;background-color:#ffffffb3;border-radius:8px;opacity:.15;transition:all .5s}
+.ui-setup .butsLabel:hover .butsButs {opacity:1}
+.ui-setup .butsButs_submit {width:84px;height:40px;background-image:url(/pet/sysSeting/queding00.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-setup .butsButs_submit:hover {background-image:url(/pet/sysSeting/queding01.png)}
+.ui-setup .butsButs_submit:active {background-image:url(/pet/sysSeting/queding02.png)}
+.ui-setup .close {width:26px;height:15px;background-image:url(/pet/sysSeting/guanbi00.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:20px;top:10px;z-index:99}
+.ui-setup .close:hover {background-image:url(/pet/sysSeting/guanbi01.png)}
+.ui-setup .close:active {background-image:url(/pet/sysSeting/guanbi02.png)}
+.ui-setup .sl_center {width:147px;height:17px;background-image:url(/pet/sysSeting/yinxiaotiao.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-setup .sl_down {width:15px;height:15px;background-image:url(/pet/sysSeting/xiala00.png);background-size:100% 100%;background-repeat:no-repeat;z-index:99;padding:10px;border-radius:10px}
+.ui-setup .sl_down:hover {background-image:url(/pet/sysSeting/xiala01.png)}
+.ui-setup .sl_down:active {background-image:url(/pet/sysSeting/xiala02.png)}
+.ui-setup .sl_up {width:15px;height:15px;background-image:url(/pet/sysSeting/xiala00.png);background-size:100% 100%;background-repeat:no-repeat;z-index:99;padding:10px;border-radius:10px;transform:rotate(180deg)}
+.ui-setup .sl_up:hover {background-image:url(/pet/sysSeting/xiala01.png)}
+.ui-setup .sl_up:active {background-image:url(/pet/sysSeting/xiala02.png)}
+.ui-setup .sl_center_z {position:absolute;left:0;bottom:0;width:17px;height:50px;overflow:hidden;transform:translate(-50%);margin:0 10px}
+.ui-setup .slc_z {width:147px;height:17px;background-image:url(/pet/sysSeting/zhenshutiao.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;left:-34px;bottom:10px;border-radius:50%;transform:rotate(180deg)}
+.ui-setup .radio .label {width:143px;margin-left:10px}
+.ui-setup .radio .choose {width:22px;height:22px;background-image:url(/pet/sysSeting/fangxuankuang00.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-setup .radio .choose:hover {background-image:url(/pet/sysSeting/fangxuankuang01.png)}
+.ui-setup .radio .choose.active {background-image:url(/pet/sysSeting/fangxuankuang02.png)}
+.ui-setup .c_value {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-setup .copy,
+.ui-setup .login {background-color:#e3b82b;border-radius:8px;padding:2px 5px;font-size:12px;cursor:pointer}
+.ui-setup .gradient-text2 {background:linear-gradient(90deg,#8a2be2,#ff1493,#8a2be2);background-size:200% 200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradient 4s ease infinite;text-shadow:0 0 8px rgba(0,0,0,.5)}

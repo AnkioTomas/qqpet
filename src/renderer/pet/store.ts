@@ -109,16 +109,14 @@ export function setTray(s: TrayState): void {
   window.qqpet.setTrayState(s)
 }
 
-/** Growth paused from the menu; like the original, not saved. */
-export let paused = false
 export function setPaused(on: boolean): void {
-  paused = on
+  update('settings', { paused: on })
   refreshTray()
 }
 
 export function refreshTray(): void {
   if (save.isBury || info.health === 0) setTray('dead')
-  else if (paused) setTray('pause')
+  else if (save.settings.paused) setTray('pause')
   else if (info.health !== 5) setTray('ill')
   else if (activity('work')) setTray('work')
   else if (activity('study')) setTray('study')

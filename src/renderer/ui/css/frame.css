@@ -1,0 +1,10 @@
+.imgBjBoxFrame {display:grid;grid-template-areas:"stack";min-height:0}
+.imgBjBoxFrame > .styleBox,
+.imgBjBoxFrame > .slotMain {grid-area:stack;height:100%}
+.imgBjBoxFrame > .styleBox {z-index:1}
+.imgBjBoxFrame > .slotMain {z-index:2;min-height:min-content}
+.styleBox > .content img {height:100%}
+/* Stretched slices take their row's height; newer Chromium would scale them by their aspect ratio instead. */
+.styleBox .head2,
+.styleBox .content2,
+.styleBox .foot2 {contain:size;align-self:stretch}

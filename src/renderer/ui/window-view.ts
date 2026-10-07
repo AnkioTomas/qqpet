@@ -11,6 +11,8 @@ interface Dialog {
   max?: number
   /** OK button; without it OK just closes. `num` is the picked quantity. */
   ok?: (close: () => void, num: number) => void
+  /** The sweetheart skin. */
+  sweet?: boolean
 }
 
 let closeCurrent = (): void => {}
@@ -52,8 +54,8 @@ export function windowView(d: Dialog): void {
     )
   }
 
-  const view = div('windowView', ...(d.title ? [div('title', d.title)] : []), main)
-  const close = openFrame(div('ui-window', view), 'pet/windowTip/alert/bg.png')
+  const view = div(d.sweet ? 'windowView sweetHeart' : 'windowView', ...(d.title ? [div('title', d.title)] : []), main)
+  const close = openFrame(div('ui-window', view), d.sweet ? 'pet/windowTip/sweetHeart/sweetHeart.png' : 'pet/windowTip/alert/bg.png')
   closeCurrent = close
   view.append(
     button('windowViewBut', close),

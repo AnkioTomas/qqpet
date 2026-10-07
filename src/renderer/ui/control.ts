@@ -6,6 +6,7 @@ import { speak } from '../pet/pet'
 import { info, onInfoChange, petSize, save } from '../pet/store'
 import { openPinkDiamond } from '../pet/vip'
 import './css/control.css'
+import { formatDate } from './date'
 import { button, div, img } from './dom'
 import { progress } from './progress'
 import { openShop } from './shop'
@@ -60,12 +61,7 @@ const PANELS = {
 }
 
 function pinkDiamond(): void {
-  const until = (): void => {
-    const d = new Date(info.PDiamondExpirationDate * 1000)
-    const p = (n: number): string => String(n).padStart(2, '0')
-    const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
-    speak({ s: `[host],我们粉钻到${date}过期哦~`, now: true }, 'speak')
-  }
+  const until = (): void => speak({ s: `[host],我们粉钻到${formatDate(info.PDiamondExpirationDate, 'YYYY-MM-DD HH:mm')}过期哦~`, now: true }, 'speak')
   if (info.pinkDiamond) return until()
   const first = info.PDgrowth === 0
   const price = first ? 666 : info.PDiamondLevel * 888

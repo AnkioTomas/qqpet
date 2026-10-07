@@ -1,0 +1,38 @@
+.ui-petinfo .petInfoMain {font-size:14px;position:relative;font-size:12px;width:432px;height:276px;color:#2a1608eb}
+.ui-petinfo .headImg {position:absolute;left:25px;top:25px;height:160px;width:160px;background-image:url(/pet/info/16.svg);background-repeat:no-repeat;background-size:cover;border-radius:10px}
+.ui-petinfo .headImg .img {width:90%;height:90%;transform-origin:center bottom;pointer-events:none;position:absolute;left:5%;top:5%}
+.ui-petinfo .name {position:absolute;left:25px;top:208px;width:160px;text-align:center}
+.ui-petinfo .pinkDiamondMain {position:absolute;left:25px;top:183px;width:160px}
+.ui-petinfo .pinkDiamond {height:28px;width:25px;background-repeat:no-repeat;background-size:contain}
+.ui-petinfo .service {position:absolute;left:25px;top:230px;width:160px}
+.ui-petinfo .service .sweetHeart {height:20px;width:65px;background-repeat:no-repeat;background-size:contain}
+.ui-petinfo .rightRow {position:absolute;left:190px;top:20px;width:210px;height:20px}
+.ui-petinfo .hostName {top:45px}
+.ui-petinfo .luckyFatigue {top:60px}
+.ui-petinfo .label {font-weight:600;color:#010b41}
+.ui-petinfo .input {width:100px;height:20px;color:#fff;border-radius:5px;background-color:#00000080;margin-right:5px}
+.ui-petinfo .but {height:25px;width:40px;background-image:url(/pet/info/55.svg);background-size:100% 100%;background-repeat:no-repeat;position:relative;top:-2px}
+.ui-petinfo .but:hover {background-image:url(/pet/info/57.svg)}
+.ui-petinfo .but:active {background-image:url(/pet/info/59.svg);position:relative}
+.ui-petinfo .smallRow {position:absolute;left:190px;top:66px;display:flex;align-items:center;flex-wrap:wrap;margin-right:20px;box-sizing:border-box}
+.ui-petinfo .smallValue {white-space:nowrap}
+.ui-petinfo .birthDay {left:270px}
+.ui-petinfo .level {top:85px}
+.ui-petinfo .yb {top:85px;left:270px}
+.ui-petinfo .close {width:20px;height:20px;background-image:url(/pet/info/9.svg);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:15px;top:5px}
+.ui-petinfo .close:hover {background-image:url(/pet/info/11.svg)}
+.ui-petinfo .close:active {background-image:url(/pet/info/13.svg)}
+.ui-petinfo .attributeValue {position:absolute;top:105px}
+.ui-petinfo .intel {top:125px}
+.ui-petinfo .strong {top:125px;left:300px}
+.ui-petinfo .charm {top:145px}
+.ui-petinfo .educationValue {position:absolute;top:175px}
+.ui-petinfo .educationInfo {top:195px;font-size:11px}
+.ui-petinfo .fullInput #dontDrag {height:25px;width:100%}
+.ui-petinfo .fullInput .label,
+.ui-petinfo .fullInput .but {display:none}
+.ui-petinfo .cjList {position:absolute;left:0;top:0;width:100%;height:100%}
+.ui-petinfo .cjbox {width:30px;height:40px;position:relative}
+.ui-petinfo .cjImg {width:100%;height:100%;position:relative}
+.ui-petinfo .cjImg:hover {width:200%;height:200%;z-index:10}
+.ui-petinfo .luckyFatigue {position:absolute;left:25px;top:246px;width:160px;color:#000}

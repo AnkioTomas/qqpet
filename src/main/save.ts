@@ -84,6 +84,14 @@ const RULES: Record<string, Record<string, Rule>> = {
     ddw: num(0, ANY, 0),
     yyds: num(0, ANY, 0),
   },
+  settings: {
+    opacity: num(0, 1, 1),
+    faceClick: (v) => (v === 0 || v === 1 || v === 2 ? v : 2),
+    quiet: bool,
+    autoStart: bool,
+    paused: bool,
+    hidden: bool,
+  },
 }
 
 function fresh(): SaveData {
@@ -140,6 +148,7 @@ function fresh(): SaveData {
     gameSaveDatas: { fishing_harvestfish: 0, travel_china: [], travel_china_num: 0, ddw: 0, yyds: 0 },
     illustrated: [],
     saveJsonData: { email: '{}', task: '{}', signin: '{}', fishs: '{}' },
+    settings: { opacity: 1, faceClick: 2, quiet: false, autoStart: false, paused: false, hidden: false },
   }
 }
 

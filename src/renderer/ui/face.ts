@@ -21,7 +21,15 @@ function poke(key: string, s = 1, e = s): void {
   machine.play({ a: 'faceActive', opt: { url: `pet/Action/${info.sex}/${dir}/interact/${key}${rand(s, e)}.swf`, opt: {} } })
 }
 
+/** 0 off, 1 invisible spots, 2 marked spots. */
+export function setFaceClick(v: 0 | 1 | 2): void {
+  update('settings', { faceClick: v })
+  document.body.classList.toggle('faceHint', v === 2)
+}
+document.body.classList.toggle('faceHint', save.settings.faceClick === 2)
+
 function show(): void {
+  if (!save.settings.faceClick) return
   const st = stage()
   const points = st === 'Adult' ? FACE[info.sex].Adult[mood()] : FACE[info.sex][st]
   layer.replaceChildren(

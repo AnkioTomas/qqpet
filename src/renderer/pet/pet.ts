@@ -4,7 +4,8 @@ import { say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
 import { advanceTask, stopTask } from './activity'
-import { tickTimed } from './goods'
+import { listGoods, tickTimed } from './goods'
+import { useItem } from './items'
 import { Machine, type Pose } from './machine'
 import { rand } from './rand'
 import {
@@ -16,7 +17,6 @@ import {
   info,
   mood,
   onInfoChange,
-  paused,
   refreshTray,
   save,
   setActivity,
@@ -65,7 +65,7 @@ interface Say {
   now?: boolean
 }
 
-/** Shows a bubble, optionally together with an action that it waits for. */
+/** Shows a bubble, optionally together with an action that it waits for. Do-not-disturb drops only the bubble. */
 export function speak(t: Say, action?: string, hooks: { start?: () => void; end?: () => void; ok?: () => void } = {}): void {
   let text = t.s ?? ''
   let button = t.b ?? '好的'
@@ -76,7 +76,7 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
   }
   text = text.replace(/\[host\]/g, info.host)
   const show = (): void => {
-    void say(text, [button], hooks.ok ? [hooks.ok] : [])
+    if (!save.settings.quiet) void say(text, [button], hooks.ok ? [hooks.ok] : [])
     hooks.start?.()
   }
   if (!action || !info.health) return show()
@@ -174,11 +174,27 @@ function tick(): void {
     setInfo('hunger', Math.max(info.hunger - (rand(2, 3) + extra) * minutes, 0))
     setInfo('clean', Math.max(info.clean - (rand(2, 3) + extra) * minutes, 0))
     addInfo('growth', +(growthPerMinute() * grown).toFixed(8))
+    if (info.sweetHeart) selfCare()
     for (const type of tickTimed(grown)) speak({ c: 'state', s: `${type}Over`, now: true }, 'speak')
     advanceTask(grown)
   }
   lastTick = now
   update('nowTimeLine', now)
+}
+
+/** The first need under 60% (food before cleaning before play), with the words the pet says. */
+const NEEDS = [
+  { stat: 'hunger', type: 'food', act: '吃东西' },
+  { stat: 'clean', type: 'clean', act: '洗白白' },
+  { stat: 'mood', type: 'toy', act: '玩玩具' },
+] as const
+
+/** Sweetheart: the pet tends its most urgent need with the first matching good it owns. */
+function selfCare(): void {
+  const need = NEEDS.find((n) => info[n.stat] / save.petComputedlInfo[`${n.stat}Max`] < 0.6)
+  if (!need) return
+  const g = listGoods(need.type, 1, 1).list[0]
+  if (g) useItem(g, false, `[host]，我可以自己${need.act}哦！~~使用了：${g.name}`)
 }
 
 /** Random illness for a tired pet, and further health loss once ill. */
@@ -198,7 +214,7 @@ function healthRoll(): void {
 
 /** A dead or paused pet does not age; the minutes in between are never accounted. */
 function grow(): void {
-  if (info.health <= 0 || paused) {
+  if (info.health <= 0 || save.settings.paused) {
     lastTick = null
     return
   }

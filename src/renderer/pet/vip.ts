@@ -38,6 +38,12 @@ export function openPinkDiamond(days: number): void {
   settle(today)
 }
 
+/** Books sweetheart for `days` more, from today's 06:00 when none is booked, and switches it on. */
+export function addSweetHeart(days: number): void {
+  setInfo('sweetHeartOverTime', (info.sweetHeartOverTime || dayStart()) + days * DAY)
+  setInfo('sweetHeart', true)
+}
+
 /** 06:00 accounting: pink diamond growth for the days since it was last counted, and VIP expiry. */
 export function newDay(today: number): void {
   if (info.pinkDiamond) {

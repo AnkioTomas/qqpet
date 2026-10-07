@@ -18,14 +18,14 @@ function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
 
 /**
  * Drags a frame centered by `translate(-50%, -50%)`, unless the press starts
- * inside `keep` (content that needs its own mouse input, e.g. a SWF).
+ * in an input or inside `keep` (content that needs its own mouse input, e.g. a SWF).
  * No pointer capture: it would retarget clicks on buttons inside the frame.
  */
 function draggable(frame: HTMLElement, keep?: HTMLElement): void {
   let dx = 0
   let dy = 0
   frame.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || keep?.contains(e.target as Node)) return
+    if (e.button !== 0 || keep?.contains(e.target as Node) || e.target instanceof HTMLInputElement) return
     const sx = e.clientX - dx
     const sy = e.clientY - dy
     const move = (m: PointerEvent): void => {

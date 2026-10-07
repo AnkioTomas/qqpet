@@ -81,6 +81,19 @@ export interface GameSaveDatas {
   yyds: number
 }
 
+/** Menu and settings panel options (kept in the original's localStorage). */
+export interface Settings {
+  /** Pet, control bar and window opacity, 0..1. */
+  opacity: number
+  /** Face spots: 0 off, 1 on, 2 on and marked. */
+  faceClick: 0 | 1 | 2
+  /** Do-not-disturb: no speech bubbles. */
+  quiet: boolean
+  autoStart: boolean
+  paused: boolean
+  hidden: boolean
+}
+
 export interface SaveData {
   havePet: boolean
   isBury: boolean
@@ -97,6 +110,7 @@ export interface SaveData {
   illustrated: unknown[]
   /** Feature-owned JSON blobs (email, task, signin, fishs), stored as strings. */
   saveJsonData: Record<string, string>
+  settings: Settings
 }
 
 /** Object-valued groups are merged field by field; everything else is replaced. */

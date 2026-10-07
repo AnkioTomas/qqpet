@@ -1,0 +1,25 @@
+.ui-state .PetStateInfo {position:fixed;z-index:700;font-weight:400;color:#042b4b;font-size:12px}
+.ui-state .slotMain .head {padding:1px 8px 0}
+.ui-state .openPetInfo {height:23px;width:70px;background-image:url(/pet/stateInfo/00.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-state .openPetInfo:hover {background-image:url(/pet/stateInfo/01.png);position:relative;top:1px}
+.ui-state .openPetInfo:active {background-image:url(/pet/stateInfo/02.png);position:relative;top:1px}
+.ui-state .close {height:17px;width:17px;background-image:url(/pet/stateInfo/close_normal.png);background-size:100% 100%;position:relative;background-repeat:no-repeat;top:-3px}
+.ui-state .close:hover {background-image:url(/pet/stateInfo/close_click.png);top:-2px}
+.ui-state .close:active {background-image:url(/pet/stateInfo/close_over.png);position:relative;top:1px}
+.ui-state .onceInfo {padding:1px 2px}
+.ui-state .slotMain .foot {padding:3px 8px 6px}
+.ui-state .foot .sweetHeart {height:20px;width:65px;background-repeat:no-repeat;background-size:contain}
+.ui-state .openSweetHeart {height:23px;width:40px;background-image:url(/pet/stateInfo/kaiqi_over.png);background-size:100% 100%;position:relative;background-repeat:no-repeat;top:-3px}
+.ui-state .openSweetHeart:hover {background-image:url(/pet/stateInfo/kaiqi_up.png);top:-2px}
+.ui-state .openSweetHeart:active {background-image:url(/pet/stateInfo/kaiqi_down.png);position:relative;top:1px}
+.ui-state .closeSweetHeart {height:23px;width:40px;background-image:url(/pet/stateInfo/guanbi_over.png);background-size:100% 100%;position:relative;background-repeat:no-repeat;top:-3px}
+.ui-state .closeSweetHeart:hover {background-image:url(/pet/stateInfo/guanbi_up.png);top:-2px}
+.ui-state .closeSweetHeart:active {background-image:url(/pet/stateInfo/guanbi_down.png);position:relative;top:1px}
+.ui-state .pinkDiamond {height:28px;width:25px;background-repeat:no-repeat;background-size:contain}
+.ui-state .valueLine {height:17px}
+.ui-state .label {white-space:nowrap}
+.ui-state .butDo {height:19px;width:35px;background-image:url(/pet/stateInfo/13.svg);background-size:100% 100%;position:relative;background-repeat:no-repeat;border-radius:8px;border:1px solid rgba(31,114,182,.3);display:flex;align-items:center;justify-content:center}
+.ui-state .butDo:hover {background-image:url(/pet/stateInfo/18.svg);top:-2px}
+.ui-state .butDo:active {background-image:url(/pet/stateInfo/21.svg);position:relative;top:1px}
+.ui-state .groupIcons {width:20px;height:20px;margin-left:8px}
+.ui-state .boneImg {width:12px;height:12px}

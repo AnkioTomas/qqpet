@@ -4,7 +4,7 @@ import { goodOf, type Good, type TimedType } from './data/goods'
 import { DEAD, illOf } from './data/ills'
 import { addGood, hasGood, startTimed, takeGood } from './goods'
 import { speak } from './pet'
-import { activity, addInfo, info, paused, save, setInfo } from './store'
+import { activity, addInfo, info, save, setInfo } from './store'
 
 /** Deducts 元宝; on shortage shows the original's alert and returns false. */
 export function pay(price: number): boolean {
@@ -42,9 +42,9 @@ const DAILY: Record<TimedType, { c: string; action: string; extra: number; pause
 /**
  * Uses one of a good. `free` skips the inventory (the doctor already charged
  * for it). The good is taken when its animation starts, so a use that is
- * preempted costs nothing.
+ * preempted costs nothing. `text` replaces the everyday goods' usual line.
  */
-export function useItem(g: Good, free = false): void {
+export function useItem(g: Good, free = false, text?: string): void {
   if (g.type !== 'medicine' && info.health === 0) return speak({ c: 'state', s: 'die' })
   if (!free && !hasGood(g.type, g.id)) return
   const take = (): boolean => takeGood(g) || free
@@ -65,8 +65,8 @@ export function useItem(g: Good, free = false): void {
   if (g.type === 'medicine') return medicine(g, take)
 
   const d = DAILY[g.type as TimedType]
-  if (paused && d.paused) return speak({ s: `[host],我暂停成长拉！无法${d.paused}~~`, now: true }, 'speak')
-  speak({ c: d.c, s: g.type, now: true }, d.action, {
+  if (save.settings.paused && d.paused) return speak({ s: `[host],我暂停成长拉！无法${d.paused}~~`, now: true }, 'speak')
+  speak(text ? { s: text, now: true } : { c: d.c, s: g.type, now: true }, d.action, {
     start: () => {
       if (!take()) return
       if (g.useTimeing) startTimed(g as Good & { type: TimedType })
