@@ -34,7 +34,8 @@ export async function ask(messages: AiMessage[]): Promise<string | null> {
 }
 
 /** By default the line is only reworded; `how` can ask for more, e.g. small talk around it. */
-const REWORD = '用你的口吻把这句话重新说一遍。原句里的时间、天气、数字、物品和要做的事都必须保留，不能改也不能编新内容；只输出改写后的那句话，不要解释。原句：'
+const REWORD =
+  '下面这句话是你对主人说的，句中的「我」就是你自己。用你的口吻把它重新说一遍。原句里的时间、天气、数字、物品和要做的事都必须保留，不能改也不能编新内容；只输出改写后的那句话，不要解释。原句：'
 
 /** Small talk while idle, starting from one of the original lines. */
 export const IDLE = '主人在旁边忙，没有说话。结合你现在的状态、时间和日期，主动对主人说一句话；只输出这句话，不要解释。可以参考这句：'
@@ -46,9 +47,11 @@ const TRANSLATE = '主人刚复制了下面这段文字。如果是代码或网�
 /** Copied text: Chinese is remarked on; anything else translated, or guessed at when it is code or a link. */
 export const clipAsk = (text: string): string => (/\p{Script=Han}/u.test(text) ? REMARK : TRANSLATE)
 
+const nums = (s: string): string => (s.match(/\d+/g) ?? []).sort().join()
+
 /** The line in the pet's own words; null when AI is off or fails. */
 export async function rephrase(line: string, how = REWORD): Promise<string | null> {
   const s = await ask([{ role: 'user', content: `${how}\n${line}` }])
-  // Small models sometimes garble numbers ("21点" became "720点"); a reworded line must keep them.
-  return s && (how !== REWORD || (line.match(/\d+/g) ?? []).every((n) => s.includes(n))) ? s : null
+  // Small models garble numbers ("21点" became "720点") or pull the date in from the persona; a reworded line keeps exactly the original's.
+  return s && (how !== REWORD || nums(s) === nums(line)) ? s : null
 }

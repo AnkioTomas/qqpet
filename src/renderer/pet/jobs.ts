@@ -13,7 +13,7 @@ import { loot } from './loot'
 import { mailPhoto } from './mail'
 import { speak } from './pet'
 import { rand } from './rand'
-import { activity, addInfo, busy, info, luck, save, setInfo, update } from './store'
+import { activity, addInfo, info, luck, save, setInfo, update } from './store'
 import { addCount } from './tasks'
 
 export { PROVINCES }
@@ -37,13 +37,20 @@ const subjectOf = (g: Good): Subject => g.id.split('-')[1] as Subject
 const lessons = (g: Good): number => save.studyInfo[subjectOf(g)] - g.classNumUp!
 const learn = (k: Subject): void => update('studyInfo', { [k]: save.studyInfo[k] + 1 })
 
+const BUSY = {
+  work: '[host]，我正在打工呢，等下班再说吧~',
+  study: '[host]，我正在上课呢，等下课再说吧~',
+  trip: '[host]，我出门旅游啦，等我回来再说吧~',
+}
+
 /** The checks before work, study and travel; true (after saying why) when the pet can't start. */
 function cannot(what: string, sad = what): boolean {
+  const doing = (['work', 'study', 'trip'] as const).find((k) => activity(k))
   if (info.health === 0) speak({ c: 'state', s: 'die' })
-  else if (info.health !== 5) speak({ s: `[host],我生病了无法${what}~~`, now: true }, 'speak')
-  else if (save.settings.paused) speak({ s: `[host],我暂停成长拉！无法${what}~~`, now: true }, 'speak')
-  else if (info.mood <= 0) speak({ s: `[host],没有心情哦！无法${sad}~~`, now: true }, 'speak')
-  else if (busy()) speak({ s: '[host],做事要专心哦~~', now: true }, 'speak')
+  else if (info.health !== 5) speak({ s: `[host],我生病了无法${what}~~`, now: true, ai: false }, 'speak')
+  else if (save.settings.paused) speak({ s: `[host],我暂停成长拉！无法${what}~~`, now: true, ai: false }, 'speak')
+  else if (info.mood <= 0) speak({ s: `[host],没有心情哦！无法${sad}~~`, now: true, ai: false }, 'speak')
+  else if (doing) speak({ s: BUSY[doing], now: true, ai: false }, 'speak')
   else return false
   return true
 }
