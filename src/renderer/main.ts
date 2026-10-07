@@ -1,4 +1,4 @@
-import { SwfPlayer } from './swf/player'
+import { PetSwf } from './swf/pet-swf'
 
 const SIZE = 140
 const MARGIN = 40
@@ -13,11 +13,19 @@ const { lastX, lastY } = save.petInfo
 petEl.style.left = `${lastX >= 0 ? lastX : innerWidth - SIZE - MARGIN}px`
 petEl.style.top = `${lastY >= 0 ? lastY : innerHeight - SIZE - MARGIN}px`
 
+const cursor = { x: 0, y: 0 }
+window.API = {
+  GetCursorPosition: () => `${cursor.x},${cursor.y},0`,
+  GetWindowRect: () => `${petEl.offsetLeft},${petEl.offsetTop},${SIZE},${SIZE}`,
+}
+
 // The window is click-through except while the cursor is over a [data-hit]
 // element (or a drag is in progress).
 let interactive = false
 let dragging = false
 window.qqpet.onCursor((p) => {
+  cursor.x = p.x
+  cursor.y = p.y
   const hit = dragging || document.elementFromPoint(p.x, p.y)?.closest('[data-hit]') != null
   if (hit === interactive) return
   interactive = hit
@@ -46,8 +54,11 @@ petEl.addEventListener(
 )
 
 const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 1000 / 12))
-const player = new SwfPlayer(petEl)
+const pet = new PetSwf(petEl)
 for (let i = 0; ; i = (i + 1) % actions.length) {
-  await player.load(actions[i])
-  while (player.currentFrame < player.totalFrames - 1) await tick()
+  await pet.load(actions[i])
+  while (pet.front.currentFrame < pet.front.totalFrames - 1) await tick()
+  // Single-frame actions (Stand) animate from script and hold until the state
+  // machine queues something else; the demo just holds them for a while.
+  if (pet.front.totalFrames === 1) await new Promise((r) => setTimeout(r, 5000))
 }

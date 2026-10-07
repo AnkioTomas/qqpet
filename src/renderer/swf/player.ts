@@ -66,8 +66,18 @@ export class SwfPlayer {
   }
 
   stop(): void {
-    this.el.ruffle().pause()
+    this.el.ruffle().suspend()
     this.stoppedAt ??= performance.now()
+  }
+
+  /**
+   * Resolves with a function the SWF registered via ExternalInterface.addCallback.
+   * SWFs register from their first frame script, some time after load() resolves.
+   */
+  async callback(name: string): Promise<(...args: unknown[]) => unknown> {
+    const host = this.el as unknown as Record<string, unknown>
+    while (typeof host[name] !== 'function') await new Promise((r) => setTimeout(r, 50))
+    return (host[name] as (...args: unknown[]) => unknown).bind(this.el)
   }
 
   destroy(): void {

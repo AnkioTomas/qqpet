@@ -4,6 +4,8 @@ declare global {
   interface Window {
     qqpet: QQPetApi
     RufflePlayer: { newest(): { createPlayer(): RufflePlayerElement } }
+    /** Called by pet action SWFs (Stand eyes follow the cursor). Values are "x,y,0" / "x,y,w,h". */
+    API: { GetCursorPosition(): string; GetWindowRect(): string }
   }
 
   interface RuffleMetadata {
@@ -17,8 +19,8 @@ declare global {
   /** Subset of Ruffle's PlayerV1 API (ruffle.js 0.6) that we rely on. */
   interface RuffleApi {
     load(options: Record<string, unknown>): Promise<void>
-    play(): void
-    pause(): void
+    resume(): void
+    suspend(): void
     readonly isPlaying: boolean
     readonly metadata: RuffleMetadata | null
   }
