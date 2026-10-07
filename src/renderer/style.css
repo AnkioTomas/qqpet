@@ -67,6 +67,10 @@ body {
   height: 183px;
   z-index: 600;
 }
+/* Ruffle's :host has all:initial, which would keep the player visible inside a hidden #talk. */
+#talk > ruffle-player {
+  visibility: inherit;
+}
 
 /* The original "box" window frame. */
 .box {
