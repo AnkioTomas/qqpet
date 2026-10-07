@@ -96,8 +96,6 @@ export interface Settings {
   hd: boolean
   /** The pet reads out text copied to the clipboard. */
   clip: boolean
-  /** Floating dots and cursor guide lines over the desktop. */
-  screenFx: boolean
 }
 
 export interface SaveData {

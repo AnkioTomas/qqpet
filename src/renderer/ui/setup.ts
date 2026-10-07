@@ -8,8 +8,6 @@ import './css/setup.css'
 import { button, div } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
-import { setScreenFx } from './screen-fx'
-import { openSwfViewer } from './swf-view'
 
 type Option = { label: string; title?: string } & (
   | { type: 'radio'; on: () => boolean; run: () => void }
@@ -102,9 +100,6 @@ const TABS: { label: string; options: Option[] }[] = [
   {
     label: '工具',
     options: [
-      { type: 'radio', label: '打开屏幕辅助工具，好玩尝试下~', on: () => s.screenFx, run: () => setScreenFx(!s.screenFx) },
-      { type: 'button', label: '打开swf文件查看器，无需Flash插件~', run: () => void openSwfViewer() },
-      { type: 'button', label: '打开控制透明浏览器，你懂得~', run: () => window.qqpet.openBrowser() },
       { type: 'radio', label: '实时监听播报剪切板', title: '复制文字后，宠物会把它念出来', on: () => s.clip, run: () => update('settings', { clip: !s.clip }) },
     ],
   },

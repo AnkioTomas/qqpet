@@ -12,8 +12,6 @@ const api: QQPetApi = {
   resetPet: send(IPC.resetPet),
   exportSave: () => ipcRenderer.invoke(IPC.exportSave),
   importSave: send(IPC.importSave),
-  pickSwf: () => ipcRenderer.invoke(IPC.pickSwf),
-  openBrowser: send(IPC.openBrowser),
   quit: send(IPC.quit),
   messageBox: (options) => ipcRenderer.invoke(IPC.messageBox, options),
   copyText: send(IPC.copyText),

@@ -6,8 +6,6 @@ export const IPC = {
   resetPet: 'pet:reset',
   exportSave: 'pet:export',
   importSave: 'pet:import',
-  pickSwf: 'tool:pickSwf',
-  openBrowser: 'tool:browser',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -67,9 +65,6 @@ export interface QQPetApi {
   exportSave(): Promise<boolean>
   /** Asks for a save file (ours or the original's config.json), then relaunches with it. */
   importSave(): void
-  /** Asks for a local .swf; its bytes, or null when cancelled. */
-  pickSwf(): Promise<Uint8Array<ArrayBuffer> | null>
-  openBrowser(): void
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>
