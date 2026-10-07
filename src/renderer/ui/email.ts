@@ -1,5 +1,7 @@
 import { give } from '../pet/items'
 import { readMails, writeMails, type Live } from '../pet/mail'
+import { photoUrl } from '../pet/album'
+import { openPhoto } from './album'
 import { openFrame } from './box'
 import './css/email.css'
 import { formatDate } from './date'
@@ -39,7 +41,12 @@ export function openEmail(): void {
             'rightMain f1 fC w0',
             div('e_title', m.l),
             div('e_time', formatDate(m.d, 'YYYY-MM-DD HH:mm')),
-            div('e_icons f1 mt2', div('e_goodImgsBox', ...m.glb.map((g) => Object.assign(img('e_goodImgs', g.url), { title: `${g.name}*${g.num}` })))),
+            div(
+              'e_icons f1 mt2',
+              m.p
+                ? button('e_photo', () => openPhoto(m.p!), img('e_photoImg', photoUrl(m.p)))
+                : div('e_goodImgsBox', ...m.glb.map((g) => Object.assign(img('e_goodImgs', g.url), { title: `${g.name}*${g.num}` }))),
+            ),
           ),
           button(m.r ? 'fcc rgetEmail' : 'fcc getEmail', () => act([m]), m.r ? '删除' : '领取'),
         ),

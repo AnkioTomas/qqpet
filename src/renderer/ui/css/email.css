@@ -25,3 +25,5 @@
 .ui-email .getEmails,
 .ui-email .rgetEmails {width:60px;margin:4px}
 .ui-email .e_time {font-size:9px;color:#9f9f9f}
+.ui-email .e_photo {width:60px;height:42px;padding:2px;background:#fff;box-shadow:1px 1px 3px #0003;cursor:pointer}
+.ui-email .e_photoImg {width:100%;height:100%;display:block}

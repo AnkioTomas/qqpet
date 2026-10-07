@@ -1,5 +1,5 @@
 .ui-travel .travel {width:600px;height:500px;padding:20px 20px 0}
-.ui-travel .travelMain {width:100%;height:100%;background-color:#f1ab6525;border-radius:10px}
+.ui-travel .travelMain {width:100%;background-color:#f1ab6525;border-radius:10px}
 .ui-travel .toTarvelBut {margin:16px 0;height:30px;box-sizing:border-box}
 .ui-travel .tip {height:30px;padding-bottom:16px}
 .ui-travel .lvcjImg {width:30px;height:40px}
@@ -8,3 +8,6 @@
 .ui-travel path {stroke:#fff;stroke-width:1}
 .ui-travel path:hover {fill:#f1ab6539}
 .ui-travel text {fill:#e68470;stroke:#fff;stroke-width:2px;paint-order:stroke;font-size:9px;text-anchor:middle;pointer-events:none}
+.ui-travel .travelTabs {gap:8px;padding-bottom:10px}
+.ui-travel .travelTab {padding:3px 14px;border-radius:12px;background:#f1ab6530;color:#c07a3a;font-weight:700;cursor:pointer}
+.ui-travel .travelTab.on {background:#f1ab65;color:#fff}

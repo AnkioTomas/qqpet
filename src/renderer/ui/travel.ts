@@ -5,6 +5,7 @@ import { PROVINCES, travel } from '../pet/jobs'
 import { speak } from '../pet/pet'
 import { activity, info, save, update } from '../pet/store'
 import { resetTour } from '../pet/tasks'
+import { albumView } from './album'
 import { openBox } from './box'
 import './css/travel.css'
 import { button, div, img } from './dom'
@@ -86,7 +87,17 @@ export function openTravel(): void {
   refresh()
   const timer = window.setInterval(refresh, 1000)
 
-  const content = div('travel fC', tip, div('travelMain f1', map), div('toTarvelBut fcc w100', go, stop, finish))
+  const mapPane = div('fC f1 h0', tip, div('travelMain f1 h0', map), div('toTarvelBut fcc w100', go, stop, finish))
+  const albumPane = div('f1 h0')
+  const tabs = ['旅行地图', '相簿'].map((t, i) => button('travelTab fcc', () => show(i), t))
+  const show = (i: number): void => {
+    tabs.forEach((b, j) => b.classList.toggle('on', i === j))
+    mapPane.style.display = i === 0 ? '' : 'none'
+    albumPane.style.display = i === 1 ? '' : 'none'
+    if (i === 1) albumPane.replaceChildren(albumView())
+  }
+  show(0)
+  const content = div('travel fC', div('travelTabs fc', ...tabs), mapPane, albumPane)
   openBox(div('ui-travel', content), {
     vip: info.pinkDiamond,
     onClose: () => {
