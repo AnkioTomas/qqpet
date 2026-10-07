@@ -1,5 +1,6 @@
+import { clipAsk } from './pet/ai'
 import { resumeTask } from './pet/jobs'
-import { startPet } from './pet/pet'
+import { speak, startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
@@ -101,6 +102,11 @@ window.qqpet.onTrayClick((c) => {
   if (c.kind === 'menu') openMenu({ x, y, pet: false }, adoptPet)
   else if (save.havePet) openState(x, y)
   else adoptPet()
+})
+
+const CLIP_MAX = 60
+window.qqpet.onClipboard((text) => {
+  if (save.havePet) speak({ s: text.length > CLIP_MAX ? `${text.slice(0, CLIP_MAX)}…` : text, b: '当前复制的文字', now: true, ai: clipAsk(text) }, 'speak')
 })
 
 if (save.havePet) {

@@ -15,6 +15,7 @@ export const IPC = {
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
+  clipboard: 'clipboard:text',
   setClickThrough: 'win:set-click-through',
   setAlwaysOnTop: 'win:set-always-on-top',
   setFocusable: 'win:set-focusable',
@@ -128,4 +129,6 @@ export interface QQPetApi {
   onTrayClick(listener: (e: TrayClick) => void): void
   /** A game window closed after `minutes` of play. */
   onGamePlayed(listener: (minutes: number) => void): void
+  /** New clipboard text, while the clip setting is on. */
+  onClipboard(listener: (text: string) => void): void
 }

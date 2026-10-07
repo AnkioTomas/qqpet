@@ -39,9 +39,16 @@ const REWORD = '用你的口吻把这句话重新说一遍。原句里的时间�
 /** Small talk while idle, starting from one of the original lines. */
 export const IDLE = '主人在旁边忙，没有说话。结合你现在的状态、时间和日期，主动对主人说一句话；只输出这句话，不要解释。可以参考这句：'
 
+/** Small models cannot tell the language reliably, so the code picks the request. */
+const REMARK = '主人刚复制了下面这段中文，用一句话俏皮地点评它。只输出这句话，不要解释。文字：'
+const TRANSLATE = '主人刚复制了下面这段文字。如果是代码或网址，用一句话猜猜它是干什么的；否则把它翻译成中文，以「翻译：」开头。只输出这句话，不要解释。文字：'
+
+/** Copied text: Chinese is remarked on; anything else translated, or guessed at when it is code or a link. */
+export const clipAsk = (text: string): string => (/\p{Script=Han}/u.test(text) ? REMARK : TRANSLATE)
+
 /** The line in the pet's own words; null when AI is off or fails. */
 export async function rephrase(line: string, how = REWORD): Promise<string | null> {
   const s = await ask([{ role: 'user', content: `${how}\n${line}` }])
-  // Small models sometimes garble numbers ("21点" became "720点"); the original beats a wrong time or amount.
-  return s && (line.match(/\d+/g) ?? []).every((n) => s.includes(n)) ? s : null
+  // Small models sometimes garble numbers ("21点" became "720点"); a reworded line must keep them.
+  return s && (how !== REWORD || (line.match(/\d+/g) ?? []).every((n) => s.includes(n))) ? s : null
 }
