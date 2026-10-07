@@ -4,9 +4,21 @@ import './css/exam.css'
 import { button, div } from './dom'
 import { windowView } from './window-view'
 
-/** The promotion exam of study topic `topic`: three questions, all must be right. */
+const shuffle = <T>(a: T[]): T[] => {
+  const b = [...a]
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[b[i], b[j]] = [b[j], b[i]]
+  }
+  return b
+}
+
+/** The promotion exam of study topic `topic`: three random questions of its bank, all must be right. */
 export function openExam(topic: string, pass: () => void): void {
-  const questions = EXAM[topic as keyof typeof EXAM]
+  // The bank lists most answers first.
+  const questions = shuffle(EXAM[topic as keyof typeof EXAM])
+    .slice(0, 3)
+    .map((q) => ({ ...q, options: shuffle(q.options) }))
   const picked = questions.map(() => -1)
   let at = 0
   const box = div('answerQuestions fC por')
