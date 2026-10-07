@@ -1,11 +1,11 @@
 import { PetSwf } from '../swf/pet-swf'
 import { openEmail } from '../ui/email'
 import { floatMood } from '../ui/float'
-import { say } from '../ui/talk'
+import { retell, say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
 import { advanceTask, stopTask } from './activity'
-import { aiOn, idleTalk } from './ai'
+import { IDLE, rephrase } from './ai'
 import { dateTalk, festival, greeting, loadCalendar } from './calendar'
 import { listGoods, tickTimed } from './goods'
 import { useItem } from './items'
@@ -55,9 +55,8 @@ function cheer(): void {
 /** After 20-60 s of standing: play an animation, or chat for a small mood bonus. */
 function idle(): void {
   if (Math.random() < 0.8) return machine.add({ a: 'play' })
-  if (aiOn() && Math.random() < 0.5) return void idleTalk().then((s) => speak(s ? { s } : { c: 'smallTalk' }, 'speak', { ok: cheer }))
   const date = Math.random() < 0.3 ? dateTalk() : null
-  speak(date ? { s: date } : { c: 'smallTalk' }, 'speak', { ok: cheer })
+  speak(date ? { s: date, ai: IDLE } : { c: 'smallTalk', ai: IDLE }, 'speak', { ok: cheer })
 }
 
 function line(c: string, s?: string): Line | null {
@@ -74,6 +73,8 @@ interface Say {
   b?: string
   /** Preempt the current animation instead of queueing. */
   now?: boolean
+  /** While AI is on, the bubble shows the line at once and then the AI's take on it: what to ask for, or false to keep it. */
+  ai?: string | false
 }
 
 /** Shows a bubble, optionally together with an action that it waits for. Do-not-disturb drops only the bubble. */
@@ -87,7 +88,10 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
   }
   text = text.replace(/\[host\]/g, info.host)
   const show = (): void => {
-    if (!save.settings.quiet) void say(text, [button], hooks.ok ? [hooks.ok] : [])
+    if (!save.settings.quiet) {
+      const said = say(text, [button], hooks.ok ? [hooks.ok] : [])
+      if (t.ai !== false) void Promise.all([rephrase(text, t.ai), said]).then(([s]) => s && void retell(text, s))
+    }
     hooks.start?.()
   }
   if (!action || !info.health) return show()

@@ -25,15 +25,6 @@ app.whenReady().then(() => {
   })
   app.on('before-quit', () => tray.destroy())
 
-  let copied = ''
-  void clipboard.readText().then((t) => (copied = t))
-  setInterval(async () => {
-    const text = await clipboard.readText()
-    if (text === copied) return
-    copied = text
-    if (text.trim() && getSave().settings.clip) win.webContents.send(IPC.clipboard, text)
-  }, 500)
-
   ipcMain.handle(IPC.load, () => getSave())
   ipcMain.on(IPC.save, (_e, patch: SavePatch) => {
     patchSave(patch)

@@ -33,7 +33,7 @@ export function openChat(): void {
     const reply = await ask([...history.slice(-TURNS), said])
     if (reply) history.push(said, { role: 'assistant', content: reply })
     show({ role: 'assistant', content: reply ?? '呜…我现在脑袋转不动，等会儿再聊吧~' })
-    if (reply) speak({ s: reply, now: true }, 'speak')
+    if (reply) speak({ s: reply, now: true, ai: false }, 'speak')
     input.disabled = false
     input.focus()
   }

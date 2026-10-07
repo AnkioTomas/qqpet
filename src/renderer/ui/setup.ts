@@ -164,7 +164,6 @@ const TABS: { label: string; options: Option[] }[] = [
   {
     label: '工具',
     options: [
-      { type: 'radio', label: '实时监听播报剪切板', title: '复制文字后，宠物会把它念出来', on: () => s.clip, run: () => update('settings', { clip: !s.clip }) },
     ],
   },
   {

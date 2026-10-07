@@ -94,8 +94,6 @@ export interface Settings {
   hidden: boolean
   /** High-resolution assets: @2x tray icons and SVG window frames. */
   hd: boolean
-  /** The pet reads out text copied to the clipboard. */
-  clip: boolean
   /** OpenAI-compatible endpoint; `aiModel` is set only once it passed the settings test, and AI is off while it is empty. */
   aiUrl: string
   aiKey: string

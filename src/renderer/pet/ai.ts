@@ -25,22 +25,23 @@ export async function ask(messages: AiMessage[]): Promise<string | null> {
   const s = save.settings
   try {
     const reply = await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model: s.aiModel }, [{ role: 'system', content: persona() }, ...messages])
-    return reply.replace(/\s+/g, ' ').slice(0, MAX) || null
+    // Small models sometimes add notes about their answer on the following lines.
+    return reply.trim().split('\n')[0].replace(/\s+/g, ' ').slice(0, MAX) || null
   } catch (e) {
     console.warn('AI request failed:', e)
     return null
   }
 }
 
-/** Something the idle pet says on its own, from its state and the date. */
-export const idleTalk = (): Promise<string | null> =>
-  ask([{ role: 'user', content: '（主人在旁边忙，没有说话。结合你现在的状态、时间和日期，主动对主人说一句话。）' }])
+/** By default the line is only reworded; `how` can ask for more, e.g. small talk around it. */
+const REWORD = '用你的口吻把这句话重新说一遍。原句里的时间、天气、数字、物品和要做的事都必须保留，不能改也不能编新内容；只输出改写后的那句话，不要解释。原句：'
 
-/** Copied text: translated when foreign, otherwise remarked on. */
-export const clipTalk = (text: string): Promise<string | null> =>
-  ask([
-    {
-      role: 'user',
-      content: `主人刚复制了下面这段文字：\n${text.slice(0, 500)}\n\n如果它是外文，你的回答必须是它的中文翻译，以「翻译：」开头；如果是中文，就用一句话俏皮地点评。`,
-    },
-  ])
+/** Small talk while idle, starting from one of the original lines. */
+export const IDLE = '主人在旁边忙，没有说话。结合你现在的状态、时间和日期，主动对主人说一句话；只输出这句话，不要解释。可以参考这句：'
+
+/** The line in the pet's own words; null when AI is off or fails. */
+export async function rephrase(line: string, how = REWORD): Promise<string | null> {
+  const s = await ask([{ role: 'user', content: `${how}\n${line}` }])
+  // Small models sometimes garble numbers ("21点" became "720点"); the original beats a wrong time or amount.
+  return s && (line.match(/\d+/g) ?? []).every((n) => s.includes(n)) ? s : null
+}

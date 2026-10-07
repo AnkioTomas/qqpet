@@ -14,6 +14,8 @@ const player = new SwfPlayer(el)
 
 let skin = 0
 let actions: (() => void)[] = []
+let shown = ''
+let labels: string[] = []
 let hideTimer = 0
 
 const hide = (): void => {
@@ -53,6 +55,8 @@ function place(): void {
 
 export async function say(text: string, buttons: string[], onButton: (() => void)[] = []): Promise<void> {
   actions = onButton
+  shown = text
+  labels = buttons
   if (skin !== skinOf()) {
     skin = skinOf()
     await player.load(`pet/talk/${skin}/talk.swf`)
@@ -61,6 +65,16 @@ export async function say(text: string, buttons: string[], onButton: (() => void
   place()
   el.style.visibility = 'visible'
   speak(text, buttons)
+  clearTimeout(hideTimer)
+  hideTimer = window.setTimeout(hide, SHOW_MS)
+}
+
+/** Swaps the text of a bubble still showing `from`, keeping its buttons; `say` must have finished. */
+export async function retell(from: string, to: string): Promise<void> {
+  if (shown !== from || el.style.visibility !== 'visible') return
+  shown = to
+  const speak = await player.callback('speak')
+  speak(to, labels)
   clearTimeout(hideTimer)
   hideTimer = window.setTimeout(hide, SHOW_MS)
 }
