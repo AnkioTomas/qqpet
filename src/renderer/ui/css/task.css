@@ -1,6 +1,5 @@
 .ui-task {position:relative}
 .ui-task .task {width:607px;height:455px;background-color:#fdecdd;font-size:12px;color:#202020b5}
-.ui-task .t_bottom {height:100px}
 .ui-task .t_top {padding:0 12px 12px;border-radius:8px}
 .ui-task .t_title {padding:8px 3px;color:#edbd8c;font-size:14px;font-weight:700;text-shadow:.2px .2px 1px #000}
 .ui-task .taskOnce {padding:5px 0;border-bottom:1px solid #f1ac65}

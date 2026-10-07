@@ -44,13 +44,7 @@ export function openTask(): void {
         TABS[k],
       ),
     )
-    root.replaceChildren(
-      div(
-        'task fC',
-        div('t_top f1 fC h0', div('t_title', '活动列表'), div('t_tabs', ...tabs), div('tasks f1 mt8 h0', ...items)),
-        div('t_bottom w100% fcc', '暂无内容'),
-      ),
-    )
+    root.replaceChildren(div('task fC', div('t_top f1 fC h0', div('t_title', '活动列表'), div('t_tabs', ...tabs), div('tasks f1 mt8 h0', ...items))))
   }
   render()
   openBox(root, { vip: info.pinkDiamond, onClose: () => (open = false) })
