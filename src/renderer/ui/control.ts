@@ -12,6 +12,7 @@ import { openEmail } from './email'
 import { openFishing } from './fishing'
 import { openGames } from './games'
 import { openMstx } from './mstx'
+import { openPetInfo } from './petinfo'
 import { progress } from './progress'
 import { openSetup } from './setup'
 import { openShop } from './shop'
@@ -134,6 +135,7 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       { name: '密室', icon: 'mstx.png', run: openMstx },
     ],
   },
+  { name: '档案', icon: 'gonggao1.png', run: openPetInfo },
 ]
 
 const control = div('control')
