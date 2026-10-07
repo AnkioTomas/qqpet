@@ -100,6 +100,8 @@ export interface Settings {
   aiUrl: string
   aiKey: string
   aiModel: string
+  /** City for weather news; empty locates by IP. */
+  weatherCity: string
 }
 
 export interface SaveData {

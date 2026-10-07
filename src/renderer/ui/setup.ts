@@ -3,6 +3,7 @@ import { give } from '../pet/items'
 import { speak } from '../pet/pet'
 import { rand } from '../pet/rand'
 import { addInfo, info, save, setInfo, update } from '../pet/store'
+import { weatherNow } from '../pet/weather'
 import { openFrame } from './box'
 import './css/setup.css'
 import { button, div, typeable } from './dom'
@@ -65,6 +66,16 @@ function grant(type: GoodType): void {
   const all = allGoods(type)
   const g = { ...all[rand(0, all.length - 1)], num: 10 }
   give([g], `[host]，我获得了${g.num}个${g.name}！`)
+}
+
+/** The pet reports the new city's weather right away, so a wrong name shows at once. */
+function setCity(v: string): void {
+  const city = v.trim()
+  update('settings', { weatherCity: city })
+  weatherNow().then(
+    (t) => speak({ s: t, now: true }, 'speak'),
+    () => speak({ s: `[host]，查不到「${city || '当前位置'}」的天气，换个写法试试吧~`, now: true }, 'speak'),
+  )
 }
 
 /** The AI tab's model list and last result; `redraw` repaints the open panel once a request finishes. */
@@ -130,6 +141,7 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '宠物不见了？点我试试', run: homing },
       { type: 'slider', label: '透明度', value: () => s.opacity, step: (d) => setOpacity(s.opacity + d) },
       { type: 'radio', label: '开机自启', on: () => s.autoStart, run: toggleAutoStart },
+      { type: 'input', label: '天气城市（留空按网络位置自动定位）', value: () => s.weatherCity, set: setCity },
       {
         type: 'radio',
         label: '是否开启互动动作(开启后会导致点击位置不可进行宠物移动~)',

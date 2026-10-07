@@ -101,6 +101,7 @@ const RULES: Record<string, Record<string, Rule>> = {
     aiUrl: str(AI_URL),
     aiKey: str(''),
     aiModel: str(''),
+    weatherCity: str(''),
   },
 }
 
@@ -170,6 +171,7 @@ function fresh(): SaveData {
       aiUrl: AI_URL,
       aiKey: '',
       aiModel: '',
+      weatherCity: '',
     },
   }
 }

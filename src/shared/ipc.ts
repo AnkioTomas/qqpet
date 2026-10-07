@@ -11,6 +11,7 @@ export const IPC = {
   gamePlayed: 'game:played',
   aiModels: 'ai:models',
   aiChat: 'ai:chat',
+  weather: 'app:weather',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -71,6 +72,16 @@ export interface CalendarDay {
   holiday: { name: string; off: boolean } | null
 }
 
+/** Today's weather in wttr.in's codes and °C. */
+export interface Weather {
+  code: number
+  max: number
+  min: number
+  tomorrowMax: number
+  /** Today's 3-hourly forecast from the current slot on; `wind` in km/h. */
+  hours: { hour: number; code: number; wind: number }[]
+}
+
 /** An OpenAI-compatible endpoint: `url` ends in /v1; `key` may be empty for local servers. */
 export interface AiConfig {
   url: string
@@ -102,6 +113,8 @@ export interface QQPetApi {
   aiModels(c: Omit<AiConfig, 'model'>): Promise<string[]>
   /** The reply's text; rejects with the server's error. */
   aiChat(c: AiConfig, messages: AiMessage[]): Promise<string>
+  /** An empty city locates by IP; rejects for an unknown city or while offline. */
+  weather(city: string): Promise<Weather>
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>

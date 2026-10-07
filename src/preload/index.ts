@@ -16,6 +16,7 @@ const api: QQPetApi = {
   calendar: () => ipcRenderer.invoke(IPC.calendar),
   aiModels: (c) => ipcRenderer.invoke(IPC.aiModels, c),
   aiChat: (c, messages) => ipcRenderer.invoke(IPC.aiChat, c, messages),
+  weather: (city) => ipcRenderer.invoke(IPC.weather, city),
   quit: send(IPC.quit),
   messageBox: (options) => ipcRenderer.invoke(IPC.messageBox, options),
   copyText: send(IPC.copyText),

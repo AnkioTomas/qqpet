@@ -34,6 +34,7 @@ import { resetFish } from './fishing'
 import { resetSignIn, tickGift } from './signin'
 import { resetTasks, rollDaily } from './tasks'
 import { dayStart, newDay } from './vip'
+import { weatherNews } from './weather'
 
 let idleTimer = 0
 
@@ -239,11 +240,14 @@ function grow(): void {
 }
 
 /** At start-up and at 06:00: the day's tasks, the holiday greeting and the day's mail. */
+const weatherTalk = (launch: boolean): Promise<void> => weatherNews(launch).then((s) => void (s && speak({ s }, 'speak')))
+
 async function daily(): Promise<void> {
   const today = await loadCalendar()
   rollDaily(today)
   const f = today && festival(today)
   if (f) speak({ s: f }, 'speak')
+  void weatherTalk(true)
   if (deliverMails(today)) speak({ s: '[host]，邮箱里来了新邮件，快去看看吧~', b: '这就去' }, 'speak', { ok: openEmail })
 }
 
@@ -270,6 +274,8 @@ export function startPet(): void {
     machine.play({ a, s: () => speak(g ? { s: g.tolk, b: g.submitText } : { c: a }), e: startGrowth })
     if (info.growth === 0) addInfo('growth', 1)
     void daily()
+    // Bad weather can turn up later in the day.
+    setInterval(() => void weatherTalk(false), 3600_000)
   }
   machine.start()
 }
