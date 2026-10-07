@@ -50,9 +50,9 @@ export class SwfPlayer {
     return this.meta
   }
 
-  /** 0-based, same convention as Flash's CurrentFrame(). */
+  /** 0-based, same convention as Flash's CurrentFrame(). -1 (== totalFrames - 1) before the first load. */
   get currentFrame(): number {
-    if (!this.meta) return 0
+    if (!this.meta) return -1
     const elapsed = (this.stoppedAt ?? performance.now()) - this.startedAt
     return Math.min(Math.floor((elapsed / 1000) * this.meta.frameRate), this.meta.numFrames - 1)
   }

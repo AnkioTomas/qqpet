@@ -1,22 +1,44 @@
-import { PetSwf } from './swf/pet-swf'
-
-const SIZE = 140
-const MARGIN = 40
-
-const save = await window.qqpet.load()
-const actions = ['Appear', 'Stand', 'Stand1', 'Speak', 'Hide'].map((a) => `pet/Action/${save.petInfo.sex}/Adult/peaceful/${a}.swf`)
-window.qqpet.setTrayState('normal')
-window.qqpet.onTrayClick((c) => console.log('tray click', c))
+import { startPet } from './pet/pet'
+import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
+import { adopt } from './ui/adopt'
+import './ui/face'
 
 const petEl = document.getElementById('pet')!
-const { lastX, lastY } = save.petInfo
-petEl.style.left = `${lastX >= 0 ? lastX : innerWidth - SIZE - MARGIN}px`
-petEl.style.top = `${lastY >= 0 ? lastY : innerHeight - SIZE - MARGIN}px`
+
+function clampPosition(): void {
+  const max = (n: number, limit: number): number => Math.min(Math.max(n, 0), limit - petSize())
+  setInfo('lastX', max(info.lastX, innerWidth))
+  setInfo('lastY', max(info.lastY, innerHeight))
+}
+
+let size = petSize()
+function layout(): void {
+  // A pet that grows keeps its center.
+  const shift = (petSize() - size) / 2
+  if (shift) {
+    size = petSize()
+    setInfo('lastX', info.lastX - shift)
+    setInfo('lastY', info.lastY - shift)
+    clampPosition()
+  }
+  petEl.style.width = petEl.style.height = `${size}px`
+  petEl.style.left = `${info.lastX}px`
+  petEl.style.top = `${info.lastY}px`
+}
+
+if (info.lastX < 0 || info.lastY < 0) {
+  setInfo('lastX', (innerWidth - size) / 2)
+  setInfo('lastY', (innerHeight - size) / 2)
+}
+layout()
+onInfoChange((key) => {
+  if (key === 'lastX' || key === 'lastY' || key === 'growth') layout()
+})
 
 const cursor = { x: 0, y: 0 }
 window.API = {
   GetCursorPosition: () => `${cursor.x},${cursor.y},0`,
-  GetWindowRect: () => `${petEl.offsetLeft},${petEl.offsetTop},${SIZE},${SIZE}`,
+  GetWindowRect: () => `${info.lastX},${info.lastY},${size},${size}`,
 }
 
 // The window is click-through except while the cursor is over a [data-hit]
@@ -32,33 +54,36 @@ window.qqpet.onCursor((p) => {
   window.qqpet.setClickThrough(!hit)
 })
 
-petEl.addEventListener(
-  'pointerdown',
-  (e) => {
-    dragging = true
-    const dx = e.clientX - petEl.offsetLeft
-    const dy = e.clientY - petEl.offsetTop
-    const move = (m: PointerEvent): void => {
-      petEl.style.left = `${m.clientX - dx}px`
-      petEl.style.top = `${m.clientY - dy}px`
-    }
-    const up = (): void => {
+petEl.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
+  dragging = true
+  const dx = e.clientX - info.lastX
+  const dy = e.clientY - info.lastY
+  const move = (m: PointerEvent): void => {
+    setInfo('lastX', m.clientX - dx)
+    setInfo('lastY', m.clientY - dy)
+  }
+  petEl.setPointerCapture(e.pointerId)
+  petEl.addEventListener('pointermove', move)
+  petEl.addEventListener(
+    'pointerup',
+    () => {
       dragging = false
-      removeEventListener('pointermove', move, true)
-      window.qqpet.save({ petInfo: { lastX: petEl.offsetLeft, lastY: petEl.offsetTop } })
-    }
-    addEventListener('pointermove', move, true)
-    addEventListener('pointerup', up, { capture: true, once: true })
-  },
-  true,
-)
+      petEl.removeEventListener('pointermove', move)
+      clampPosition()
+    },
+    { once: true },
+  )
+})
 
-const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 1000 / 12))
-const pet = new PetSwf(petEl)
-for (let i = 0; ; i = (i + 1) % actions.length) {
-  await pet.load(actions[i])
-  while (pet.front.currentFrame < pet.front.totalFrames - 1) await tick()
-  // Single-frame actions (Stand) animate from script and hold until the state
-  // machine queues something else; the demo just holds them for a while.
-  if (pet.front.totalFrames === 1) await new Promise((r) => setTimeout(r, 5000))
+const begin = (): void => {
+  petEl.hidden = false
+  startPet()
 }
+
+window.qqpet.onTrayClick((c) => {
+  if (c.kind === 'state' && !save.havePet) adopt(begin)
+})
+
+if (save.havePet) begin()
+else adopt(begin)
