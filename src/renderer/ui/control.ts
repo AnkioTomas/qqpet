@@ -9,6 +9,7 @@ import './css/control.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
 import { openEmail } from './email'
+import { openFarm } from './farm'
 import { openFishing } from './fishing'
 import { openGames } from './games'
 import { openMstx } from './mstx'
@@ -131,6 +132,7 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
     icon: 'gonggao.png',
     children: [
       { name: '池塘', icon: 'fish01.png', run: openFishing },
+      { name: '农场', icon: 'nongchang01.png', run: openFarm },
       { name: '游戏', icon: 'game.svg', run: openGames },
       { name: '密室', icon: 'mstx.png', run: openMstx },
     ],
