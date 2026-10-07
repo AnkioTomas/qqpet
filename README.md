@@ -60,7 +60,7 @@ npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
 | 文件 | 改动 |
 |---|---|
 | `resources/pet/mstx/qq_mstx.swf` | 隐藏需要联网的「兑换礼包」「魔法爱情石」按钮 |
-| `resources/pet/qqfarm/Farm.swf` | 允许在 `file://` 之外启动；「金币」改为「元宝」；商店可买的种子排前、其余置灰，购买后弹出提示 |
+| `resources/pet/qqfarm/Farm.swf` | 允许在 `file://` 之外启动；「金币」改为「元宝」；商店可买的种子排前、其余置灰，购买后弹出提示；商店、仓库的弹出动画改为缩放比例，不再被异步加载的图片压窄 |
 | `resources/pet/qqfarm/props.swf` | 素材中的「金币」文字改为「元宝」 |
 
 ## 目录
