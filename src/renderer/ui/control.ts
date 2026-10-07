@@ -11,6 +11,7 @@ import { button, div, img } from './dom'
 import { openEmail } from './email'
 import { openFishing } from './fishing'
 import { openGames } from './games'
+import { openMstx } from './mstx'
 import { progress } from './progress'
 import { openSetup } from './setup'
 import { openShop } from './shop'
@@ -130,6 +131,7 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
     children: [
       { name: '池塘', icon: 'fish01.png', run: openFishing },
       { name: '游戏', icon: 'game.svg', run: openGames },
+      { name: '密室', icon: 'mstx.png', run: openMstx },
     ],
   },
 ]

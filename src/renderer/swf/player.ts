@@ -39,10 +39,11 @@ export class SwfPlayer {
     parent.appendChild(this.el)
   }
 
-  async load(url: string): Promise<RuffleMetadata> {
+  /** `base` (relative to the page) resolves the SWF's own relative URLs. */
+  async load(url: string, base = BASE): Promise<RuffleMetadata> {
     this.meta = null
     const ready = new Promise<void>((resolve) => this.el.addEventListener('loadedmetadata', () => resolve(), { once: true }))
-    await this.el.ruffle().load({ ...CONFIG, url: new URL(url, BASE).href })
+    await this.el.ruffle().load({ ...CONFIG, base: new URL(base, BASE).href, url: new URL(url, BASE).href })
     await ready
     this.meta = this.el.ruffle().metadata!
     this.startedAt = performance.now()

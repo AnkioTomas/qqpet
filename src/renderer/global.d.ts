@@ -14,6 +14,8 @@ declare global {
     PETSendData(json: string): void
     SNS_GetSelfPetInfo(): Record<string, unknown>
     close_game(n: number): void
+    /** Called by mstx/main_qq_mstx.swf's close button. */
+    closeFrame(): void
   }
 
   interface RuffleMetadata {
