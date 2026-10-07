@@ -1,0 +1,6 @@
+.smallGameWin {position:absolute;z-index:50}
+.smallGameWin.passive {pointer-events:none}
+.smallGameWin iframe {display:block;width:100%;height:100%;border:0;background:transparent}
+.smallGameWin .quit {display:none;position:absolute;right:-6px;top:-6px;width:17px;height:17px;background:url(/pet/stateInfo/close_normal.png) 0 0/100% 100%;cursor:pointer}
+.smallGameWin:hover .quit {display:block}
+.smallGameWin .quit:hover {background-image:url(/pet/stateInfo/close_click.png)}

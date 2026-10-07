@@ -6,6 +6,7 @@ import { openBox } from './box'
 import './css/games.css'
 import { button, div } from './dom'
 import { floatMood } from './float'
+import { playSmallGame, SMALL_GAMES } from './smallgame'
 
 let open = false
 
@@ -25,24 +26,30 @@ window.qqpet.onGamePlayed((minutes) => {
   speak({ s: `[host]，陪我玩了${m}分钟小游戏，好开心！获得${5 * m}元宝~`, now: true }, 'speak')
 })
 
-/** Game picker; each game opens in its own window. */
+/** Game picker: the desktop games play with the pet, the rest open in their own window. */
 export function openGames(): void {
   if (open) return
   open = true
-  const tabs = div('gameTabs', ...GAMES.map((c, i) => button('gameTab', () => show(i), c.name)))
+  const cats = [
+    {
+      name: '陪我玩',
+      games: SMALL_GAMES.map((g) => ({
+        name: g.name,
+        run: () => {
+          close()
+          open = false
+          playSmallGame(g)
+        },
+      })),
+    },
+    ...GAMES.map((c) => ({ name: c.name, games: c.games.map((g) => ({ name: g, run: () => window.qqpet.openGame(`${c.dir}/${g}.swf`) })) })),
+  ]
+  const tabs = div('gameTabs', ...cats.map((c, i) => button('gameTab', () => show(i), c.name)))
   const list = div('gameList')
   function show(i: number): void {
     tabs.querySelectorAll('.gameTab').forEach((t, j) => t.classList.toggle('active', i === j))
-    const c = GAMES[i]
-    list.replaceChildren(
-      ...c.games.map((g) =>
-        Object.assign(
-          button('gameItem', () => window.qqpet.openGame(`${c.dir}/${g}.swf`), g),
-          { title: g },
-        ),
-      ),
-    )
+    list.replaceChildren(...cats[i].games.map((g) => Object.assign(button('gameItem', g.run, g.name), { title: g.name })))
   }
   show(0)
-  openBox(div('ui-games', tabs, list), { vip: info.pinkDiamond, onClose: () => (open = false) })
+  const close = openBox(div('ui-games', tabs, list), { vip: info.pinkDiamond, onClose: () => (open = false) })
 }

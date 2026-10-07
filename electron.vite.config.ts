@@ -24,7 +24,7 @@ export default defineConfig({
     publicDir: resolve('resources'),
     build: {
       copyPublicDir: false,
-      rollupOptions: { input: { index: resolve('src/renderer/index.html'), game: resolve('src/renderer/game.html') } },
+      rollupOptions: { input: { index: resolve('src/renderer/index.html'), game: resolve('src/renderer/game.html'), swf: resolve('src/renderer/swf.html') } },
     },
     plugins: [
       // Dev counterpart of the @2x handling in src/main/protocol.ts.

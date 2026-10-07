@@ -31,6 +31,8 @@ declare global {
     load(options: Record<string, unknown>): Promise<void>
     resume(): void
     suspend(): void
+    addFSCommandHandler(handler: (command: string, args: string) => void): void
+    callExternalInterface(name: string, ...args: unknown[]): unknown
     readonly isPlaying: boolean
     readonly metadata: RuffleMetadata | null
   }

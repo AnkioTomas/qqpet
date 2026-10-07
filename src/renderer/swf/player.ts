@@ -33,8 +33,9 @@ export class SwfPlayer {
   private stoppedAt: number | null = null
   private callbacks = new Set<string>()
 
+  /** The SWF's ExternalInterface calls go to the globals of the window that owns `parent`. */
   constructor(parent: HTMLElement) {
-    this.el = window.RufflePlayer.newest().createPlayer()
+    this.el = parent.ownerDocument.defaultView!.RufflePlayer.newest().createPlayer()
     this.el.style.width = '100%'
     this.el.style.height = '100%'
     parent.appendChild(this.el)
