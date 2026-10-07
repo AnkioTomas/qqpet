@@ -1,11 +1,14 @@
 import { PetSwf } from '../swf/pet-swf'
+import { openEmail } from '../ui/email'
 import { floatMood } from '../ui/float'
 import { say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
 import { advanceTask, stopTask } from './activity'
+import { dateTalk, festival, greeting, loadCalendar } from './calendar'
 import { listGoods, tickTimed } from './goods'
 import { useItem } from './items'
+import { deliverMails } from './mail'
 import { Machine, type Pose } from './machine'
 import { rand } from './rand'
 import {
@@ -43,7 +46,8 @@ export const machine = new Machine(new PetSwf(document.getElementById('pet')!), 
 /** After 20-60 s of standing: play an animation, or chat for a small mood bonus. */
 function idle(): void {
   if (Math.random() < 0.8) return machine.add({ a: 'play' })
-  speak({ c: 'smallTalk' }, 'speak', {
+  const date = Math.random() < 0.3 ? dateTalk() : null
+  speak(date ? { s: date } : { c: 'smallTalk' }, 'speak', {
     ok: () => {
       const v = rand(5, 15)
       void floatMood(v)
@@ -162,6 +166,7 @@ function tick(): void {
     resetTasks()
     resetSignIn()
     resetFish()
+    void daily()
   }
   if (lastTick !== null) {
     const minutes = +((now - lastTick) / 60).toFixed(5)
@@ -230,6 +235,14 @@ function grow(): void {
   healthRoll()
 }
 
+/** At start-up and at 06:00: the holiday greeting and the day's mail. */
+async function daily(): Promise<void> {
+  const today = await loadCalendar()
+  const f = today && festival(today)
+  if (f) speak({ s: f }, 'speak')
+  if (deliverMails(today)) speak({ s: '[host]，邮箱里来了新邮件，快去看看吧~', b: '这就去' }, 'speak', { ok: openEmail })
+}
+
 function startGrowth(): void {
   grow()
   setInterval(grow, 60_000)
@@ -248,8 +261,11 @@ export function startPet(): void {
   } else {
     if (info.health < 5) setTray('ill')
     const a = info.growth === 0 ? 'first' : 'enter'
-    machine.play({ a, s: () => speak({ c: a }), e: startGrowth })
+    // Half the launches greet by the time of day instead of the original enter lines.
+    const g = a === 'enter' && Math.random() < 0.5 ? greeting() : null
+    machine.play({ a, s: () => speak(g ? { s: g.tolk, b: g.submitText } : { c: a }), e: startGrowth })
     if (info.growth === 0) addInfo('growth', 1)
+    void daily()
   }
   machine.start()
 }

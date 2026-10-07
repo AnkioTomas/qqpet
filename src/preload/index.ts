@@ -13,6 +13,7 @@ const api: QQPetApi = {
   exportSave: () => ipcRenderer.invoke(IPC.exportSave),
   importSave: send(IPC.importSave),
   openGame: send(IPC.openGame),
+  calendar: () => ipcRenderer.invoke(IPC.calendar),
   quit: send(IPC.quit),
   messageBox: (options) => ipcRenderer.invoke(IPC.messageBox, options),
   copyText: send(IPC.copyText),

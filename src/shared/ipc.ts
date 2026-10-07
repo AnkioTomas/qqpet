@@ -7,6 +7,7 @@ export const IPC = {
   exportSave: 'pet:export',
   importSave: 'pet:import',
   openGame: 'game:open',
+  calendar: 'app:calendar',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -55,6 +56,18 @@ export interface MessageBoxOptions {
   buttons?: string[]
 }
 
+/** One local date from the calendar API. */
+export interface CalendarDay {
+  /** YYYY-MM-DD. */
+  date: string
+  /** Lunar month and day, e.g. 八月廿七. */
+  lunar: string
+  /** Solar term starting this day, e.g. 霜降. */
+  term: string | null
+  /** Statutory holiday; `off` false is a make-up working day. */
+  holiday: { name: string; off: boolean } | null
+}
+
 /** Exposed to the renderer as `window.qqpet` by the preload script. */
 export interface QQPetApi {
   load(): Promise<SaveData>
@@ -68,6 +81,8 @@ export interface QQPetApi {
   importSave(): void
   /** Plays pet/game/<swf> in its own resizable window. */
   openGame(swf: string): void
+  /** Today and the next 30 days from the calendar API; empty while offline. */
+  calendar(): Promise<CalendarDay[]>
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>

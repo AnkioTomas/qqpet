@@ -1,6 +1,7 @@
 import { app, clipboard, dialog, ipcMain } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
+import { calendar } from './calendar'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
@@ -61,6 +62,7 @@ app.whenReady().then(() => {
     app.relaunch()
     app.exit(0)
   })
+  ipcMain.handle(IPC.calendar, () => calendar())
   ipcMain.on(IPC.openGame, (_e, swf: string) => openGameWindow(swf))
   ipcMain.on(IPC.quit, () => app.quit())
   ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {

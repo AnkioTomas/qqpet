@@ -1,45 +1,30 @@
-import type { Good } from '../pet/data/goods'
 import { give } from '../pet/items'
-import { save, update } from '../pet/store'
+import { readMails, writeMails, type Live } from '../pet/mail'
 import { openFrame } from './box'
 import './css/email.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
 import { frame } from './frame'
 
-/** saveJsonData.email entries, keyed by `d` (unix seconds); a deleted mail keeps only its key. */
-interface Live {
-  d: number
-  /** Title. */
-  l: string
-  glb: Good[]
-  /** Claimed. */
-  r?: boolean
-  /** What the pet says on claiming. */
-  m?: string
-  e?: undefined
-}
-type Mail = Live | { d: number; e: true }
-
 const BG = ['bg_01.png', 'bg_02.bmp', 'bg_03.png', 'bg_04.bmp', 'bg_05.bmp', 'bg_06.bmp', 'bg_8.png', 'bg_09.png', 'bg_10.png']
 
 let open = false
 
-/** Offline there is no mail server: only mail already in the save is shown. */
+/** Mail from the save: the original's, and the welcome, birthday and holiday mails. */
 export function openEmail(): void {
   if (open) return
   open = true
-  const mails: Record<string, Mail> = JSON.parse(save.saveJsonData.email || '{}')
+  const mails = readMails()
   const live = (): Live[] => Object.values(mails).filter((m): m is Live => !m.e)
   const act = (list: Live[]): void => {
     for (const m of list) {
-      if (m.r) mails[m.d] = { d: m.d, e: true }
+      if (m.r) mails[m.d] = { d: m.d, e: true, k: m.k }
       else {
         give(m.glb, m.m || '邮箱领取成功！')
         m.r = true
       }
     }
-    update('saveJsonData', { email: JSON.stringify(mails) })
+    writeMails(mails)
     render()
   }
 
