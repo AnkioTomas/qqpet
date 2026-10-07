@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
 import { app, clipboard, dialog, ipcMain } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
+import { openBrowser } from './browser'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
@@ -61,6 +63,11 @@ app.whenReady().then(() => {
     app.relaunch()
     app.exit(0)
   })
+  ipcMain.handle(IPC.pickSwf, async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'Flash', extensions: ['swf'] }] })
+    return r.canceled ? null : readFileSync(r.filePaths[0])
+  })
+  ipcMain.on(IPC.openBrowser, openBrowser)
   ipcMain.on(IPC.quit, () => app.quit())
   ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {
     const r = await dialog.showMessageBox(win, { type: 'none', buttons: ['取消', '确定'], ...o })

@@ -93,6 +93,7 @@ const RULES: Record<string, Record<string, Rule>> = {
     hidden: bool,
     hd: bool,
     clip: bool,
+    screenFx: bool,
   },
 }
 
@@ -150,7 +151,7 @@ function fresh(): SaveData {
     gameSaveDatas: { fishing_harvestfish: 0, travel_china: [], travel_china_num: 0, ddw: 0, yyds: 0 },
     illustrated: [],
     saveJsonData: { email: '{}', task: '{}', signin: '{}', fishs: '{}' },
-    settings: { opacity: 1, faceClick: 2, quiet: false, autoStart: false, paused: false, hidden: false, hd: false, clip: false },
+    settings: { opacity: 1, faceClick: 2, quiet: false, autoStart: false, paused: false, hidden: false, hd: false, clip: false, screenFx: false },
   }
 }
 

@@ -8,6 +8,8 @@ import './css/setup.css'
 import { button, div } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
+import { setScreenFx } from './screen-fx'
+import { openSwfViewer } from './swf-view'
 
 type Option = { label: string; title?: string } & (
   | { type: 'radio'; on: () => boolean; run: () => void }
@@ -87,7 +89,6 @@ const TABS: { label: string; options: Option[] }[] = [
       },
       { type: 'radio', label: '是否开启互动动作指示器', title: FACE_TIP, on: () => s.faceClick === 2, run: () => setFaceClick(s.faceClick === 2 ? 1 : 2) },
       { type: 'radio', label: '开启免打扰模式', on: () => s.quiet, run: () => update('settings', { quiet: !s.quiet }) },
-      { type: 'radio', label: '实时监听播报剪切板', title: '复制文字后，宠物会把它念出来', on: () => s.clip, run: () => update('settings', { clip: !s.clip }) },
       { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效', on: () => s.hd, run: () => setHd(!s.hd) },
     ],
   },
@@ -96,6 +97,15 @@ const TABS: { label: string; options: Option[] }[] = [
     options: [
       { type: 'button', label: '导出存档', title: '把当前宠物保存成一个文件，可用于备份或换电脑', run: exportSave },
       { type: 'button', label: '导入存档（支持原版 config.json）', title: '用存档文件替换当前宠物，导入后自动重启', run: importSave },
+    ],
+  },
+  {
+    label: '工具',
+    options: [
+      { type: 'radio', label: '打开屏幕辅助工具，好玩尝试下~', on: () => s.screenFx, run: () => setScreenFx(!s.screenFx) },
+      { type: 'button', label: '打开swf文件查看器，无需Flash插件~', run: () => void openSwfViewer() },
+      { type: 'button', label: '打开控制透明浏览器，你懂得~', run: () => window.qqpet.openBrowser() },
+      { type: 'radio', label: '实时监听播报剪切板', title: '复制文字后，宠物会把它念出来', on: () => s.clip, run: () => update('settings', { clip: !s.clip }) },
     ],
   },
   {
