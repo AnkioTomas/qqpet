@@ -37,7 +37,7 @@ export type TrayState =
   | 'dead'
   | 'bury'
 
-/** `state` opens the pet status panel, `menu` the pet's context menu. Screen coordinates, absent on Linux. */
+/** `state` opens the pet status panel, `menu` the pet's context menu. Window coordinates (the tray may lie outside it), absent on Linux. */
 export interface TrayClick {
   kind: 'state' | 'menu'
   x?: number

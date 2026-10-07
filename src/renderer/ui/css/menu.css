@@ -1,0 +1,24 @@
+.ui-menu .imgBjBoxFrame {display:grid;grid-template-areas:"stack";min-height:0}
+.ui-menu .styleBox,
+.ui-menu .slotMain {grid-area:stack;height:100%}
+.ui-menu .styleBox {z-index:1}
+.ui-menu .slotMain {z-index:2;min-height:min-content}
+.ui-menu .content img {height:100%}
+.ui-menu .rightMenu {position:fixed;font-weight:600;color:#175282;font-size:12px}
+.ui-menu .choose {width:20px;height:10px}
+.ui-menu .chooseDo {background:url(/pet/Menu/ditu04_new.png);background-size:100% 100%;width:20px;height:18px}
+.ui-menu .right {width:31px;height:19px;background:url(/pet/Menu/ditu06_jiantou00_2.png);background-size:100% 100%;position:relative}
+.ui-menu .rightNormal {width:21px;height:19px;background:url(/pet/Menu/ditu06.png);background-size:100% 100%}
+.ui-menu .menu:hover .centent {background:url(/pet/Menu/ditu05_2.png);background-size:100% 100%;color:#175282}
+.ui-menu .menu:hover .choose {background:url(/pet/Menu/ditu04_22.png);background-size:100% 100%;height:19px}
+.ui-menu .menu:hover .right {background:url(/pet/Menu/ditu06_jiantou01_2.png);background-size:100% 100%}
+.ui-menu .menu:hover .rightNormal {background:url(/pet/Menu/ditu06_2.png);background-size:100% 100%}
+.ui-menu .r_cMain {position:absolute;left:100%;bottom:0;display:none}
+.ui-menu .toLeft {transform:translate(-200%)}
+.ui-menu .menu:hover .right .r_cMain {display:inline-block}
+.ui-menu .chooseC {width:20px;height:10px}
+.ui-menu .rightNormalC {width:21px;height:19px;background:url(/pet/Menu/ditu06.png);background-size:100% 100%}
+.ui-menu .menuC:hover .cententC {background:url(/pet/Menu/ditu05_2.png);background-size:100% 100%;color:#175282}
+.ui-menu .menuC:hover .chooseC {background:url(/pet/Menu/ditu04_22.png);background-size:100% 100%;height:19px}
+.ui-menu .menuC:hover .rightNormalC {background:url(/pet/Menu/ditu06_2.png);background-size:100% 100%}
+.ui-menu .unShow {display:none}

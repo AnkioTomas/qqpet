@@ -10,7 +10,7 @@ import { addGood } from './goods'
 import { apply } from './items'
 import { speak } from './pet'
 import { rand } from './rand'
-import { addInfo, busy, info, luck, save, setInfo, update } from './store'
+import { addInfo, busy, info, luck, paused, save, setInfo, update } from './store'
 
 export { PROVINCES }
 
@@ -37,6 +37,7 @@ const learn = (k: Subject): void => update('studyInfo', { [k]: save.studyInfo[k]
 function cannot(what: string, sad = what): boolean {
   if (info.health === 0) speak({ c: 'state', s: 'die' })
   else if (info.health !== 5) speak({ s: `[host],我生病了无法${what}~~`, now: true }, 'speak')
+  else if (paused) speak({ s: `[host],我暂停成长拉！无法${what}~~`, now: true }, 'speak')
   else if (info.mood <= 0) speak({ s: `[host],没有心情哦！无法${sad}~~`, now: true }, 'speak')
   else if (busy()) speak({ s: '[host],做事要专心哦~~', now: true }, 'speak')
   else return false

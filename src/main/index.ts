@@ -16,7 +16,10 @@ app.whenReady().then(() => {
   loadSave()
 
   const win = createPetWindow()
-  const tray = createPetTray((click) => win.webContents.send(IPC.trayClick, click))
+  const tray = createPetTray((click) => {
+    const b = win.getBounds()
+    win.webContents.send(IPC.trayClick, click.x === undefined ? click : { ...click, x: click.x - b.x, y: click.y! - b.y })
+  })
   app.on('before-quit', () => tray.destroy())
 
   ipcMain.handle(IPC.load, () => getSave())

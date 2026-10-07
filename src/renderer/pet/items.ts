@@ -4,7 +4,7 @@ import { goodOf, type Good, type TimedType } from './data/goods'
 import { DEAD, illOf } from './data/ills'
 import { addGood, hasGood, startTimed, takeGood } from './goods'
 import { speak } from './pet'
-import { activity, addInfo, info, save, setInfo } from './store'
+import { activity, addInfo, info, paused, save, setInfo } from './store'
 
 /** Deducts 元宝; on shortage shows the original's alert and returns false. */
 export function pay(price: number): boolean {
@@ -31,11 +31,11 @@ export function apply(g: Good, extra = 0): void {
   if (g.strong) addInfo('strong', g.strong)
 }
 
-/** Dialog category, pet action and bonus mood per everyday good type. */
-const DAILY: Record<TimedType, { c: string; action: string; extra: number }> = {
-  food: { c: 'eat', action: 'eat', extra: 20 },
-  clean: { c: 'clean', action: 'clean', extra: 20 },
-  toy: { c: 'toy', action: 'speak', extra: 0 },
+/** Dialog category, pet action and bonus mood per everyday good type; `paused` names what a paused pet refuses. */
+const DAILY: Record<TimedType, { c: string; action: string; extra: number; paused?: string }> = {
+  food: { c: 'eat', action: 'eat', extra: 20, paused: '吃食物' },
+  clean: { c: 'clean', action: 'clean', extra: 20, paused: '清洁' },
+  toy: { c: 'toy', action: 'speak', extra: 0, paused: '玩玩具' },
   background: { c: 'pay', action: 'speak', extra: 0 },
 }
 
@@ -65,6 +65,7 @@ export function useItem(g: Good, free = false): void {
   if (g.type === 'medicine') return medicine(g, take)
 
   const d = DAILY[g.type as TimedType]
+  if (paused && d.paused) return speak({ s: `[host],我暂停成长拉！无法${d.paused}~~`, now: true }, 'speak')
   speak({ c: d.c, s: g.type, now: true }, d.action, {
     start: () => {
       if (!take()) return

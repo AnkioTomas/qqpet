@@ -16,6 +16,7 @@ import {
   info,
   mood,
   onInfoChange,
+  paused,
   refreshTray,
   save,
   setActivity,
@@ -25,6 +26,7 @@ import {
   syncLevel,
   update,
 } from './store'
+import { dayStart, newDay } from './vip'
 
 let idleTimer = 0
 
@@ -145,20 +147,16 @@ function healthChanged(prev: number): void {
 /** Last accounted time; null makes the next tick only start the clock (start-up, or after a pause). */
 let lastTick: number | null = null
 
-/** Today's 06:00 (yesterday's before 06:00), when daily counters reset. */
-function dayStart(now: number): number {
-  const d = new Date(now * 1000)
-  d.setHours(6, 0, 0, 0)
-  if (d.getTime() > now * 1000) d.setDate(d.getDate() - 1)
-  return d.getTime() / 1000
-}
-
 const MOOD_OUT = { work: 'stopWorkFoMood0', study: 'stopStudyFoMood0', trip: 'overTripUpFoMood0' }
 
 /** Per-minute accounting: online time, stat decay and growth for the elapsed minutes. */
 function tick(): void {
   const now = Math.floor(Date.now() / 1000)
-  if (save.nowTimeLine <= dayStart(now)) setInfo('onlineDataTime', 0)
+  const today = dayStart(now)
+  if (save.nowTimeLine <= today) {
+    setInfo('onlineDataTime', 0)
+    newDay(today)
+  }
   if (lastTick !== null) {
     const minutes = +((now - lastTick) / 60).toFixed(5)
     addInfo('onlineDataTime', minutes)
@@ -198,8 +196,9 @@ function healthRoll(): void {
   }
 }
 
+/** A dead or paused pet does not age; the minutes in between are never accounted. */
 function grow(): void {
-  if (info.health <= 0) {
+  if (info.health <= 0 || paused) {
     lastTick = null
     return
   }

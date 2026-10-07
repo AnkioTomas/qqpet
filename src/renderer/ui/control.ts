@@ -1,14 +1,17 @@
 import { describe, type Good, type GoodType } from '../pet/data/goods'
 import { listGoods, onGoodsChange, pageOf, type Page } from '../pet/goods'
-import { doctor, useItem } from '../pet/items'
+import { doctor, pay, useItem } from '../pet/items'
 import { describeStudy, describeWork, study, studyGoods, work, workGoods } from '../pet/jobs'
+import { speak } from '../pet/pet'
 import { info, onInfoChange, petSize, save } from '../pet/store'
+import { openPinkDiamond } from '../pet/vip'
 import './css/control.css'
 import { button, div, img } from './dom'
 import { progress } from './progress'
 import { openShop } from './shop'
 import { setBubbleLift } from './talk'
 import { openTravel } from './travel'
+import { windowView } from './window-view'
 
 const ICONS = 'pet/control/icons/'
 const BAR_HEIGHT = 180
@@ -49,17 +52,48 @@ const inventory = (type: GoodType, icon: number, stat: Stat) => (): void =>
     stat,
   })
 
-const MENU: { name: string; icon: string; children: Entry[] }[] = [
+const PANELS = {
+  food: inventory('food', 18, 'hunger'),
+  clean: inventory('clean', 20, 'clean'),
+  medicine: inventory('medicine', 22, 'health'),
+  toy: inventory('toy', 28, 'mood'),
+}
+
+function pinkDiamond(): void {
+  const until = (): void => {
+    const d = new Date(info.PDiamondExpirationDate * 1000)
+    const p = (n: number): string => String(n).padStart(2, '0')
+    const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+    speak({ s: `[host],我们粉钻到${date}过期哦~`, now: true }, 'speak')
+  }
+  if (info.pinkDiamond) return until()
+  const first = info.PDgrowth === 0
+  const price = first ? 666 : info.PDiamondLevel * 888
+  windowView({
+    title: '开通粉钻',
+    msg: first ? '限时花费666（原价888）元宝，开通粉钻5天，机不可失！~~' : `开通粉钻需要${price}元宝，开通粉钻5天，助力宝宠成长玩耍~~`,
+    ok: (close) => {
+      if (!pay(price)) return
+      openPinkDiamond(5)
+      close()
+      until()
+    },
+  })
+}
+
+/** A menu group opens its children on hover, or runs `run` on click. */
+const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }[] = [
   {
     name: '日常',
     icon: 'richang.png',
     children: [
-      { name: '食物', icon: 'weishi.png', run: inventory('food', 18, 'hunger') },
-      { name: '清洁', icon: 'qingjie.png', run: inventory('clean', 20, 'clean') },
-      { name: '吃药', icon: 'zhibing.png', run: inventory('medicine', 22, 'health') },
-      { name: '玩具', icon: 'wanshua.png', run: inventory('toy', 28, 'mood') },
+      { name: '食物', icon: 'weishi.png', run: PANELS.food },
+      { name: '清洁', icon: 'qingjie.png', run: PANELS.clean },
+      { name: '吃药', icon: 'zhibing.png', run: PANELS.medicine },
+      { name: '玩具', icon: 'wanshua.png', run: PANELS.toy },
     ],
   },
+  { name: '粉钻', icon: 'fenzhuan.png', run: pinkDiamond },
   {
     name: '交互',
     icon: 'chongwu.png',
@@ -110,8 +144,11 @@ const menus = div(
       'menuItem fcc focusPress',
       div('menuTip', g.name),
       icon,
-      div('childrenMenu', ...g.children.map((c) => button('childrenMenuItem fc', c.run, img('childrenMenuItemIcon', ICONS + c.icon), ` ${c.name}`))),
+      ...(g.children
+        ? [div('childrenMenu', ...g.children.map((c) => button('childrenMenuItem fc', c.run, img('childrenMenuItemIcon', ICONS + c.icon), ` ${c.name}`)))]
+        : []),
     )
+    if (g.run) item.addEventListener('click', g.run)
     item.addEventListener('mouseenter', () => {
       clearTimeout(introTimer)
       highlight(-1)
@@ -140,6 +177,12 @@ export function showControl(): void {
   control.classList.add('showControl')
   place()
   intro()
+}
+
+/** Shows the bar with an everyday goods panel open. */
+export function openGoods(type: keyof typeof PANELS): void {
+  showControl()
+  PANELS[type]()
 }
 
 /** The bar hides 1.5 s after the pointer leaves it, unless an inventory panel is open. */

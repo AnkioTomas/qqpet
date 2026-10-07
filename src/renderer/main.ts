@@ -3,6 +3,7 @@ import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
 import './ui/face'
+import { closeMenu, openMenu } from './ui/menu'
 
 const petEl = document.getElementById('pet')!
 
@@ -50,13 +51,19 @@ window.qqpet.onCursor((p) => {
   cursor.x = p.x
   cursor.y = p.y
   const hit = dragging || document.elementFromPoint(p.x, p.y)?.closest('[data-hit]') != null
+  // The menu closes once the cursor rests on the desktop; it may still be on the tray, outside the window.
+  const inside = p.x >= 0 && p.y >= 0 && p.x < innerWidth && p.y < innerHeight
+  if (!hit && inside) closeMenu()
   if (hit === interactive) return
   interactive = hit
   window.qqpet.setClickThrough(!hit)
 })
 
+petEl.addEventListener('contextmenu', (e) => openMenu({ x: e.clientX, y: e.clientY, pet: true }, adoptPet))
+
 petEl.addEventListener('pointerdown', (e) => {
   if (e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
+  closeMenu()
   showControl()
   dragging = true
   const dx = e.clientX - info.lastX
@@ -83,10 +90,13 @@ const begin = (): void => {
   petEl.hidden = false
   startPet()
 }
+const adoptPet = (): void => adopt(begin)
 
+// Linux trays report no position; their menus live at the top of the screen.
 window.qqpet.onTrayClick((c) => {
-  if (c.kind === 'state' && !save.havePet) adopt(begin)
+  if (c.kind === 'menu') openMenu({ x: c.x ?? innerWidth - 60, y: c.y ?? 0, pet: false }, adoptPet)
+  else if (!save.havePet) adoptPet()
 })
 
 if (save.havePet) begin()
-else adopt(begin)
+else adoptPet()

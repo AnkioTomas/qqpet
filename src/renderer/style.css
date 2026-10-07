@@ -174,3 +174,13 @@ body {
   background-repeat: no-repeat;
   background-size: cover;
 }
+
+/* Hidden from the context menu: invisible and not clickable. */
+.petHidden #pet,
+.petHidden #talk {
+  opacity: 0;
+  pointer-events: none;
+}
+.petHidden .ui-control {
+  display: none;
+}
