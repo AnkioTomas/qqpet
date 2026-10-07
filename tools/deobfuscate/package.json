@@ -1,0 +1,11 @@
+{
+  "name": "qqpet-deobfuscate",
+  "private": true,
+  "description": "Recovers javascript-obfuscator (base64 string array) output. Usage: node deob.cjs <in.js> <decoderFnName> <out.js>",
+  "dependencies": {
+    "@babel/generator": "^7.28.0",
+    "@babel/parser": "^7.28.0",
+    "@babel/traverse": "^7.28.0",
+    "@babel/types": "^7.28.0"
+  }
+}

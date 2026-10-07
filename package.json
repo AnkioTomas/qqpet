@@ -1,0 +1,32 @@
+{
+  "name": "qqpet",
+  "productName": "QQPet",
+  "version": "0.1.0",
+  "description": "QQ 宠物跨平台复刻版（基于 Arctic Penguin T800 逆向重建）",
+  "private": true,
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "import-assets": "node scripts/import-assets.mjs",
+    "dist": "npm run typecheck && electron-vite build && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.1",
+    "@ruffle-rs/ruffle": "0.6.0",
+    "@types/node": "^24.9.0",
+    "electron": "^44.6.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.7",
+    "vite-plugin-static-copy": "^4.1.1"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
+  }
+}

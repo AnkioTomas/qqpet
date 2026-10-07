@@ -1,0 +1,31 @@
+appId: io.github.qqpet
+productName: QQPet
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+extraResources:
+  - from: resources
+    to: .
+    filter:
+      - pet/**
+      - icons/**
+asar: true
+
+win:
+  target: [nsis]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  category: public.app-category.games
+
+linux:
+  target: [AppImage, deb]
+  category: Game
+  maintainer: qqpet
