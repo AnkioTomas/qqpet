@@ -2,7 +2,7 @@ import { app, clipboard, dialog, ipcMain } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch } from '../shared/save'
 import { handleScheme, registerScheme } from './protocol'
-import { getSave, loadSave, patchSave, resetSave } from './save'
+import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
 import { createPetWindow } from './window'
 
@@ -30,6 +30,25 @@ app.whenReady().then(() => {
   })
   ipcMain.on(IPC.resetPet, () => {
     resetSave()
+    app.relaunch()
+    app.exit(0)
+  })
+  ipcMain.handle(IPC.exportSave, async () => {
+    const day = new Date().toISOString().slice(0, 10)
+    const r = await dialog.showSaveDialog(win, { defaultPath: `QQPet-${day}.json`, filters: [{ name: 'QQ宠物存档', extensions: ['json'] }] })
+    if (r.canceled || !r.filePath) return false
+    exportSave(r.filePath)
+    return true
+  })
+  ipcMain.on(IPC.importSave, async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'QQ宠物存档', extensions: ['json'] }] })
+    if (r.canceled) return
+    try {
+      importSave(r.filePaths[0])
+    } catch (e) {
+      await dialog.showMessageBox(win, { type: 'error', message: '这不是有效的QQ宠物存档', detail: String(e) })
+      return
+    }
     app.relaunch()
     app.exit(0)
   })

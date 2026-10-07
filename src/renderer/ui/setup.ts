@@ -42,6 +42,15 @@ function toggleAutoStart(): void {
   speak({ c: 'startupSelf', s: on ? 'startupSelfOn' : 'startupSelfOff', now: true }, 'appear')
 }
 
+async function exportSave(): Promise<void> {
+  if (await window.qqpet.exportSave()) speak({ s: '[host],存档导出成功啦~', now: true }, 'speak')
+}
+
+async function importSave(): Promise<void> {
+  const message = '导入的存档会替换当前宠物（当前存档会备份为 save.json.bak），导入后自动重启，确定吗？'
+  if ((await window.qqpet.messageBox({ type: 'question', title: '导入存档', message })) === 1) window.qqpet.importSave()
+}
+
 const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后，开启点位可进行点击~'
 const s = save.settings
 
@@ -63,6 +72,13 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'radio', label: '是否开启互动动作指示器', title: FACE_TIP, on: () => s.faceClick === 2, run: () => setFaceClick(s.faceClick === 2 ? 1 : 2) },
       { type: 'radio', label: '开启免打扰模式', on: () => s.quiet, run: () => update('settings', { quiet: !s.quiet }) },
       { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效', on: () => s.hd, run: () => setHd(!s.hd) },
+    ],
+  },
+  {
+    label: '存档',
+    options: [
+      { type: 'button', label: '导出存档', title: '把当前宠物保存成一个文件，可用于备份或换电脑', run: exportSave },
+      { type: 'button', label: '导入存档（支持原版 config.json）', title: '用存档文件替换当前宠物，导入后自动重启', run: importSave },
     ],
   },
   { label: '关于', options: [{ type: 'see', label: '基本信息', value: '版本：T800' }] },

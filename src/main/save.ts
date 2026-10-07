@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { SaveData, SavePatch } from '../shared/save'
 
@@ -182,15 +182,19 @@ function read(): Record<string, any> | null {
     }
   }
   if (existsSync(LEGACY_FILE)) {
-    const legacy = JSON.parse(readFileSync(LEGACY_FILE, 'utf8')).petInfoData
-    if (legacy) {
-      delete legacy.machineId
-      delete legacy.oId
-      console.log(`migrated save from ${LEGACY_FILE}`)
-      return legacy
-    }
+    console.log(`migrating save from ${LEGACY_FILE}`)
+    return petOf(LEGACY_FILE)
   }
   return null
+}
+
+/** The save in a file of ours, or in the original's config.json (under `petInfoData`). */
+function petOf(file: string): Record<string, any> {
+  const data = JSON.parse(readFileSync(file, 'utf8'))
+  const pet = data.petInfoData ?? data
+  delete pet.machineId
+  delete pet.oId
+  return pet
 }
 
 function write(data: SaveData): void {
@@ -229,6 +233,21 @@ export function patchSave(patch: SavePatch): void {
   }
   save.saveNum++
   write(save)
+}
+
+export function exportSave(file: string): void {
+  writeFileSync(file, JSON.stringify(save, null, 2))
+}
+
+/**
+ * Replaces the save with the pet in `file`, keeping the current one as save.json.bak;
+ * the next launch repairs it. Throws when the file holds no pet.
+ */
+export function importSave(file: string): void {
+  const pet = petOf(file)
+  if (pet.havePet !== true) throw new Error('no pet in this file')
+  copyFileSync(FILE, `${FILE}.bak`)
+  writeFileSync(FILE, JSON.stringify(pet))
 }
 
 /** Buries the pet: the next launch starts with egg selection. */

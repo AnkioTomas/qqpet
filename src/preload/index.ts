@@ -10,6 +10,8 @@ const api: QQPetApi = {
   load: () => ipcRenderer.invoke(IPC.load),
   save: send(IPC.save),
   resetPet: send(IPC.resetPet),
+  exportSave: () => ipcRenderer.invoke(IPC.exportSave),
+  importSave: send(IPC.importSave),
   quit: send(IPC.quit),
   messageBox: (options) => ipcRenderer.invoke(IPC.messageBox, options),
   copyText: send(IPC.copyText),

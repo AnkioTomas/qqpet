@@ -4,6 +4,8 @@ export const IPC = {
   load: 'pet:load',
   save: 'pet:save',
   resetPet: 'pet:reset',
+  exportSave: 'pet:export',
+  importSave: 'pet:import',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -58,6 +60,10 @@ export interface QQPetApi {
   save(patch: SavePatch): void
   /** Buries the pet and relaunches into egg selection. */
   resetPet(): void
+  /** Asks where to write the save; false when cancelled. */
+  exportSave(): Promise<boolean>
+  /** Asks for a save file (ours or the original's config.json), then relaunches with it. */
+  importSave(): void
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>
