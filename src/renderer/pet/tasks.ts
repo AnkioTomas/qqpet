@@ -6,8 +6,8 @@ import { rand } from './rand'
 import { info, save, update } from './store'
 import { dayStart } from './vip'
 
-/** Today's face pokes, trips and goods eaten, cleaned with and played with; Travel2: provinces visited since the tour was last finished. */
-export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Travel2'
+/** Today's face pokes, trips, goods eaten, cleaned with and played with, and minutes of games; Travel2: provinces visited since the tour was last finished. */
+export type Counter = 'Amusing' | 'Travel1' | 'Eat' | 'Clean' | 'Toy' | 'Game' | 'Travel2'
 export type Tab = 'daily' | 'ddw' | 'travel'
 
 interface Task {
@@ -129,8 +129,8 @@ export function count(obj: Counter): number {
   return obj === 'Travel2' ? save.gameSaveDatas.travel_china.length : (progress.doNums[obj] ?? 0)
 }
 
-export function addCount(obj: Exclude<Counter, 'Travel2'>): void {
-  progress.doNums[obj] = count(obj) + 1
+export function addCount(obj: Exclude<Counter, 'Travel2'>, n = 1): void {
+  progress.doNums[obj] = count(obj) + n
   store()
 }
 
@@ -163,21 +163,28 @@ export function resetTasks(): void {
 const KINDS: { obj: Exclude<Counter, 'Travel2'>; label: string; num: [number, number]; needs: () => boolean; msg: [string, string] }[] = [
   {
     obj: 'Eat',
-    label: '喂我吃东西',
+    label: '喂我吃东西{n}次',
     num: [2, 4],
     needs: () => info.hunger < save.petComputedlInfo.hungerMax / 2,
     msg: ['肚子咕咕叫啦，快给我吃点东西吧~', '吃饱饱才能长高高~'],
   },
   {
     obj: 'Clean',
-    label: '帮我洗香香',
+    label: '帮我洗香香{n}次',
     num: [1, 3],
     needs: () => info.clean < save.petComputedlInfo.cleanMax / 2,
     msg: ['身上脏脏的，好难受呀~', '香香的才招人喜欢~'],
   },
-  { obj: 'Toy', label: '陪我玩玩具', num: [2, 4], needs: () => info.mood < 500, msg: ['人家不开心，陪我玩一会儿嘛~', '一起玩最开心啦~'] },
-  { obj: 'Amusing', label: '逗逗我', num: [10, 20], needs: () => info.mood < 500, msg: ['心情不好，逗我笑一笑吧~', DDW] },
-  { obj: 'Travel1', label: '带我去旅游', num: [1, 2], needs: () => [0, 6].includes(new Date().getDay()), msg: ['周末啦，出去走走吧~', '读万卷书，行万里路~'] },
+  { obj: 'Toy', label: '陪我玩玩具{n}次', num: [2, 4], needs: () => info.mood < 500, msg: ['人家不开心，陪我玩一会儿嘛~', '一起玩最开心啦~'] },
+  { obj: 'Amusing', label: '逗逗我{n}次', num: [10, 20], needs: () => info.mood < 500, msg: ['心情不好，逗我笑一笑吧~', DDW] },
+  { obj: 'Game', label: '陪我玩小游戏{n}分钟', num: [5, 15], needs: () => info.mood < 500, msg: ['好无聊呀，陪我玩会儿小游戏吧~', '一起玩小游戏吧~'] },
+  {
+    obj: 'Travel1',
+    label: '带我去旅游{n}次',
+    num: [1, 2],
+    needs: () => [0, 6].includes(new Date().getDay()),
+    msg: ['周末啦，出去走走吧~', '读万卷书，行万里路~'],
+  },
 ]
 
 /** Today's three tasks drawn by the pet's needs, plus one on statutory holidays; made once per day. */
@@ -189,7 +196,7 @@ export function rollDaily(today?: CalendarDay): void {
     const k = pool[rand(0, pool.length - 1)]
     const num = rand(...k.num)
     if (!daily.some((t) => t.obj === k.obj))
-      daily.push({ label: `${k.label}${num}次`, msg: k.msg[k.needs() ? 0 : 1], obj: k.obj, num, reroll: 1, good: [`_yb*${rand(2, 5) * 10}`] })
+      daily.push({ label: k.label.replace('{n}', String(num)), msg: k.msg[k.needs() ? 0 : 1], obj: k.obj, num, reroll: 1, good: [`_yb*${rand(2, 5) * 10}`] })
   }
   const h = today?.holiday
   if (h?.off) daily.push({ label: `${h.name}快乐`, msg: `过节啦，陪我玩5次玩具一起庆祝吧~`, obj: 'Toy', num: 5, reroll: 2, good: ['_yb*100'] })

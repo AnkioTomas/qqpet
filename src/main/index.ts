@@ -63,7 +63,11 @@ app.whenReady().then(() => {
     app.exit(0)
   })
   ipcMain.handle(IPC.calendar, () => calendar())
-  ipcMain.on(IPC.openGame, (_e, swf: string) => openGameWindow(swf))
+  ipcMain.on(IPC.openGame, (_e, swf: string) => {
+    const start = Date.now()
+    // Quitting with a game open closes the pet window first.
+    openGameWindow(swf).on('closed', () => win.isDestroyed() || win.webContents.send(IPC.gamePlayed, (Date.now() - start) / 60000))
+  })
   ipcMain.on(IPC.quit, () => app.quit())
   ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {
     const r = await dialog.showMessageBox(win, { type: 'none', buttons: ['取消', '确定'], ...o })

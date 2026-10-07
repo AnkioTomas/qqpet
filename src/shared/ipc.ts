@@ -8,6 +8,7 @@ export const IPC = {
   importSave: 'pet:import',
   openGame: 'game:open',
   calendar: 'app:calendar',
+  gamePlayed: 'game:played',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -96,5 +97,7 @@ export interface QQPetApi {
   onCursor(listener: (p: Point) => void): void
   onTrayClick(listener: (e: TrayClick) => void): void
   /** New clipboard text, while the clip setting is on. */
+  /** A game window closed after `minutes` of play. */
+  onGamePlayed(listener: (minutes: number) => void): void
   onClipboard(listener: (text: string) => void): void
 }

@@ -55,7 +55,7 @@ export function createPetWindow(): BrowserWindow {
 }
 
 /** A normal, resizable window playing one game; the SWF scales with it. */
-export function openGameWindow(swf: string): void {
+export function openGameWindow(swf: string): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize
   const scale = Math.min(1, (area.width * 0.9) / 1024, (area.height * 0.9) / 768)
   const win = new BrowserWindow({
@@ -69,4 +69,5 @@ export function openGameWindow(swf: string): void {
   win.webContents.on('will-navigate', (e) => e.preventDefault())
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   win.loadURL(`${PAGES}/game.html?swf=${encodeURIComponent(swf)}`)
+  return win
 }
