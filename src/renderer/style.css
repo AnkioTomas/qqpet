@@ -159,6 +159,30 @@ body {
   height: 30px;
   background-image: url(/pet/windowTip/vip/btn_closedefault.png);
 }
+.hd .box .content1 {
+  background-image: url(/pet/windowTip/normal/beijing4.svg);
+}
+.hd .box .content3 {
+  background-image: url(/pet/windowTip/normal/beijing5.svg);
+}
+.hd .box .close {
+  background-image: url(/pet/windowTip/normal/btn_close1.svg);
+}
+.hd .box .close:hover {
+  background-image: url(/pet/windowTip/normal/btn_close2.svg);
+}
+.hd .box .close:active {
+  background-image: url(/pet/windowTip/normal/btn_close3.svg);
+}
+.hd .box.vip .content1 {
+  background-image: url(/pet/windowTip/vip/Q_04.svg);
+}
+.hd .box.vip .content3 {
+  background-image: url(/pet/windowTip/vip/Q_06.svg);
+}
+.hd .box.vip .close {
+  background-image: url(/pet/windowTip/vip/btn_closedefault.svg);
+}
 
 .adopt {
   width: 607px;

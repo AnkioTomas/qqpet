@@ -92,6 +92,8 @@ export interface Settings {
   autoStart: boolean
   paused: boolean
   hidden: boolean
+  /** High-resolution assets: @2x tray icons and SVG window frames. */
+  hd: boolean
 }
 
 export interface SaveData {

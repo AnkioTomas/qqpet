@@ -26,6 +26,7 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.save, (_e, patch: SavePatch) => {
     patchSave(patch)
     if (patch.petInfo) tray.retip(getSave().petInfo)
+    if (patch.settings?.hd !== undefined) tray.setState(getSave())
   })
   ipcMain.on(IPC.resetPet, () => {
     resetSave()
@@ -42,7 +43,7 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.setAlwaysOnTop, (_e, on: boolean) => win.setAlwaysOnTop(on, 'screen-saver'))
   ipcMain.on(IPC.setFocusable, (_e, on: boolean) => win.setFocusable(on))
   ipcMain.on(IPC.setAutoStart, (_e, on: boolean) => app.setLoginItemSettings({ openAtLogin: on }))
-  ipcMain.on(IPC.setTrayState, (_e, state: TrayState) => tray.setState(state, getSave().petInfo))
+  ipcMain.on(IPC.setTrayState, (_e, state: TrayState) => tray.setState(getSave(), state))
 })
 
 app.on('window-all-closed', () => app.quit())

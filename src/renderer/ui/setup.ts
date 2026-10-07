@@ -20,6 +20,13 @@ function setOpacity(v: number): void {
 }
 document.body.style.setProperty('--opacity', String(save.settings.opacity))
 
+/** High-resolution assets; open windows keep their frames until reopened. */
+function setHd(on: boolean): void {
+  update('settings', { hd: on })
+  document.body.classList.toggle('hd', on)
+}
+document.body.classList.toggle('hd', save.settings.hd)
+
 /** Brings a lost pet back on screen. */
 function homing(): void {
   setInfo('lastX', 100)
@@ -55,6 +62,7 @@ const TABS: { label: string; options: Option[] }[] = [
       },
       { type: 'radio', label: '是否开启互动动作指示器', title: FACE_TIP, on: () => s.faceClick === 2, run: () => setFaceClick(s.faceClick === 2 ? 1 : 2) },
       { type: 'radio', label: '开启免打扰模式', on: () => s.quiet, run: () => update('settings', { quiet: !s.quiet }) },
+      { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效', on: () => s.hd, run: () => setHd(!s.hd) },
     ],
   },
   { label: '关于', options: [{ type: 'see', label: '基本信息', value: '版本：T800' }] },

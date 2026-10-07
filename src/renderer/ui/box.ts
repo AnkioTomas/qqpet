@@ -1,15 +1,19 @@
+import { save } from '../pet/store'
+
 const SKINS = {
   normal: { head: ['normal/beijing1.bmp', 'normal/beijing2.bmp', 'normal/beijing3.bmp'], foot: ['normal/beijing6.bmp', 'normal/beijing7.bmp', 'normal/beijing8.bmp'] },
   vip: { head: ['vip/Q_01.png', 'vip/Q_02.png', 'vip/Q_03.png'], foot: ['vip/Q_07.png', 'vip/Q_08.png', 'vip/Q_09.png'] },
 }
 
 function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
+  // The hd frame slices are SVG redraws under the same names.
+  const hd = save.settings.hd
   const r = document.createElement('div')
   r.className = cls
   imgs.forEach((src, i) => {
     const img = document.createElement('img')
     img.className = `${cls}${i + 1}`
-    img.src = `pet/windowTip/${src}`
+    img.src = `pet/windowTip/${hd ? src.replace(/\.\w+$/, '.svg') : src}`
     r.appendChild(img)
   })
   if (extra) r.appendChild(extra)

@@ -1,7 +1,8 @@
 import { app, Menu, nativeImage, Tray, type NativeImage } from 'electron'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { TrayClick, TrayState } from '../shared/ipc'
-import type { PetInfo } from '../shared/save'
+import type { PetInfo, SaveData } from '../shared/save'
 import { resourcesRoot } from './protocol'
 
 const FRAME_MS = 300
@@ -25,14 +26,17 @@ const STATES: Record<TrayState, { frames: number; tip?: string }> = {
   bury: { frames: 2, tip: '[n]已埋葬~' },
 }
 
-const icon = (sex: string, file: string): NativeImage =>
-  nativeImage.createFromPath(join(resourcesRoot, 'pet/img_res/Tray', sex, file))
+/** createFromPath also loads a `@2x` sibling for HiDPI screens; a buffer is the file alone. */
+function icon(sex: string, file: string, hd: boolean): NativeImage {
+  const path = join(resourcesRoot, 'pet/img_res/Tray', sex, file)
+  return hd ? nativeImage.createFromPath(path) : nativeImage.createFromBuffer(readFileSync(path))
+}
 
 // A name that itself contains a placeholder would be substituted twice.
 const label = (s: string, fallback: string): string => (!s || /\[[^\]]\]/.test(s) ? fallback : s)
 
 export function createPetTray(onClick: (e: TrayClick) => void) {
-  const tray = new Tray(nativeImage.createFromPath(join(resourcesRoot, 'pet/img_res/Tray/GG/leave.png')))
+  const tray = new Tray(icon('GG', 'leave.png', false))
   tray.setToolTip('QQ宠物')
   // AppIndicator trays on Linux emit no click events; expose the same actions as a menu.
   if (process.platform === 'linux') {
@@ -58,13 +62,15 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
   return {
     /** Re-renders the tooltip, e.g. after a rename. */
     retip,
-    setState(state: TrayState, pet: PetInfo): void {
+    /** Without a state: redraws the current one, e.g. after the hd setting changed. */
+    setState(s: SaveData, state = current): void {
+      const pet = s.petInfo
       clearTimeout(timer)
       current = state
       retip(pet)
       const { frames } = STATES[state]
-      if (frames === 0) return tray.setImage(icon(pet.sex, `${state}.png`))
-      const images = Array.from({ length: frames }, (_, i) => icon(pet.sex, `${state}/${i + 1}.png`))
+      if (frames === 0) return tray.setImage(icon(pet.sex, `${state}.png`, s.settings.hd))
+      const images = Array.from({ length: frames }, (_, i) => icon(pet.sex, `${state}/${i + 1}.png`, s.settings.hd))
       const show = (i: number): void => {
         tray.setImage(images[i])
         timer = setTimeout(() => show((i + 1) % frames), FRAME_MS)
