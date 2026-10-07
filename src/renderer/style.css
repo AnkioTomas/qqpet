@@ -190,8 +190,17 @@ body {
 }
 
 .adopt {
+  position: relative;
   width: 607px;
   height: 455px;
+}
+.adopt .import {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  line-height: 22px;
+  cursor: pointer;
 }
 
 /* The original "boxOneImg" window frame; later windows stack on top. */
