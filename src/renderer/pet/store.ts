@@ -67,7 +67,7 @@ export function growthPerMinute(): number {
   return (perHour * (info.sweetHeartOverTime ? 1.1 : 1)) / 60
 }
 
-const busy = (): boolean => Boolean(activity('work') || activity('study') || activity('trip'))
+export const busy = (): boolean => Boolean(activity('work') || activity('study') || activity('trip'))
 
 /** 0 (fresh) and up; drives random illness and health loss. */
 export function fatigue(): number {
@@ -81,6 +81,13 @@ export function fatigue(): number {
   const strong = info.strong
   const relief = c.level < 10 ? (strong > 500 ? 2 : 0) : strong > 50000 ? 4 : strong > 5000 ? 2 : 0
   return Math.max(0, f - relief)
+}
+
+/** 0..20: VIP flags, charm and intelligence help; fatigue hurts. */
+export function luck(): number {
+  let l = 1 + (info.pinkDiamond ? info.PDiamondLevel * 2 : 0) + (info.sweetHeart ? 2 : 0)
+  l += [500, 5000, 50000].filter((v) => info.charm > v).length + [800, 8000, 80000].filter((v) => info.intel > v).length
+  return Math.min(Math.max(0, l - (fatigue() >> 1)), 20)
 }
 
 /** Recomputes level and stat caps from growth; returns the previous level. */

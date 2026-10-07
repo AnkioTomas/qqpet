@@ -17,7 +17,7 @@ export function pay(price: number): boolean {
 }
 
 /** Stat effects of a good; eating and cleaning come with `extra` mood. */
-function apply(g: Good, extra = 0): void {
+export function apply(g: Good, extra = 0): void {
   const c = save.petComputedlInfo
   if (g.hunger) setInfo('hunger', Math.min(info.hunger + g.hunger, c.hungerMax))
   if (g.clean) setInfo('clean', Math.min(info.clean + g.clean, c.cleanMax))

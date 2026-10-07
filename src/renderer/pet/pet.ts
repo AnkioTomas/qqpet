@@ -3,12 +3,14 @@ import { floatMood } from '../ui/float'
 import { say } from '../ui/talk'
 import { DEAD, illOf } from './data/ills'
 import { TALK, type Line } from './data/talk'
+import { advanceTask, stopTask } from './activity'
 import { tickTimed } from './goods'
 import { Machine, type Pose } from './machine'
 import { rand } from './rand'
 import {
   activity,
   addInfo,
+  busy,
   fatigue,
   growthPerMinute,
   info,
@@ -151,6 +153,8 @@ function dayStart(now: number): number {
   return d.getTime() / 1000
 }
 
+const MOOD_OUT = { work: 'stopWorkFoMood0', study: 'stopStudyFoMood0', trip: 'overTripUpFoMood0' }
+
 /** Per-minute accounting: online time, stat decay and growth for the elapsed minutes. */
 function tick(): void {
   const now = Math.floor(Date.now() / 1000)
@@ -159,14 +163,21 @@ function tick(): void {
     const minutes = +((now - lastTick) / 60).toFixed(5)
     addInfo('onlineDataTime', minutes)
     addInfo('onLineTime', minutes)
-    const moodRate = rand(1, 2)
-    // Growth only counts the minutes the mood lasted.
+    // Work, study and travel wear the pet out faster.
+    const extra = busy() ? 1 : 0
+    const moodRate = rand(1, 2) + extra
+    // Growth only counts the minutes the mood lasted; an activity stops when it runs out.
     const grown = Math.min(minutes, info.mood / moodRate)
+    if (grown < minutes) {
+      const stopped = stopTask()
+      if (stopped) speak({ c: 'state', s: MOOD_OUT[stopped], now: true }, 'speak')
+    }
     setInfo('mood', Math.max(info.mood - moodRate * minutes, 0))
-    setInfo('hunger', Math.max(info.hunger - rand(2, 3) * minutes, 0))
-    setInfo('clean', Math.max(info.clean - rand(2, 3) * minutes, 0))
+    setInfo('hunger', Math.max(info.hunger - (rand(2, 3) + extra) * minutes, 0))
+    setInfo('clean', Math.max(info.clean - (rand(2, 3) + extra) * minutes, 0))
     addInfo('growth', +(growthPerMinute() * grown).toFixed(8))
     for (const type of tickTimed(grown)) speak({ c: 'state', s: `${type}Over`, now: true }, 'speak')
+    advanceTask(grown)
   }
   lastTick = now
   update('nowTimeLine', now)

@@ -1,0 +1,10 @@
+.ui-travel .travel {width:600px;height:500px;padding:20px 20px 0}
+.ui-travel .travelMain {width:100%;height:100%;background-color:#f1ab6525;border-radius:10px}
+.ui-travel .toTarvelBut {margin:16px 0;height:30px;box-sizing:border-box}
+.ui-travel .tip {height:30px;padding-bottom:16px}
+.ui-travel .lvcjImg {width:30px;height:40px}
+.ui-travel .noneLvcj {filter:grayscale(80%) contrast(120%)}
+.ui-travel svg {width:100%;height:100%}
+.ui-travel path {stroke:#fff;stroke-width:1}
+.ui-travel path:hover {fill:#f1ab6539}
+.ui-travel text {fill:#e68470;stroke:#fff;stroke-width:2px;paint-order:stroke;font-size:9px;text-anchor:middle;pointer-events:none}

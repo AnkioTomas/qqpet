@@ -10,14 +10,24 @@ const changed = (type: GoodType): void => listeners.forEach((l) => l(type))
 /** Entries are `_<id>*<count>`; returns the index of `id` or -1. */
 const indexOf = (type: GoodType, id: string): number => save.selfGoodDatas[type].findIndex((e) => e.startsWith(`_${id}*`))
 
-/** One page of the inventory; `totalPage` is 0 when empty. */
-export function listGoods(type: GoodType, page: number, size: number): { list: Good[]; totalPage: number } {
-  const all = save.selfGoodDatas[type]
-  const list = all.slice((page - 1) * size, page * size).map((e) => {
+export interface Page {
+  list: Good[]
+  /** 0 when empty. */
+  totalPage: number
+}
+
+export const pageOf = (all: Good[], page: number, size: number): Page => ({
+  list: all.slice((page - 1) * size, page * size),
+  totalPage: Math.ceil(all.length / size),
+})
+
+/** One page of the inventory. */
+export function listGoods(type: GoodType, page: number, size: number): Page {
+  const all = save.selfGoodDatas[type].map((e) => {
     const [id, n] = e.slice(1).split('*')
     return goodOf(type, id, +n)
   })
-  return { list, totalPage: Math.ceil(all.length / size) }
+  return pageOf(all, page, size)
 }
 
 export const hasGood = (type: GoodType, id: string): boolean => indexOf(type, id) >= 0

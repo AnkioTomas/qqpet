@@ -1,4 +1,4 @@
-import type { SelfGoodDatas, SelfGoodUseOption } from '../../../shared/save'
+import type { SelfGoodDatas, SelfGoodUseOption, StudyInfo } from '../../../shared/save'
 import GOODS from './goods.json'
 
 export type GoodType = keyof SelfGoodDatas
@@ -29,6 +29,17 @@ export interface Good {
   /** nums: amount added to petInfo[useId ?? id] per unit. */
   value?: number
   useId?: string
+  /** Work and study: minutes it takes. */
+  useTime?: number
+  /** Work: 元宝 earned, and the levels and stats it requires. */
+  yb?: number
+  education?: Partial<StudyInfo>
+  useArtt?: Partial<Record<'charm' | 'intel' | 'strong', number>>
+  /** Study: subject name, lessons before the exam and the studyInfo value the school starts at. */
+  object?: string
+  tolkName?: string
+  classNum?: number
+  classNumUp?: number
   /** Count owned (inventory) or 1. */
   num: number
 }
@@ -40,10 +51,18 @@ export const goodOf = (type: GoodType, id: string, num = 1): Good => ({
   num,
 })
 
-/** Tooltip lines of a good, as in the original's item panels. */
-export function describe(g: Good): string[] {
-  if (g.type === 'nums') return [`获得${g.name}*${g.value}`, g.desc ?? '']
-  const attrs = (
+/** Every good of a type, in table order. */
+export const allGoods = (type: GoodType): Good[] => Object.values(TABLE[type]).map((g) => ({ ...g, num: 1 }))
+
+/** A good by id alone; ids are unique across types. */
+export function findGood(id: string): Good {
+  const type = (Object.keys(TABLE) as GoodType[]).find((t) => TABLE[t][`_${id}`])!
+  return goodOf(type, id)
+}
+
+/** " 魅力+1 智力+2"-style attribute gains, or ''. */
+export const attrs = (g: Good): string =>
+  (
     [
       ['魅力', g.charm],
       ['智力', g.intel],
@@ -54,11 +73,16 @@ export function describe(g: Good): string[] {
     .filter(([, v]) => v)
     .map(([k, v]) => ` ${k}+${v}`)
     .join('')
+
+/** Tooltip lines of a good, as in the original's item panels. */
+export function describe(g: Good): string[] {
+  if (g.type === 'nums') return [`获得${g.name}*${g.value}`, g.desc ?? '']
+  const a = attrs(g)
   const lines = [
     g.desc,
     g.hunger && `饥饿：${g.hunger}`,
     g.clean && `清洁：${g.clean}`,
-    attrs && `属性：${attrs}`,
+    a && `属性：${a}`,
     g.group && `成长值：${g.group}`,
     g.useTimeing && `持续时间：${g.useTimeing}分钟`,
   ]

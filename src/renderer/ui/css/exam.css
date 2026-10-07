@@ -1,0 +1,15 @@
+.ui-exam .answerQuestions {width:300px;min-height:200px;color:#292929dd;font-size:14px}
+.ui-exam .a_title {width:100%;padding:5px 20px;font-weight:900;font-size:16px}
+.ui-exam .a_Question {width:100%;padding:5px 20px;font-weight:700}
+.ui-exam .aq_options {width:100%}
+.ui-exam .aq_option {width:50%;padding:0 5px;margin-top:15px}
+.ui-exam .choose {width:20px;height:20px;background-image:url(/pet/answerQuestions/66.svg);background-size:100% 100%;background-repeat:no-repeat}
+.ui-exam .chooseAQ {background-image:url(/pet/answerQuestions/75.svg)}
+.ui-exam .aq_buts {padding:12px 0}
+.ui-exam .aqb {width:50px;height:20px;background-image:url(/pet/answerQuestions/Button_exit_00.png);background-size:100% 100%;background-repeat:no-repeat}
+.ui-exam .aqb:hover {background-image:url(/pet/answerQuestions/Button_exit_01.png)}
+.ui-exam .aqb:active {background-image:url(/pet/answerQuestions/Button_exit_02.png)}
+.ui-exam .close {width:20px;height:20px;background-image:url(/pet/answerQuestions/Button_close_00.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:15px;top:5px}
+.ui-exam .close:hover {background-image:url(/pet/answerQuestions/Button_close_01.png)}
+.ui-exam .close:active {background-image:url(/pet/answerQuestions/Button_close_02.png)}
+.ui-exam {background:url(/pet/answerQuestions/56.svg) 0 0/100% 100% no-repeat}

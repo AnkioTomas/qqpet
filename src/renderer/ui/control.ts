@@ -1,22 +1,31 @@
 import { describe, type Good, type GoodType } from '../pet/data/goods'
-import { listGoods, onGoodsChange } from '../pet/goods'
+import { listGoods, onGoodsChange, pageOf, type Page } from '../pet/goods'
 import { doctor, useItem } from '../pet/items'
+import { describeStudy, describeWork, study, studyGoods, work, workGoods } from '../pet/jobs'
 import { info, onInfoChange, petSize, save } from '../pet/store'
 import './css/control.css'
 import { button, div, img } from './dom'
 import { progress } from './progress'
 import { openShop } from './shop'
 import { setBubbleLift } from './talk'
+import { openTravel } from './travel'
 
 const ICONS = 'pet/control/icons/'
 const BAR_HEIGHT = 180
 const PAGE = 4
 
-/** An inventory panel: goods of `type` with the bar of the stat they restore. */
+type Stat = 'hunger' | 'clean' | 'health' | 'mood'
+
+/** A list of goods to pick from, 4 per page. */
 interface Panel {
-  type: GoodType
   icon: string
-  stat: 'hunger' | 'clean' | 'health' | 'mood'
+  list: (page: number) => Page
+  lines: (g: Good) => string[]
+  /** Returns true when the panel should close. */
+  use: (g: Good) => boolean
+  /** Everyday panels: the inventory type shown, with the bar of the stat it restores and a shop link. */
+  type?: GoodType
+  stat?: Stat
 }
 
 interface Entry {
@@ -25,27 +34,49 @@ interface Entry {
   run: () => void
 }
 
-const panel = (type: GoodType, icon: number, stat: Panel['stat']) => (): void => openPanel({ type, icon: `${ICONS}active/${icon}.svg`, stat })
+const activeIcon = (n: number): string => `${ICONS}active/${n}.svg`
+
+const inventory = (type: GoodType, icon: number, stat: Stat) => (): void =>
+  openPanel({
+    icon: activeIcon(icon),
+    list: (page) => listGoods(type, page, PAGE),
+    lines: (g) => [...describe(g), `数量：${g.num}`],
+    use: (g) => {
+      useItem(g)
+      return false
+    },
+    type,
+    stat,
+  })
 
 const MENU: { name: string; icon: string; children: Entry[] }[] = [
   {
     name: '日常',
     icon: 'richang.png',
     children: [
-      { name: '食物', icon: 'weishi.png', run: panel('food', 18, 'hunger') },
-      { name: '清洁', icon: 'qingjie.png', run: panel('clean', 20, 'clean') },
-      {
-        name: '吃药',
-        icon: 'zhibing.png',
-        run: panel('medicine', 22, 'health'),
-      },
-      { name: '玩具', icon: 'wanshua.png', run: panel('toy', 28, 'mood') },
+      { name: '食物', icon: 'weishi.png', run: inventory('food', 18, 'hunger') },
+      { name: '清洁', icon: 'qingjie.png', run: inventory('clean', 20, 'clean') },
+      { name: '吃药', icon: 'zhibing.png', run: inventory('medicine', 22, 'health') },
+      { name: '玩具', icon: 'wanshua.png', run: inventory('toy', 28, 'mood') },
     ],
   },
   {
     name: '交互',
     icon: 'chongwu.png',
-    children: [{ name: '看病', icon: 'zhibing.png', run: doctor }],
+    children: [
+      {
+        name: '打工',
+        icon: 'dagong.png',
+        run: () => openPanel({ icon: activeIcon(26), list: (page) => pageOf(workGoods(), page, PAGE), lines: describeWork, use: work }),
+      },
+      {
+        name: '学习',
+        icon: 'xuexi.png',
+        run: () => openPanel({ icon: activeIcon(24), list: (page) => pageOf(studyGoods(), page, PAGE), lines: describeStudy, use: study }),
+      },
+      { name: '旅游', icon: 'lvyou.png', run: openTravel },
+      { name: '看病', icon: 'zhibing.png', run: doctor },
+    ],
   },
 ]
 
@@ -127,7 +158,7 @@ let list: HTMLElement | null = null
 function openPanel(p: Panel, page = 1): void {
   open = { ...p, page }
   menus.style.display = 'none'
-  const { list: goods, totalPage } = listGoods(p.type, page, PAGE)
+  const { list: goods, totalPage } = p.list(page)
   const turn = (d: number) => (): void => {
     if (page + d >= 1 && page + d <= totalPage) openPanel(p, page + d)
   }
@@ -136,9 +167,11 @@ function openPanel(p: Panel, page = 1): void {
       'goodItem',
       div(
         'goodItemIconBox fcc',
-        div('goodInfo', div('goodName', g.name), ...[...describe(g), `数量：${g.num}`].map((l) => div('goodDatas', l))),
+        div('goodInfo', div('goodName', g.name), ...p.lines(g).map((l) => div('goodDatas', l))),
         Object.assign(img('goodItemIcon', g.url), {
-          onclick: () => useItem(g),
+          onclick: () => {
+            if (p.use(g)) closePanel()
+          },
         }),
       ),
     ),
@@ -146,7 +179,7 @@ function openPanel(p: Panel, page = 1): void {
   const next = div(
     'goodList focusPress',
     img('goodTypeIcon', p.icon),
-    button('toShoppingMall', openShop, '去购物'),
+    ...(p.stat ? [button('toShoppingMall', openShop, '去购物')] : []),
     button('goodClose', closePanel),
     div(
       'goodListMain fcc',
@@ -154,7 +187,7 @@ function openPanel(p: Panel, page = 1): void {
       div(
         'goods f1 fC h100',
         div('fc f1', ...(items.length ? items : [div('goodsNone tc w100', ' 空空如也~~ ')])),
-        div('progress', progress(info[p.stat], save.petComputedlInfo[`${p.stat}Max`])),
+        ...(p.stat ? [div('progress', progress(info[p.stat], save.petComputedlInfo[`${p.stat}Max`]))] : []),
       ),
       button('toRight', turn(1)),
     ),
@@ -177,5 +210,5 @@ onInfoChange((key) => {
   if (open && key === open.stat) openPanel(open, open.page)
 })
 onGoodsChange((type) => {
-  if (open?.type === type) openPanel(open, Math.min(open.page, Math.max(listGoods(type, 1, PAGE).totalPage, 1)))
+  if (open?.type === type) openPanel(open, Math.min(open.page, Math.max(open.list(1).totalPage, 1)))
 })

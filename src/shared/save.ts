@@ -74,7 +74,8 @@ export type SelfGoodUseOption = Record<'background' | 'food' | 'clean' | 'toy', 
 
 export interface GameSaveDatas {
   fishing_harvestfish: number
-  travel_china: unknown[]
+  /** Provinces visited and how often. */
+  travel_china: { name: string; value: number }[]
   travel_china_num: number
   ddw: number
   yyds: number
