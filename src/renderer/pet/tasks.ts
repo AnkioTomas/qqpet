@@ -102,7 +102,9 @@ const rewards = (t: Task): Good[] => (t.reroll ? loot(t.reroll) : t.good!.map(pa
 
 function load(): Progress {
   const p: Partial<Progress> = JSON.parse(save.saveJsonData.task || '{}')
-  const list = (tab: Tab) => TASKS[tab].map((t, i) => p.taskList?.[tab]?.[i] ?? { take: false, good: rewards(t) })
+  // The original stored whole task objects, `take` only once claimed; the definitions here stay authoritative.
+  const entry = (t: Task, e?: { take?: boolean; good: Good[] }) => (e ? { take: e.take === true, good: e.good } : { take: false, good: rewards(t) })
+  const list = (tab: Tab) => TASKS[tab].map((t, i) => entry(t, p.taskList?.[tab]?.[i]))
   return { doNums: p.doNums ?? {}, taskList: { ddw: list('ddw'), travel: list('travel') } }
 }
 

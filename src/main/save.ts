@@ -208,7 +208,9 @@ export function loadSave(): SaveData {
     if (fixed.length) console.warn('repaired save fields:', fixed.join(', '))
     save = stored as SaveData
   } else {
+    // A new pet keeps the owner's preferences, but not the old pet's pause or hiding.
     save = fresh()
+    if (stored?.settings) Object.assign(save.settings, stored.settings, { paused: false, hidden: false })
   }
   write(save)
   return save
