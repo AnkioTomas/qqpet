@@ -151,7 +151,7 @@ const TABS: { label: string; options: Option[] }[] = [
       },
       { type: 'radio', label: '是否开启互动动作指示器', title: FACE_TIP, on: () => s.faceClick === 2, run: () => setFaceClick(s.faceClick === 2 ? 1 : 2) },
       { type: 'radio', label: '开启免打扰模式', on: () => s.quiet, run: () => update('settings', { quiet: !s.quiet }) },
-      { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效', on: () => s.hd, run: () => setHd(!s.hd) },
+      { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效；高清界面素材重启后生效', on: () => s.hd, run: () => setHd(!s.hd) },
     ],
   },
   {

@@ -1,6 +1,7 @@
-import { resolve } from 'node:path'
+import { join, normalize, resolve } from 'node:path'
 import { defineConfig } from 'electron-vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { hidpiSvg } from './src/main/hidpi'
 
 export default defineConfig({
   main: {
@@ -25,6 +26,20 @@ export default defineConfig({
       rollupOptions: { input: { index: resolve('src/renderer/index.html'), game: resolve('src/renderer/game.html') } },
     },
     plugins: [
+      // Dev counterpart of the @2x handling in src/main/protocol.ts.
+      {
+        name: 'hidpi',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = decodeURIComponent((req.url ?? '').split('?')[0])
+            const svg =
+              req.headers['x-hd'] && req.headers.accept?.includes('image/svg+xml') && url.startsWith('/pet/') && hidpiSvg(join(resolve('resources'), normalize(url)))
+            if (!svg) return next()
+            res.setHeader('Content-Type', 'image/svg+xml')
+            res.end(svg)
+          })
+        },
+      },
       viteStaticCopy({
         targets: [{ src: resolve('node_modules/@ruffle-rs/ruffle') + '/*', dest: 'ruffle', rename: { stripBase: true } }],
       }),

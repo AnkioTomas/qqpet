@@ -1,4 +1,4 @@
-import { app, clipboard, dialog, ipcMain } from 'electron'
+import { app, clipboard, dialog, ipcMain, session } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from './ai'
@@ -17,6 +17,10 @@ app.whenReady().then(() => {
   handleScheme()
   app.dock?.hide()
   loadSave()
+  // CSS keeps decoded images per stylesheet, so @2x bitmaps follow the hd setting as of launch only.
+  if (getSave().settings.hd) {
+    session.defaultSession.webRequest.onBeforeSendHeaders((d, cb) => cb({ requestHeaders: { ...d.requestHeaders, 'X-HD': '1' } }))
+  }
 
   const win = createPetWindow()
   const tray = createPetTray((click) => {
