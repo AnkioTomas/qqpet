@@ -33,7 +33,7 @@ function icon(sex: string, file: string, hd: boolean): NativeImage {
 }
 
 // A name that itself contains a placeholder would be substituted twice.
-const label = (s: string, fallback: string): string => (!s || /\[[^\]]\]/.test(s) ? fallback : s)
+const label = (s: string, fallback: string): string => (!s || /\[[^\]]]/.test(s) ? fallback : s)
 
 export function createPetTray(onClick: (e: TrayClick) => void) {
   const tray = new Tray(icon('GG', 'leave.png', false))
@@ -57,7 +57,7 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
   let current: TrayState = 'leave'
   const retip = (pet: PetInfo): void => {
     const { tip } = STATES[current]
-    if (tip) tray.setToolTip(tip.replace(/\[n\]/g, label(pet.name, '宠宝~')).replace(/\[h\]/g, label(pet.host, '主人~')))
+    if (tip) tray.setToolTip(tip.replace(/\[n]/g, label(pet.name, '宠宝~')).replace(/\[h]/g, label(pet.host, '主人~')))
   }
   return {
     /** Re-renders the tooltip, e.g. after a rename. */

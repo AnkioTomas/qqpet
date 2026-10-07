@@ -86,7 +86,7 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
     text = l?.tolk ?? `${t.c}-${t.s}聊天数据丢失，请联系管理员处理`
     button = l?.submitText ?? '好的'
   }
-  text = text.replace(/\[host\]/g, info.host)
+  text = text.replace(/\[host]/g, info.host)
   const show = (): void => {
     if (!save.settings.quiet) {
       const said = say(text, [button], hooks.ok ? [hooks.ok] : [])

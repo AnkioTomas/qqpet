@@ -19,7 +19,7 @@ for (let i = 0; i < css.length;) {
   if (open < 0) break
   let depth = 1
   let j = open + 1
-  while (depth) ((depth += css[j] === '{' ? 1 : css[j] === '}' ? -1 : 0), j++)
+  for (; depth; j++) depth += css[j] === '{' ? 1 : css[j] === '}' ? -1 : 0
   rules.push({
     head: css.slice(i, open).trim(),
     body: css.slice(open + 1, j - 1),
@@ -37,7 +37,7 @@ for (const { head, body } of rules) {
   if (id ? !head.includes(`[data-v-${id}]`) : head.includes('[data-v-')) continue
   const selectors = head
     .split(',')
-    .map((s) => s.trim().replace(/\[data-v-[0-9a-f]+\]/g, ''))
+    .map((s) => s.trim().replace(/\[data-v-[0-9a-f]+]/g, ''))
     .map((s) => (s.startsWith(scope) ? s : `${scope} ${s}`))
   out.push(`${selectors.join(',\n')} {${fixUrls(body)}}`)
 }

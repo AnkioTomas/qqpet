@@ -136,7 +136,8 @@ export function openShop(): void {
   let mall = { tab: 0, sub: 0, page: 1 }
   const cart = new Map<string, Good & { cartNum: number }>()
 
-  function drawLeft(): void {
+  function drawLeft(next = mine): void {
+    mine = next
     const type = MINE[mine.tab].children[mine.sub].type
     // Using up the last good of the last page moves back a page.
     mine.page = Math.min(mine.page, Math.max(Math.ceil(save.selfGoodDatas[type].length / 6), 1))
@@ -151,7 +152,7 @@ export function openShop(): void {
           div('petImgBox fcc', img('petImg penguin_breathe', avatar())),
         ),
       ),
-      div('leftSelfCenter', div('leftSelfCenterBk', ...tabs('lscb', MINE, mine.tab, mine.sub, (tab, sub) => ((mine = { tab, sub, page: 1 }), drawLeft())))),
+      div('leftSelfCenter', div('leftSelfCenterBk', ...tabs('lscb', MINE, mine.tab, mine.sub, (tab, sub) => drawLeft({ tab, sub, page: 1 })))),
       div(
         'leftSelfGoods',
         div(
@@ -174,18 +175,19 @@ export function openShop(): void {
         div(
           'leftSelfFootBk por',
           div('lsfb_yb', String(info.yb)),
-          div('lsfb_pageMsg fcc', ...pager('lsfb', mine.page, totalPage, (page) => ((mine.page = page), drawLeft()))),
+          div('lsfb_pageMsg fcc', ...pager('lsfb', mine.page, totalPage, (page) => drawLeft({ ...mine, page }))),
         ),
       ),
     )
   }
 
-  function drawRight(): void {
+  function drawRight(next = mall): void {
+    mall = next
     const t = MALL[mall.tab]
     const pages = PAGES[t.cls][t.children[mall.sub].type] ?? []
     const goods = (pages[mall.page - 1] ?? []).map((id) => goodOf(t.children[mall.sub].type, id))
     right.replaceChildren(
-      div('rightSelfHead', div('rightSelfHeadBk', ...tabs('rscb', MALL, mall.tab, mall.sub, (tab, sub) => ((mall = { tab, sub, page: 1 }), drawRight())))),
+      div('rightSelfHead', div('rightSelfHeadBk', ...tabs('rscb', MALL, mall.tab, mall.sub, (tab, sub) => drawRight({ tab, sub, page: 1 })))),
       div(
         'rightSelfCenter por',
         div(
@@ -231,7 +233,7 @@ export function openShop(): void {
         div(
           'rightSelfPaging fc w100',
           div('f1'),
-          div('paging fc', ...pager('rsfb', mall.page, pages.length, (page) => ((mall.page = page), drawRight()))),
+          div('paging fc', ...pager('rsfb', mall.page, pages.length, (page) => drawRight({ ...mall, page }))),
           button('shoppingCart por', () => {
             drawCart()
             cartMark.style.display = ''

@@ -49,7 +49,7 @@ export function createPetWindow(): BrowserWindow {
   }, CURSOR_INTERVAL_MS)
   win.on('closed', () => clearInterval(timer))
 
-  win.loadURL(`${PAGES}/index.html`)
+  void win.loadURL(`${PAGES}/index.html`)
   if (process.env.ELECTRON_RENDERER_URL) win.webContents.openDevTools({ mode: 'detach' })
   return win
 }
@@ -68,6 +68,6 @@ export function openGameWindow(swf: string): BrowserWindow {
   })
   win.webContents.on('will-navigate', (e) => e.preventDefault())
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  win.loadURL(`${PAGES}/game.html?swf=${encodeURIComponent(swf)}`)
+  void win.loadURL(`${PAGES}/game.html?swf=${encodeURIComponent(swf)}`)
   return win
 }
