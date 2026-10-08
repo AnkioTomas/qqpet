@@ -1,6 +1,6 @@
 .padKey,
-.padToggle {
-  position: absolute;
+.padTool,
+.padPickerKey {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,12 +14,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 .padKey {
+  position: absolute;
   width: 64px;
   height: 64px;
   border-radius: 50%;
 }
-.padKey.on {
+.padKey.on,
+.padPickerKey.on {
   background: rgb(255 255 255 / 45%);
+}
+.gamepad.editing .padKey {
+  border-style: dashed;
+  border-color: #ffd54a;
 }
 
 .padArrows,
@@ -54,22 +60,52 @@
   width: 168px;
   height: 152px;
 }
-.padButtons .enter {
+.padButtons .a {
   left: 0;
   top: 0;
 }
-.padButtons .space {
+.padButtons .b {
   right: 0;
   bottom: 0;
   width: 88px;
   height: 88px;
 }
 
-.padToggle {
+.padTools {
   position: fixed;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 8px;
+}
+.padTool {
   padding: 6px 14px;
   border-radius: 16px;
   font-size: 14px;
+}
+
+.padPicker {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgb(0 0 0 / 70%);
+  color: #fff;
+  font: 14px sans-serif;
+}
+.padPickerKeys {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 52px);
+  justify-content: center;
+  gap: 8px;
+  width: 90vw;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+.padPickerKey {
+  height: 44px;
+  border-radius: 8px;
 }

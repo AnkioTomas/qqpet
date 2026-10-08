@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.webkit.JavascriptInterface
 import android.webkit.WebView
 
 /** Plays pet/game/<swf> full screen, like the desktop's game window; reports the minutes played when closed. */
@@ -20,7 +21,14 @@ class GameActivity : Activity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.mediaPlaybackRequiresUserGesture = false
-            webViewClient = AssetClient(this@GameActivity)
+            // The page's 退出 calls window.close(), which a WebView ignores for a page it did not open by script.
+            addJavascriptInterface(object {
+                @JavascriptInterface
+                fun close() = runOnUiThread { finish() }
+            }, "QQPetGame")
+            webViewClient = object : AssetClient(this@GameActivity) {
+                override fun onPageFinished(view: WebView, url: String) = view.evaluateJavascript("window.close = () => QQPetGame.close()", null)
+            }
         }
         setContentView(web)
         window.insetsController!!.apply {

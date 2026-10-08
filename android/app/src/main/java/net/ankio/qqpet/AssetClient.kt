@@ -28,7 +28,7 @@ private val TYPES = mapOf(
  * [hd] tells whether images with an `@2x.png` twin are served as SVGs embedding it,
  * like src/main/hidpi.ts; it is read when a page starts loading.
  */
-class AssetClient(private val context: Context, private val hd: () -> Boolean = { false }) : WebViewClient() {
+open class AssetClient(private val context: Context, private val hd: () -> Boolean = { false }) : WebViewClient() {
     private var hdOn = false
 
     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
