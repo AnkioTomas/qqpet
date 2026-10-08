@@ -125,3 +125,7 @@ Android 版本地调试用 `npm run android`（debug 包，输出到 `android/ap
 ## 许可证
 
 本项目代码以 [GPL-3.0](LICENSE) 发布。该许可证不覆盖 `resources/pet` 下的原版美术资源、SWF 与旅行照片，它们的版权归各自所有者，见文首版权声明。
+
+## 友情链接
+
+本项目认可 [LINUX DO](https://linux.do) 社区。
