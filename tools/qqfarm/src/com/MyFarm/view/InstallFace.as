@@ -227,6 +227,8 @@ package com.MyFarm.view
          _bg.addChild(_kennel);
          _myMouse = createClip("CursorArrow");
          _myMouse.name = "CursorArrow";
+         _myMouse.mouseEnabled = false;
+         _myMouse.mouseChildren = false;
          farmland();
          installToolsBar();
          installHead();
@@ -740,6 +742,9 @@ package com.MyFarm.view
             _loc4_ = _myMouse.y;
             _stage.removeChild(_myMouse);
             _myMouse = _loc2_;
+            // The drawn cursor sits under the pointer; clicks go to what is beneath it.
+            _myMouse.mouseEnabled = false;
+            _myMouse.mouseChildren = false;
             _myMouse.x = _loc3_;
             _myMouse.y = _loc4_;
             _stage.addChild(_myMouse);

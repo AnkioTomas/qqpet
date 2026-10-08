@@ -49,7 +49,7 @@ package com.MyFarm.control
          face._stage.addChild(tips);
          tips.x = (face._stage.stageWidth - tips.width) / 2;
          tips.y = (face._stage.stageHeight - tips.height) / 2;
-         if(face._user.wealth > 10000)
+         if(int(face._user.wealth) >= 10000)
          {
             tips.txt.text = "开垦新地需要10000元宝,你已经达到要求是否要开垦!";
             tips.define.mouseEnabled = true;

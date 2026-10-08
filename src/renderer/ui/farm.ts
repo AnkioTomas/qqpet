@@ -3,7 +3,7 @@ import { SwfPlayer } from '../swf/player'
 import { readSol, writeSol, type Sol } from '../swf/sol'
 import { openBox } from './box'
 import './css/farm.css'
-import { div, img } from './dom'
+import { button, div, img } from './dom'
 
 // Farm.swf keeps everything in SharedObject.getLocal("test", "/"); Ruffle names it after the SWF's host.
 const KEY = `${location.hostname}//test`
@@ -75,8 +75,18 @@ export function openFarm(): void {
   const timer = setInterval(settle, 500)
 
   const host = div('farm', div('avatar', img('penguin_breathe', avatar())))
+  const player = new SwfPlayer(host)
+  // FarmlandControl.farmAll: the movie runs the action on every plot and shows the outcome itself.
+  const all = (action: string) => async () => void (await player.callback('farmAll'))(action)
+  const actions = div(
+    'actions',
+    button('fcc wsnw act', all('harvest'), '一键收获'),
+    button('fcc wsnw act', all('care'), '一键照料'),
+    button('fcc wsnw act', all('clear'), '一键铲除'),
+    button('fcc wsnw act', all('plant'), '一键播种'),
+  )
   window.qqpet.setFocusable(true)
-  openBox(div('ui-farm', host), {
+  openBox(div('ui-farm', host, actions), {
     vip: info.pinkDiamond,
     onClose: () => {
       clearInterval(timer)
@@ -88,7 +98,7 @@ export function openFarm(): void {
       open = false
     },
   })
-  void new SwfPlayer(host).load('pet/qqfarm/Farm.swf', 'pet/qqfarm/')
+  void player.load('pet/qqfarm/Farm.swf', 'pet/qqfarm/')
 }
 
 let ripening: Promise<Record<string, number>> | undefined

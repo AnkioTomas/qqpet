@@ -1,4 +1,8 @@
 .ui-farm .farm {position:relative;width:700px;height:550px}
+.ui-farm .actions {display:flex;justify-content:center;gap:12px;padding-top:6px}
+.ui-farm .act {width:76px;height:24px;font-size:12px;color:#000000bc;cursor:pointer;background:url(/pet/email/5.svg) 0 0/100% 100% no-repeat}
+.ui-farm .act:hover {background-image:url(/pet/email/9.svg)}
+.ui-farm .act:active {background-image:url(/pet/email/11.svg)}
 /* Over Farm.swf's empty TipBg slot, in stage pixels. */
 .ui-farm .avatar {position:absolute;left:9px;top:9px;width:86px;height:49px;overflow:hidden;pointer-events:none;z-index:1}
 /* pet/info/*.svg draw the penguin around (61, 74) of 121.5px; centre that in the slot. */

@@ -4,6 +4,7 @@ package com.MyFarm.Store
    import com.MyFarm.Store.view.ShowBox;
    import com.MyFarm.view.InstallFace;
    import com._public._method.ClearMemory;
+   import flash.display.DisplayObject;
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.display.Stage;
@@ -284,8 +285,18 @@ package com.MyFarm.Store
          var _loc3_:uint = 0;
          var _loc4_:Object = null;
          var _loc5_:MovieClip = null;
+         // The item box is named after its index; a click may land on the box itself or anything nested in it.
+         var hit:DisplayObject = param1.target as DisplayObject;
+         while(hit != null && hit.parent != container)
+         {
+            hit = hit.parent;
+         }
+         if(hit == null)
+         {
+            return;
+         }
          _loc2_ = int(currentTab.slice(3,4)) - 1;
-         _loc3_ = uint(int(param1.target.parent.name));
+         _loc3_ = uint(int(hit.name));
          _loc4_ = new Object();
          _loc4_.price = currentXML.item[_loc3_].@price;
          _loc4_.name = currentXML.item[_loc3_].@name;

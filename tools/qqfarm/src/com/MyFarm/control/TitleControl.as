@@ -268,7 +268,7 @@ package com.MyFarm.control
       {
          if(String(param1.target.name).indexOf("bg") > -1)
          {
-            num = int(String(param1.target.name).slice(2,3));
+            num = int(String(param1.target.name).slice(2));
             showBox = face.getChild("box");
             face._stage.addChild(showBox);
             showBox.x = face._warehouse.x + (face._warehouse.width - showBox.width) / 2;
