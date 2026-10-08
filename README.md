@@ -1,6 +1,6 @@
 # QQPet
 
-QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T800 逆向重建。Flash 内容由 [Ruffle](https://ruffle.rs) 播放。
+QQ 宠物跨平台复刻（Windows / macOS / Linux / Android），基于 Arctic Penguin T800 逆向重建。Flash 内容由 [Ruffle](https://ruffle.rs) 播放。
 
 > **版权声明**：QQ 宠物的美术资源与 SWF 版权归腾讯所有；旅行照片素材版权归《旅行青蛙·中国之旅》所有。本项目仅供学习交流，请勿用于商业用途。
 
@@ -33,9 +33,18 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T8
 - **任务与邮件**：今日任务（按宠物需求和节假日生成）、逗逗我、学习打工、旅游任务；签到与图鉴；节日、生日、旅行明信片邮件。
 - **活动**：池塘（养鱼）、农场（QQFarm，金币即元宝）、密室探险、6 类 98 个小游戏（独立窗口，按游戏时长奖励）。
 - **AI（可选）**：接入任意 OpenAI 兼容接口，宠物闲聊、改写台词、点评或翻译剪贴板文字。
-- **其他**：天气播报、节日问候、免打扰、透明度、开机自启、高清画质（重绘的 @2x 素材，适配高分屏，重启后生效）、存档导入导出（兼容原版 `config.json`，首次启动的选蛋页也可直接导入）。
+- **其他**：天气播报、节日问候、免打扰、透明度、开机自启、全屏应用（看视频、玩游戏）在前台时自动隐藏宠物、高清画质（重绘的 @2x 素材，适配高分屏，重启后生效）、存档导入导出（兼容原版 `config.json`，首次启动的选蛋页也可直接导入）。
 
 存档位于 `userData/save.json`，导入时旧存档备份为 `save.json.bak`。
+
+### Android
+
+宠物以悬浮窗形式显示在桌面和其他应用上方，功能与桌面版一致，另有以下适配：
+
+- 首次打开需允许「显示在其他应用的上层」和通知权限；通知栏常驻的通知代替桌面版的托盘图标。
+- 宽面板在竖屏手机上自动旋转并铺满屏幕；横竖屏切换后宠物保持在屏幕内。
+- 小游戏和密室探险全屏横屏运行，并显示可改键的虚拟手柄。
+- 系统不允许后台读取剪贴板：在其他应用里选中文字后，从选择菜单或分享面板选「QQ宠物」，交给宠物点评或翻译。
 
 ## 下载安装
 
@@ -47,6 +56,7 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T8
 | macOS（Apple 芯片） | `QQPet-<版本>-arm64.dmg` |
 | macOS（Intel） | `QQPet-<版本>.dmg` |
 | Linux | `QQPet-<版本>.AppImage` 或 `qqpet_<版本>_amd64.deb` |
+| Android（11 及以上） | `QQPet-<版本>.apk` |
 
 安装包**没有代码签名**，系统会拦截首次运行：
 
@@ -59,6 +69,7 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux），基于 Arctic Penguin T8
 
   也可以先打开一次，再到「系统设置 → 隐私与安全性」底部点「仍要打开」。
 - **Linux**：AppImage 需要可执行权限，`chmod +x QQPet-*.AppImage` 后运行；Ubuntu 22.04 起若报缺少 FUSE，安装 `libfuse2`（24.04 为 `libfuse2t64`）。deb 包用 `sudo apt install ./qqpet_*_amd64.deb` 安装。
+- **Android**：在浏览器或文件管理器中打开 APK，按提示允许「安装未知应用」。
 
 ## 开发
 
@@ -76,7 +87,7 @@ npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
 
 推送 `v*` 标签时由 GitHub Actions 打出三平台安装包和 Android APK 并发布 Release，其他推送不触发构建。
 
-Android 版本地调试用 `npm run android`（debug 包）。CI 打的 release 包需要在仓库 Secrets 中配置签名密钥：
+Android 版本地调试用 `npm run android`（debug 包，输出到 `android/app/build/outputs/apk/debug/`），需要 Android SDK 和 JDK 17（Gradle 8 不支持更新的 JDK，可用 `JAVA_HOME` 指定）。CI 打的 release 包需要在仓库 Secrets 中配置签名密钥：
 
 | Secret | 内容 |
 |---|---|
@@ -106,6 +117,8 @@ Android 版本地调试用 `npm run android`（debug 包）。CI 打的 release 
 | `src/preload` | `window.qqpet` 接口 |
 | `src/renderer` | 界面（原生 TypeScript），`pet/` 为养成逻辑，`ui/` 为各窗口，`swf/` 为 Ruffle 封装 |
 | `src/shared` | 主进程与渲染层共享的 IPC 与存档类型 |
+| `src/android` | Android 版的 `window.qqpet` 实现，经 WebView 接口调用原生层 |
+| `android/` | Android 原生工程：悬浮窗服务、游戏页、文件选择、文字分享入口、开机自启 |
 | `resources/pet` | 原版资源，`npm run import-assets -- <app.asar>` 可重新导入 |
 | `tools/` | 反混淆脚本、原版 CSS 移植脚本、CDP 调试脚本 |
 
