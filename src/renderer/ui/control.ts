@@ -7,7 +7,7 @@ import { info, onInfoChange, petSize, save } from '../pet/store'
 import { openPinkDiamond } from '../pet/vip'
 import './css/control.css'
 import { formatDate } from './date'
-import { button, div, img } from './dom'
+import { button, div, img, touch } from './dom'
 import { openEmail } from './email'
 import { openFarm } from './farm'
 import { openFishing } from './fishing'
@@ -25,6 +25,13 @@ import { windowView } from './window-view'
 
 const ICONS = 'pet/control/icons/'
 const BAR_HEIGHT = 180
+/** The goods panel, the bar's widest part. */
+const BAR_WIDTH = 314
+/** Pet size the bar was drawn for (level 1 on a 1920 px screen). */
+const DESKTOP_PET = 150
+const EDGE = 10
+/** A finger needs longer than a mouse to find the next button. */
+const HIDE_MS = touch ? 5000 : 1500
 const PAGE = 4
 
 type Stat = 'hunger' | 'clean' | 'health' | 'mood'
@@ -149,15 +156,22 @@ let hideTimer = 0
 let introTimer = 0
 let open: (Panel & { page: number }) | null = null
 
-/** Centered under the pet; above it when there is no room below. */
+/**
+ * Centered under the pet, above it when there is no room below, and kept on screen.
+ * On touch screens it grows with the pet, as far as the screen is wide.
+ */
 function place(): void {
   const size = petSize()
+  const scale = touch ? Math.min(size / DESKTOP_PET, (innerWidth - 2 * EDGE) / BAR_WIDTH) : 1
+  const height = BAR_HEIGHT * scale
+  const half = (BAR_WIDTH * scale) / 2 + EDGE
   let top = info.lastY + size
-  const onTop = top > innerHeight - 10 - BAR_HEIGHT
-  if (onTop) top = info.lastY - BAR_HEIGHT
-  control.style.left = `${Math.min(Math.max(info.lastX + size / 2, 10), innerWidth - 10)}px`
+  const onTop = top > innerHeight - EDGE - height
+  if (onTop) top = info.lastY - height
+  control.style.left = `${Math.min(Math.max(info.lastX + size / 2, half), innerWidth - half)}px`
   control.style.top = `${top}px`
-  setBubbleLift(shown && onTop ? BAR_HEIGHT : 0)
+  control.style.transform = `scale(${scale})`
+  setBubbleLift(shown && onTop ? height : 0)
 }
 
 const icons: HTMLElement[] = []
@@ -211,7 +225,7 @@ export function openGoods(type: keyof typeof PANELS): void {
   PANELS[type]()
 }
 
-/** The bar hides 1.5 s after the pointer leaves it, unless an inventory panel is open. */
+/** The bar hides 1.5 s (5 s on touch screens) after the pointer leaves it, unless an inventory panel is open. */
 export function scheduleHide(): void {
   clearTimeout(hideTimer)
   if (open) return
@@ -219,7 +233,7 @@ export function scheduleHide(): void {
     shown = false
     control.classList.remove('showControl')
     place()
-  }, 1500)
+  }, HIDE_MS)
 }
 
 let list: HTMLElement | null = null

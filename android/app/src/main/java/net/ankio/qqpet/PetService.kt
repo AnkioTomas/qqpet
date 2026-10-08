@@ -12,7 +12,10 @@ import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.Icon
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.view.ContextThemeWrapper
@@ -26,6 +29,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import org.json.JSONObject
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -45,6 +49,7 @@ class PetService : Service() {
             private set
 
         private const val NOTIFICATION_ID = 1
+        private const val TRAY_ICON_PX = 96
     }
 
     private lateinit var wm: WindowManager
@@ -70,6 +75,7 @@ class PetService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("pet", "QQ宠物", NotificationManager.IMPORTANCE_LOW))
         startForeground(NOTIFICATION_ID, notification())
         wm = getSystemService(WindowManager::class.java)
         WebView.setWebContentsDebuggingEnabled(applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0)
@@ -143,14 +149,30 @@ class PetService : Service() {
         false
     }
 
+    /** The tray state the page last set: its icon, or the app's own until then, and its tooltip. */
+    private var trayIcon: Icon? = null
+    private var trayTip = "点按查看宠物状态"
+
+    private fun setTray(icon: String, tip: String?) {
+        val path = "pet/img_res/Tray/$icon"
+        val bitmap = try {
+            assets.open(path.replace(".png", "@2x.png"))
+        } catch (_: FileNotFoundException) {
+            assets.open(path)
+        }.use { BitmapFactory.decodeStream(it) }
+        // Pixel art: scale without smoothing. The status bar draws it as a silhouette, the shade in colour.
+        trayIcon = Icon.createWithBitmap(Bitmap.createScaledBitmap(bitmap, TRAY_ICON_PX, TRAY_ICON_PX, false))
+        if (tip != null) trayTip = tip
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification())
+    }
+
     private fun notification(): Notification {
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel("pet", "QQ宠物", NotificationManager.IMPORTANCE_LOW))
         fun action(name: String) = PendingIntent.getService(this, name.hashCode(), Intent(this, PetService::class.java).setAction(name), PendingIntent.FLAG_IMMUTABLE)
         return Notification.Builder(this, "pet")
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(trayIcon ?: Icon.createWithResource(this, R.drawable.ic_notification))
+            .setLargeIcon(trayIcon)
             .setContentTitle("QQ宠物")
-            .setContentText("点按查看宠物状态")
+            .setContentText(trayTip)
             .setContentIntent(action("state"))
             .addAction(Notification.Action.Builder(null, "菜单", action("menu")).build())
             .addAction(Notification.Action.Builder(null, "退出", action("quit")).build())
@@ -269,6 +291,9 @@ class PetService : Service() {
 
         @JavascriptInterface
         fun setAutoStart(on: Boolean) = prefs.edit().putBoolean("autoStart", on).apply()
+
+        @JavascriptInterface
+        fun setTray(icon: String, tip: String?) = web.post { this@PetService.setTray(icon, tip) }
 
         @JavascriptInterface
         fun setBounds(x: Double, y: Double, w: Double, h: Double, viewport: Double) = web.post { this@PetService.setBounds(x, y, w, h, viewport) }

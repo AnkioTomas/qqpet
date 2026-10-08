@@ -21,8 +21,10 @@ function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
   return r
 }
 
-/** Space kept between a fitted frame and the screen edges. */
+/** Space kept between a frame shrunk to fit and the screen edges. */
 const MARGIN = 16
+/** Share of the screen a frame fills on touch screens, along its tighter side. */
+const TOUCH_FILL = 0.92
 
 /**
  * Drags a frame centered by `translate(-50%, -50%)`, unless the press starts
@@ -30,7 +32,7 @@ const MARGIN = 16
  * No pointer capture: it would retarget clicks on buttons inside the frame.
  *
  * The frame is scaled down when the screen is too small for it; on touch
- * screens a frame holding a SWF (farm, pond…) is scaled up to fill the screen.
+ * screens it is scaled to fill TOUCH_FILL of the screen, whatever its size.
  */
 function draggable(frame: HTMLElement, keep?: HTMLElement): void {
   let dx = 0
@@ -39,8 +41,9 @@ function draggable(frame: HTMLElement, keep?: HTMLElement): void {
   const place = (): void => void (frame.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${fit})`)
   const refit = new ResizeObserver(() => {
     if (!frame.isConnected) return refit.disconnect()
-    const max = touch && frame.querySelector('ruffle-player') ? Infinity : 1
-    fit = Math.min(max, (innerWidth - MARGIN) / frame.offsetWidth, (innerHeight - MARGIN) / frame.offsetHeight)
+    const w = frame.offsetWidth
+    const h = frame.offsetHeight
+    fit = touch ? TOUCH_FILL * Math.min(innerWidth / w, innerHeight / h) : Math.min(1, (innerWidth - MARGIN) / w, (innerHeight - MARGIN) / h)
     place()
   })
   // The page itself resizes when a phone rotates.

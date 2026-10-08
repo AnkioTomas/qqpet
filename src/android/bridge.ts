@@ -4,9 +4,10 @@
 // reaches the apps below.
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
-import type { Fetch, Point, QQPetApi, TrayClick } from '../shared/ipc'
+import type { Fetch, Point, QQPetApi, TrayClick, TrayState } from '../shared/ipc'
 import type { SaveData } from '../shared/save'
 import { applyPatch, buried, petOf, startSave } from '../shared/save-logic'
+import { TRAY_STATES, trayTip } from '../shared/tray'
 import { weather } from '../shared/weather'
 
 /** The `QQPetNative` JavaScript interface of PetService. Async calls answer through `__qqpet.resolve(id, value, error)`. */
@@ -27,6 +28,8 @@ interface Native {
   copyText(text: string): void
   setFocusable(on: boolean): void
   setAutoStart(on: boolean): void
+  /** The notification standing in for the tray: an icon under pet/img_res/Tray/, and its text unless null. */
+  setTray(icon: string, tip: string | null): void
   /** The overlay window's rectangle, in CSS pixels of a page `viewport` pixels wide. */
   setBounds(x: number, y: number, w: number, h: number, viewport: number): void
 }
@@ -36,6 +39,8 @@ interface Events {
   gamePlayed: number
   /** A touch landed outside the overlay window. */
   outside: void
+  /** Text picked from another app's selection menu or share sheet. */
+  clipboard: string
 }
 
 declare global {
@@ -58,7 +63,7 @@ const call = (start: (id: number) => void): Promise<string | null> =>
     start(seq)
   })
 
-const listeners: { [K in keyof Events]: ((p: Events[K]) => void)[] } = { trayClick: [], gamePlayed: [], outside: [] }
+const listeners: { [K in keyof Events]: ((p: Events[K]) => void)[] } = { trayClick: [], gamePlayed: [], outside: [], clipboard: [] }
 
 window.__qqpet = {
   resolve(id, value, error) {
@@ -102,6 +107,18 @@ let save: SaveData = startSave(readSave())
 let leaving = false
 const write = (): void => native.write(FILE, JSON.stringify(save))
 write()
+
+// The notification shows the first frame only: reposting it for every frame of the animation would be throttled.
+let tray: TrayState = 'leave'
+let posted = ''
+function showTray(): void {
+  const pet = save.petInfo
+  const icon = `${pet.sex}/${TRAY_STATES[tray].frames ? `${tray}/1` : tray}.png`
+  const tip = trayTip(tray, pet) ?? null
+  if (posted === icon + tip) return
+  posted = icon + tip
+  native.setTray(icon, tip)
+}
 
 function relaunch(): void {
   leaving = true
@@ -174,6 +191,7 @@ const api: QQPetApi = {
     if (leaving) return
     applyPatch(save, structuredClone(patch))
     write()
+    if (patch.petInfo) showTray()
   },
   resetPet(sex) {
     save = buried(save, sex)
@@ -212,13 +230,15 @@ const api: QQPetApi = {
   setAlwaysOnTop() {},
   setFocusable: (on) => native.setFocusable(on),
   setAutoStart: (on) => native.setAutoStart(on),
-  // The notification stands in for the tray and does not animate.
-  setTrayState() {},
+  setTrayState(state) {
+    tray = state
+    showTray()
+  },
   onCursor: (l) => void cursorListeners.push(l),
   onTrayClick: (l) => void listeners.trayClick.push(l),
   onGamePlayed: (l) => void listeners.gamePlayed.push(l),
-  // Android only lets the focused app read the clipboard.
-  onClipboard() {},
+  // Android only lets the focused app read the clipboard; text arrives through the selection menu and share sheet instead.
+  onClipboard: (l) => void listeners.clipboard.push(l),
 }
 
 window.qqpet = api

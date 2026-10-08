@@ -7,6 +7,8 @@
   display: none;
   font-size: 10px;
   color: #353535af;
+  /* Scaled around its anchor, the point under the pet's center (control.ts place). */
+  transform-origin: 0 0;
 }
 .ui-control .showControl {
   opacity: 1;
