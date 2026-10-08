@@ -12,8 +12,8 @@ import { weather } from '../shared/weather'
 
 /** The `QQPetNative` JavaScript interface of PetService. Async calls answer through `__qqpet.resolve(id, value, error)`. */
 interface Native {
-  /** A file in the app's private storage, or null when missing. */
-  read(name: string): string | null
+  /** A file in the app's private storage. Missing is undefined: the WebView bridge turns Kotlin's null into undefined. */
+  read(name: string): string | undefined
   write(name: string, text: string): void
   /** Resolves to `{"status": n, "body": "…"}` JSON. */
   http(id: number, method: string, url: string, headers: string, body: string | null): void
@@ -93,7 +93,7 @@ const FILE = 'save.json'
 
 function readSave(): Record<string, any> | null {
   const text = native.read(FILE)
-  if (text === null) return null
+  if (text === undefined) return null
   try {
     return JSON.parse(text)
   } catch (e) {
