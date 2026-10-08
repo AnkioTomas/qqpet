@@ -97,3 +97,7 @@ npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
 | `src/shared` | 主进程与渲染层共享的 IPC 与存档类型 |
 | `resources/pet` | 原版资源，`npm run import-assets -- <app.asar>` 可重新导入 |
 | `tools/` | 反混淆脚本、原版 CSS 移植脚本、CDP 调试脚本 |
+
+## 许可证
+
+本项目代码以 [GPL-3.0](LICENSE) 发布。该许可证不覆盖 `resources/pet` 下的原版美术资源、SWF 与旅行照片，它们的版权归各自所有者，见文首版权声明。
