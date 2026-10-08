@@ -74,7 +74,18 @@ npm run dev
 npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
 ```
 
-推送 `v*` 标签时由 GitHub Actions 打出三平台安装包并发布 Release，其他推送不触发构建。
+推送 `v*` 标签时由 GitHub Actions 打出三平台安装包和 Android APK 并发布 Release，其他推送不触发构建。
+
+Android 版本地调试用 `npm run android`（debug 包）。CI 打的 release 包需要在仓库 Secrets 中配置签名密钥：
+
+| Secret | 内容 |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | keystore 文件的 base64（`base64 -i release.jks`） |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore 密码 |
+| `ANDROID_KEY_ALIAS` | 密钥别名 |
+| `ANDROID_KEY_PASSWORD` | 密钥密码 |
+
+每次发布都必须用同一个 keystore，否则已安装的用户无法覆盖升级。
 
 ## 改过的 SWF
 
