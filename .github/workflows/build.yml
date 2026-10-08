@@ -79,10 +79,31 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Full history and tags, to find the previous release.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
+      # Commit subjects since the previous tag, grouped by gitmoji; docs, CI and refactors are left out.
+      - name: Release notes
+        run: |
+          prev=$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          range=${prev:+$prev..}$GITHUB_REF_NAME
+          section() {
+            local lines
+            lines=$(git log --no-merges --format=%s "$range" | grep -E "^($2) " | sed -E 's/^:[a-z_]+: //; s/^\(([^)]+)\): /**\1**：/; s/^/- /' || true)
+            if [ -n "$lines" ]; then printf '## %s\n\n%s\n\n' "$1" "$lines"; fi
+          }
+          {
+            section 新功能 ':sparkles:'
+            section 修复 ':bug:|:ambulance:'
+            section 优化 ':zap:|:lipstick:'
+          } > notes.md
+          cat notes.md
       - uses: softprops/action-gh-release@v2
         with:
+          body_path: notes.md
           files: artifacts/*
