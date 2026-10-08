@@ -29,6 +29,13 @@ body {
   .box {
     touch-action: none;
   }
+
+  /* The 26×16 close button is too small for a finger; widen what it catches. */
+  .box .close::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+  }
 }
 
 .float-mood {

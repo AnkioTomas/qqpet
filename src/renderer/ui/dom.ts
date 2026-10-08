@@ -1,3 +1,6 @@
+/** The primary pointer is a finger: small screen, no hover, big hit targets. */
+export const touch = matchMedia('(pointer: coarse)').matches
+
 /** `<div class=cls>` with children; strings become text nodes. */
 export function div(cls: string, ...children: (Node | string)[]): HTMLDivElement {
   const d = document.createElement('div')

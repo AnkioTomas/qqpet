@@ -13,8 +13,8 @@ import java.nio.ByteBuffer
 /** Pages load from here: Ruffle fetches SWFs, configs and wasm, which file:// does not allow. */
 const val ORIGIN = "https://appassets.androidplatform.net"
 
-/** CSS pixels across the screen's short side: the desktop panels are up to 800 wide. */
-private const val VIEWPORT = 800
+/** CSS pixels across the screen's short side; wider panels (the shop is 800) scale down to fit (box.ts). */
+private const val VIEWPORT = 480
 
 private val TYPES = mapOf(
     "html" to "text/html", "js" to "text/javascript", "css" to "text/css", "json" to "application/json",

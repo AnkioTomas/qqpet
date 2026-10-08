@@ -1,4 +1,5 @@
 import { save } from '../pet/store'
+import { touch } from './dom'
 
 const SKINS = {
   normal: { head: ['normal/beijing1.bmp', 'normal/beijing2.bmp', 'normal/beijing3.bmp'], foot: ['normal/beijing6.bmp', 'normal/beijing7.bmp', 'normal/beijing8.bmp'] },
@@ -20,14 +21,31 @@ function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
   return r
 }
 
+/** Space kept between a fitted frame and the screen edges. */
+const MARGIN = 16
+
 /**
  * Drags a frame centered by `translate(-50%, -50%)`, unless the press starts
  * in an input or inside `keep` (content that needs its own mouse input, e.g. a SWF).
  * No pointer capture: it would retarget clicks on buttons inside the frame.
+ *
+ * The frame is scaled down when the screen is too small for it; on touch
+ * screens a frame holding a SWF (farm, pond…) is scaled up to fill the screen.
  */
 function draggable(frame: HTMLElement, keep?: HTMLElement): void {
   let dx = 0
   let dy = 0
+  let fit = 1
+  const place = (): void => void (frame.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${fit})`)
+  const refit = new ResizeObserver(() => {
+    if (!frame.isConnected) return refit.disconnect()
+    const max = touch && frame.querySelector('ruffle-player') ? Infinity : 1
+    fit = Math.min(max, (innerWidth - MARGIN) / frame.offsetWidth, (innerHeight - MARGIN) / frame.offsetHeight)
+    place()
+  })
+  // The page itself resizes when a phone rotates.
+  refit.observe(frame)
+  refit.observe(document.documentElement)
   frame.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 || keep?.contains(e.target as Node) || e.target instanceof HTMLInputElement) return
     const sx = e.clientX - dx
@@ -35,7 +53,7 @@ function draggable(frame: HTMLElement, keep?: HTMLElement): void {
     const move = (m: PointerEvent): void => {
       dx = m.clientX - sx
       dy = m.clientY - sy
-      frame.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`
+      place()
     }
     document.addEventListener('pointermove', move)
     document.addEventListener('pointerup', () => document.removeEventListener('pointermove', move), { once: true })

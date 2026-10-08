@@ -1,0 +1,75 @@
+.padKey,
+.padToggle {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2px solid rgb(255 255 255 / 35%);
+  background: rgb(255 255 255 / 18%);
+  color: rgb(255 255 255 / 85%);
+  font: 16px sans-serif;
+  user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.padKey {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+.padKey.on {
+  background: rgb(255 255 255 / 45%);
+}
+
+.padArrows,
+.padButtons {
+  position: fixed;
+  bottom: 24px;
+}
+.padArrows {
+  left: 24px;
+  width: 192px;
+  height: 192px;
+}
+.padArrows .up {
+  left: 64px;
+  top: 0;
+}
+.padArrows .down {
+  left: 64px;
+  bottom: 0;
+}
+.padArrows .left {
+  left: 0;
+  top: 64px;
+}
+.padArrows .right {
+  right: 0;
+  top: 64px;
+}
+
+.padButtons {
+  right: 24px;
+  width: 168px;
+  height: 152px;
+}
+.padButtons .enter {
+  left: 0;
+  top: 0;
+}
+.padButtons .space {
+  right: 0;
+  bottom: 0;
+  width: 88px;
+  height: 88px;
+}
+
+.padToggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+}
