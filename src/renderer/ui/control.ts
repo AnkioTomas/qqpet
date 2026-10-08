@@ -174,6 +174,12 @@ function place(): void {
   setBubbleLift(shown && onTop ? height : 0)
 }
 
+/** A tap leaves its menu hovered, children shown: on touch the bar goes once a child is picked, unless it opened a goods panel. */
+function pick(run: () => void): void {
+  run()
+  if (touch && !open) hide()
+}
+
 const icons: HTMLElement[] = []
 const menus = div(
   'menus fcc',
@@ -185,7 +191,7 @@ const menus = div(
       div('menuTip', g.name),
       icon,
       ...(g.children
-        ? [div('childrenMenu', ...g.children.map((c) => button('childrenMenuItem fc', c.run, img('childrenMenuItemIcon', ICONS + c.icon), ` ${c.name}`)))]
+        ? [div('childrenMenu', ...g.children.map((c) => button('childrenMenuItem fc', () => pick(c.run), img('childrenMenuItemIcon', ICONS + c.icon), ` ${c.name}`)))]
         : []),
     )
     if (g.run) item.addEventListener('click', g.run)
@@ -229,11 +235,13 @@ export function openGoods(type: keyof typeof PANELS): void {
 export function scheduleHide(): void {
   clearTimeout(hideTimer)
   if (open) return
-  hideTimer = window.setTimeout(() => {
-    shown = false
-    control.classList.remove('showControl')
-    place()
-  }, HIDE_MS)
+  hideTimer = window.setTimeout(hide, HIDE_MS)
+}
+
+function hide(): void {
+  shown = false
+  control.classList.remove('showControl')
+  place()
 }
 
 let list: HTMLElement | null = null
@@ -245,6 +253,7 @@ function openPanel(p: Panel, page = 1): void {
   const turn = (d: number) => (): void => {
     if (page + d >= 1 && page + d <= totalPage) openPanel(p, page + d)
   }
+  let picked: Good | null = null
   const items = goods.map((g: Good) =>
     div(
       'goodItem',
@@ -253,6 +262,8 @@ function openPanel(p: Panel, page = 1): void {
         div('goodInfo', div('goodName', g.name), ...p.lines(g).map((l) => div('goodDatas', l))),
         Object.assign(img('goodItemIcon', g.url), {
           onclick: () => {
+            // A tap hovers what it touches: the first one shows the good's info, the next uses it.
+            if (touch && picked !== g) return void (picked = g)
             if (p.use(g)) closePanel()
           },
         }),

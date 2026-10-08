@@ -62,7 +62,7 @@ export function deliverMails(today?: CalendarDay): boolean {
   const born = new Date(info.birthDay * 1000)
   const years = now.getFullYear() - born.getFullYear()
   const due: [k: string, l: string, yb: number, m: string][] = []
-  if (!Object.values(mails).some((m) => !m.e)) due.push(['welcome', '欢迎来到QQ宠物~', 100, '[host]，欢迎回家！右键我或者点我脚下的标签，有好多好玩的哦~'])
+  if (!Object.values(mails).some((m) => !m.e)) due.push(['welcome', '欢迎来到QQ宠物~', 100, '[host]，欢迎回家！右键（手机上长按）我或者点我脚下的标签，有好多好玩的哦~'])
   if (years > 0 && now.getMonth() === born.getMonth() && now.getDate() === born.getDate())
     due.push([`birthday-${now.getFullYear()}`, `${info.name}的${years}周岁生日快乐！`, 300, '[host]，今天是我的生日，谢谢你一直陪着我！'])
   const h = today?.holiday

@@ -4,7 +4,7 @@ import { avatar, fatigue, growthPerMinute, info, luck, save, setInfo } from '../
 import { openFrame } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
-import { button, div, img, typeable } from './dom'
+import { button, div, img, touch, typeable } from './dom'
 import { progress } from './progress'
 import { age, status } from './state'
 
@@ -45,7 +45,7 @@ function nameRow(cls: string, label: string, key: 'name' | 'host', saved: () => 
     saved()
   }
   const r = div(`${cls} rightRow fcb`, div('label', label), input, button('but focusPress', commit))
-  r.title = '保持鼠标在输入框内 才可进行输入'
+  if (!touch) r.title = '保持鼠标在输入框内 才可进行输入'
   return r
 }
 

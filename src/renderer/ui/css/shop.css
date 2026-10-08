@@ -547,6 +547,14 @@
   margin-left: 5px;
   background-size: 100% 100%;
 }
+/* As big as a cart row allows, for a finger. */
+@media (pointer: coarse) {
+  .ui-shop .cg_buts > div {
+    width: 26px;
+    height: 26px;
+    margin: 0 2px;
+  }
+}
 .ui-shop .cg_total {
   flex: 0.6;
 }

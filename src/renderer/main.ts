@@ -4,11 +4,13 @@ import { speak, startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
+import { div, touch } from './ui/dom'
 import './ui/face'
 import { closeMenu, openMenu } from './ui/menu'
 import { openState } from './ui/state'
 
 const petEl = document.getElementById('pet')!
+const HOLD_MS = 500
 
 function clampPosition(): void {
   const max = (n: number, limit: number): number => Math.min(Math.max(n, 0), limit - petSize())
@@ -71,7 +73,10 @@ petEl.addEventListener('pointerdown', (e) => {
   dragging = true
   const dx = e.clientX - info.lastX
   const dy = e.clientY - info.lastY
+  // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
+  const hold = touch ? setTimeout(() => openMenu({ x: e.clientX, y: e.clientY, pet: true }, adoptPet), HOLD_MS) : 0
   const move = (m: PointerEvent): void => {
+    if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) clearTimeout(hold)
     setInfo('lastX', m.clientX - dx)
     setInfo('lastY', m.clientY - dy)
   }
@@ -80,6 +85,7 @@ petEl.addEventListener('pointerdown', (e) => {
   petEl.addEventListener(
     'pointerup',
     () => {
+      clearTimeout(hold)
       dragging = false
       petEl.removeEventListener('pointermove', move)
       clampPosition()
@@ -88,6 +94,51 @@ petEl.addEventListener('pointerdown', (e) => {
     { once: true },
   )
 })
+
+// Touch has no hover to show a tooltip by: a long press shows it, and the lift is not a tap.
+if (touch) {
+  const tip = div('touchTip')
+  const eat = (c: MouseEvent): void => c.stopPropagation()
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      tip.remove()
+      const text = (e.target as Element).closest('[title]')?.getAttribute('title')
+      if (!text) return
+      const hold = setTimeout(() => {
+        tip.textContent = text
+        tip.style.left = `${Math.min(Math.max(e.clientX, 110), innerWidth - 110)}px`
+        tip.style.top = `${e.clientY}px`
+        document.body.append(tip)
+      }, HOLD_MS)
+      const off = new AbortController()
+      const signal = { signal: off.signal }
+      const end = (): void => {
+        clearTimeout(hold)
+        off.abort()
+      }
+      document.addEventListener(
+        'pointermove',
+        (m) => {
+          if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) end()
+        },
+        signal,
+      )
+      document.addEventListener('pointercancel', end, signal)
+      document.addEventListener(
+        'pointerup',
+        () => {
+          end()
+          if (!tip.isConnected) return
+          document.addEventListener('click', eat, true)
+          setTimeout(() => document.removeEventListener('click', eat, true))
+        },
+        signal,
+      )
+    },
+    true,
+  )
+}
 
 const begin = (): void => {
   petEl.hidden = false

@@ -18,20 +18,42 @@ body {
   inset: 0;
 }
 
-/* Taps must not flash a highlight or open the long-press callout; dragging the pet or a frame must not pan. */
+/* Taps must not flash a highlight or open the long-press callout; dragging the pet must not pan. */
 @media (pointer: coarse) {
   body {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
   }
 
-  #pet,
-  .box {
+  #pet {
     touch-action: none;
   }
 
-  /* The 26×16 close button is too small for a finger; widen what it catches. */
-  .box .close::before {
+  /* Frames are fixed and fill the screen (box.ts): dim what they cover. */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 700;
+    background: #0008;
+  }
+
+  /* A long press's tooltip (main.ts), above the finger. */
+  .touchTip {
+    position: fixed;
+    z-index: 900;
+    max-width: 200px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #000c;
+    color: #fff;
+    font-size: 13px;
+    transform: translate(-50%, calc(-100% - 24px));
+    pointer-events: none;
+  }
+
+  /* The close buttons are too small for a finger; widen what they catch. */
+  .box .close::before,
+  .ui-state .close::before {
     content: '';
     position: absolute;
     inset: -12px;

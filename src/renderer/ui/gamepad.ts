@@ -48,9 +48,11 @@ function onPress(el: HTMLElement, run: () => void): void {
 /**
  * Touch controls for a game page: an on-screen pad whose keys reach the SWF
  * as keyboard events on `player`, each button remappable per `game`; a
- * toggle that hides the pad for mouse-only games; and a way out of full screen.
+ * toggle that hides the pad for mouse-only games; and a way out by `quit`.
+ *
+ * The pad is fixed to `host`'s screen, or to a transformed ancestor of it (a frame, turned and all).
  */
-export function gamepad(player: HTMLElement, game: string): void {
+export function gamepad(player: HTMLElement, game: string, host: HTMLElement = document.body, quit = (): void => window.close()): void {
   const stored = `gamepad:${game}`
   const settings: Settings = { hidden: false, ...JSON.parse(localStorage.getItem(stored) ?? '{}') }
   settings.keys = { ...DEFAULTS, ...settings.keys }
@@ -74,7 +76,7 @@ export function gamepad(player: HTMLElement, game: string): void {
     })
     const sheet = div('padPicker', div('padPickerTitle', '选择这个按钮要发送的按键（点空白处取消）'), div('padPickerKeys', ...keys))
     onPress(sheet, () => sheet.remove())
-    document.body.append(sheet)
+    host.append(sheet)
   }
 
   const button = (b: Button): HTMLElement => {
@@ -118,6 +120,6 @@ export function gamepad(player: HTMLElement, game: string): void {
   const toggle = div('padTool', '按键')
   onPress(toggle, () => show(settings.hidden))
   const exit = div('padTool', '退出')
-  onPress(exit, () => window.close())
-  document.body.append(pad, div('padTools', edit, toggle, exit))
+  onPress(exit, quit)
+  host.append(pad, div('padTools', edit, toggle, exit))
 }

@@ -32,6 +32,8 @@ interface Native {
   setTray(icon: string, tip: string | null): void
   /** The overlay window's rectangle, in CSS pixels of a page `viewport` pixels wide. */
   setBounds(x: number, y: number, w: number, h: number, viewport: number): void
+  /** "left,top,right,bottom" of the system bars and cutout, in CSS pixels of a page `viewport` pixels wide. */
+  safeArea(viewport: number): string
 }
 
 interface Events {
@@ -150,6 +152,9 @@ for (const type of ['pointerup', 'pointercancel'] as const)
 
 let bounds = { x: 0, y: 0, w: 0, h: 0 }
 function track(): void {
+  requestAnimationFrame(track)
+  // A resize under a resting finger skews the next events (a long press reads as a drag); it waits for the lift.
+  if (press && !dragging) return
   let x = innerWidth
   let y = innerHeight
   let r = 0
@@ -169,9 +174,17 @@ function track(): void {
   next.h = Math.max(Math.min(Math.ceil(b), innerHeight) - next.y, 0)
   if (next.x !== bounds.x || next.y !== bounds.y || next.w !== bounds.w || next.h !== bounds.h) native.setBounds(next.x, next.y, next.w, next.h, innerWidth)
   bounds = next
-  requestAnimationFrame(track)
 }
 requestAnimationFrame(track)
+
+// The page spans the whole screen, under the status and navigation bars; frames keep clear of them (box.ts).
+function safeArea(): void {
+  const [left, top, right, bottom] = native.safeArea(innerWidth).split(',')
+  const s = document.documentElement.style
+  for (const [side, v] of Object.entries({ left, top, right, bottom })) s.setProperty(`--safe-${side}`, `${v}px`)
+}
+safeArea()
+addEventListener('resize', safeArea)
 
 // A touch outside the window means the cursor rests on the desktop: report a viewport corner the window does not cover.
 listeners.outside.push(() => {
@@ -235,7 +248,8 @@ const api: QQPetApi = {
     showTray()
   },
   onCursor: (l) => void cursorListeners.push(l),
-  onTrayClick: (l) => void listeners.trayClick.push(l),
+  // The notification has no position; its panels open mid-screen, not under the status bar.
+  onTrayClick: (l) => void listeners.trayClick.push((c) => l({ ...c, x: innerWidth / 2, y: innerHeight / 2 })),
   onGamePlayed: (l) => void listeners.gamePlayed.push(l),
   // Android only lets the focused app read the clipboard; text arrives through the selection menu and share sheet instead.
   onClipboard: (l) => void listeners.clipboard.push(l),

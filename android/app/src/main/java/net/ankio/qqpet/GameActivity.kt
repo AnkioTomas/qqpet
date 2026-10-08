@@ -38,6 +38,17 @@ class GameActivity : Activity() {
         web.loadUrl("$ORIGIN/game.html?swf=${android.net.Uri.encode(intent.getStringExtra("swf"))}")
     }
 
+    // The pet overlay would cover the game.
+    override fun onStart() {
+        super.onStart()
+        PetService.instance?.setShown(false)
+    }
+
+    override fun onStop() {
+        PetService.instance?.setShown(true)
+        super.onStop()
+    }
+
     override fun onDestroy() {
         web.destroy()
         if (isFinishing) PetService.instance?.emit("gamePlayed", "${(SystemClock.elapsedRealtime() - start) / 60000.0}")

@@ -1,1 +1,11 @@
 .ui-mstx .mstx {width:800px;height:600px}
+/* On touch the pad (gamepad.ts) flanks the stage instead of covering it; the frame fits all of it to the screen. */
+@media (pointer: coarse) {
+  .ui-mstx {display:grid;grid-template:'tools game buttons' 1fr 'arrows game buttons' auto / auto auto auto;gap:12px;align-items:end}
+  .ui-mstx .mstx {grid-area:game}
+  .ui-mstx .gamepad {display:contents}
+  .ui-mstx .gamepad[hidden] {display:none}
+  .ui-mstx .padArrows {grid-area:arrows;position:relative;left:auto;bottom:auto}
+  .ui-mstx .padButtons {grid-area:buttons;position:relative;right:auto;bottom:auto}
+  .ui-mstx .padTools {grid-area:tools;position:static;align-self:start}
+}

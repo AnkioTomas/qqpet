@@ -1,7 +1,8 @@
 import { SwfPlayer } from '../swf/player'
 import { openFrame } from './box'
 import './css/mstx.css'
-import { div } from './dom'
+import { div, touch } from './dom'
+import { gamepad } from './gamepad'
 
 let open = false
 
@@ -10,7 +11,8 @@ export function openMstx(): void {
   if (open) return
   open = true
   const host = div('mstx')
-  const remove = openFrame(div('ui-mstx', host))
+  const ui = div('ui-mstx', host)
+  const remove = openFrame(ui)
   window.qqpet.setFocusable(true)
   // The SWF calls this from its own script, and Ruffle cannot destroy an instance until that call returns.
   window.closeFrame = () =>
@@ -19,5 +21,8 @@ export function openMstx(): void {
       window.qqpet.setFocusable(false)
       open = false
     })
-  void new SwfPlayer(host).load('pet/mstx/main_qq_mstx.swf', 'pet/mstx/')
+  const player = new SwfPlayer(host)
+  void player.load('pet/mstx/main_qq_mstx.swf', 'pet/mstx/')
+  // It walks by the arrow keys and uses items by A/S/D.
+  if (touch) gamepad(player.el, 'mstx', ui, () => window.closeFrame())
 }

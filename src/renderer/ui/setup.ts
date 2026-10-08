@@ -130,7 +130,7 @@ const aiOptions = (): Option[] => [
   ...(s.aiModel ? [{ type: 'button' as const, label: '关闭 AI', run: () => setAi({}) }] : []),
 ]
 
-const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后，开启点位可进行点击~'
+const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后（手机上点一下宠物），开启点位可进行点击~'
 const s = save.settings
 
 const TABS: { label: string; options: Option[] }[] = [

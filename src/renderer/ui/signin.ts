@@ -101,7 +101,7 @@ export function openSignIn(): void {
           t.label,
         ),
       ),
-      ' （鼠标放入查看详情！~） ',
+      ' （鼠标放入或长按查看详情！~） ',
     )
     tiers.replaceChildren(...illustrated(type, shown, drawLeft))
   }

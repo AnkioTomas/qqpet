@@ -22,6 +22,8 @@ import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.webkit.JavascriptInterface
@@ -239,8 +241,15 @@ class PetService : Service() {
         }
     }
 
+    /** The overlay stays above every app; it steps aside while one of ours (a file picker, a game) is in front. */
+    fun setShown(on: Boolean) = web.post { root.visibility = if (on) View.VISIBLE else View.GONE }
+
     private fun pickFile(intent: Intent, done: (Uri?) -> Unit) {
-        FileActivity.done = done
+        setShown(false)
+        FileActivity.done = { uri ->
+            setShown(true)
+            done(uri)
+        }
         startActivity(Intent(this, FileActivity::class.java).putExtra(Intent.EXTRA_INTENT, intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
@@ -297,5 +306,14 @@ class PetService : Service() {
 
         @JavascriptInterface
         fun setBounds(x: Double, y: Double, w: Double, h: Double, viewport: Double) = web.post { this@PetService.setBounds(x, y, w, h, viewport) }
+
+        /** "left,top,right,bottom" of the system bars and cutout, in CSS pixels of a page [viewport] pixels wide. Hidden bars count: a swipe brings them back. */
+        @JavascriptInterface
+        fun safeArea(viewport: Double): String {
+            val m = wm.maximumWindowMetrics
+            val i = m.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            val scale = m.bounds.width() / viewport
+            return listOf(i.left, i.top, i.right, i.bottom).joinToString(",") { "${it / scale}" }
+        }
     }
 }

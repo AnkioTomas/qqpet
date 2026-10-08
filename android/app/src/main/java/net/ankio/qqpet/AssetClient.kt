@@ -34,7 +34,8 @@ open class AssetClient(private val context: Context, private val hd: () -> Boole
     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
         val url = request.url
         if ("${url.scheme}://${url.host}" != ORIGIN) return null
-        val path = url.path!!.removePrefix("/")
+        // SWF configs write paths with backslashes (pet\\fishing\\…), which URLs turn into empty segments; assets.open wants none.
+        val path = url.path!!.split('/').filter { it.isNotEmpty() }.joinToString("/")
         if (path == "index.html") return indexHtml()
         if (hdOn && path.startsWith("pet/") && request.requestHeaders["Accept"]?.contains("image/svg+xml") == true) hidpiSvg(path)?.let { return it }
         return try {

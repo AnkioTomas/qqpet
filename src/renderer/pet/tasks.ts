@@ -27,7 +27,7 @@ interface Task {
 
 export const TABS: Record<Tab, string> = { daily: '今日任务', ddw: '逗逗我', growth: '学习打工', travel: '旅游任务' }
 
-const DDW = '鼠标点击逗乐点位'
+const DDW = '点击逗乐点位'
 const TASKS: Record<Exclude<Tab, 'daily'>, Task[]> = {
   ddw: [
     { label: '逗逗我~~', msg: DDW, obj: 'Amusing', num: 5, good: ['_102010001*1'] },

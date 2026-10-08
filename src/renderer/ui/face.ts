@@ -3,6 +3,7 @@ import { machine } from '../pet/pet'
 import { rand } from '../pet/rand'
 import { info, mood, save, setInfo, stage, update } from '../pet/store'
 import { addCount } from '../pet/tasks'
+import { touch } from './dom'
 import { floatMood } from './float'
 import { windowView } from './window-view'
 
@@ -53,7 +54,13 @@ let timer = 0
 petEl.addEventListener('pointerenter', () => {
   timer = window.setTimeout(() => machine.pose.a === 'normal' && show(), HOVER_MS)
 })
-for (const ev of ['pointerleave', 'pointerdown'] as const) {
+// A finger enters only as it presses and leaves as it lifts: on touch a tap shows them, until the next press.
+if (touch) {
+  petEl.addEventListener('pointerup', (e) => {
+    if (!layer.contains(e.target as Node) && machine.pose.a === 'normal') show()
+  })
+}
+for (const ev of touch ? (['pointerdown'] as const) : (['pointerleave', 'pointerdown'] as const)) {
   petEl.addEventListener(ev, (e) => {
     if (layer.contains(e.target as Node)) return
     clearTimeout(timer)
