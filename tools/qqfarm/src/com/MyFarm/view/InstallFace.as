@@ -306,9 +306,11 @@ package com.MyFarm.view
          experienceBar.username.mouseEnabled = false;
          experienceBar.wealth_txt.text = _user.wealth;
          experienceBar.wealth_txt.mouseEnabled = false;
-         experienceBar.rank_txt.text = _user.rank;
+         // The badge is narrow: a wrapping field breaks "05" (or anything wider in another font) onto two lines.
+         experienceBar.rank_txt.wordWrap = false;
+         experienceBar.rank_txt.autoSize = "center";
+         experienceBar.rank_txt.text = String(int(_user.rank));
          experienceBar.rank_txt.mouseEnabled = false;
-         experienceBar.rank_txt.autoSize = "left";
          experienceBar.name = "experienceBar";
          _title.addChild(experienceBar);
          _loc3_ = createButton("ButtonDecorate");
@@ -364,7 +366,7 @@ package com.MyFarm.view
          _stage.addChild(_myMouse);
          changeExp();
          myIntro = new IntroductionText(experienceBar,_stage,{
-            "titletext":"等级: " + String(_user.rank),
+            "titletext":"等级: " + int(_user.rank),
             "contenttext":"当前经验: " + String(_user.experience) + " / " + String(int(_user.rank) * EXP)
          });
       }
@@ -702,11 +704,11 @@ package com.MyFarm.view
          }
          experienceBar.username.text = _user.username;
          experienceBar.wealth_txt.text = _user.wealth;
-         experienceBar.rank_txt.text = _user.rank;
+         experienceBar.rank_txt.text = String(int(_user.rank));
          if(myIntro != null)
          {
             myIntro.infoObject = {
-               "title":"等级: " + String(_user.rank),
+               "title":"等级: " + int(_user.rank),
                "content":"当前经验: " + String(_user.experience) + " / " + String(int(_user.rank) * EXP)
             };
          }
