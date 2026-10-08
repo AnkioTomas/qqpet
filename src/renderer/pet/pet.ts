@@ -31,6 +31,7 @@ import {
   update,
 } from './store'
 import { resetFish } from './fishing'
+import { harvestNews } from './harvest'
 import { resetSignIn, tickGift } from './signin'
 import { resetTasks, rollDaily } from './tasks'
 import { dayStart, newDay } from './vip'
@@ -241,6 +242,7 @@ function grow(): void {
   tick()
   refreshTray()
   healthRoll()
+  void harvestNews().then((n) => n && speak({ s: n.s, b: '去看看' }, 'speak', { ok: n.ok }))
 }
 
 /** At start-up and at 06:00: the day's tasks, the holiday greeting and the day's mail. */

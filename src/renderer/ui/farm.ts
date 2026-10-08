@@ -8,6 +8,18 @@ import { div, img } from './dom'
 // Farm.swf keeps everything in SharedObject.getLocal("test", "/"); Ruffle names it after the SWF's host.
 const KEY = `${location.hostname}//test`
 const MIGRATED = 'farm:migrated'
+/** InstallFace.PEST_TIME: each disaster strikes a growing plot about once in this many seconds. */
+const PEST_TIME = 14400
+
+/** A plot as Farm.swf saves it: `time` is when it was sown, `harvest` marks one already picked. */
+interface Land {
+  farmland: string
+  crop?: string
+  time?: number
+  harvest?: unknown
+  grass?: number
+  worm?: number
+}
 
 // Farms used to live only in localStorage; adopt one once, at startup, so a later reset or import can't pick up a stale one.
 if (localStorage.getItem(MIGRATED) === null) {
@@ -69,9 +81,54 @@ export function openFarm(): void {
     onClose: () => {
       clearInterval(timer)
       settle()
+      // The SWF rolls disasters up to its last tick but only saves when one strikes.
+      const checked = Math.floor(Date.now() / 1000)
+      update('saveJsonData', { farm: JSON.stringify({ ...(readSol(KEY)!.user as Sol), checked }) })
       window.qqpet.setFocusable(false)
       open = false
     },
   })
   void new SwfPlayer(host).load('pet/qqfarm/Farm.swf', 'pet/qqfarm/')
+}
+
+let ripening: Promise<Record<string, number>> | undefined
+
+/** Seconds each seed takes to ripen. */
+async function ripeTimes(): Promise<Record<string, number>> {
+  const xml = await (await fetch('pet/qqfarm/com/MyFarm/data/xml/Crop.xml')).text()
+  const items = new DOMParser().parseFromString(xml, 'text/xml').querySelectorAll('items')
+  return Object.fromEntries([...items].map((e) => [e.getAttribute('seed'), Number(e.getAttribute('time'))]))
+}
+
+/**
+ * The closed farm as the pet sees it: ripe plots, and growing plots hit by
+ * weeds, insects or drought. Farm.swf only rolls disasters while it runs, so
+ * this rolls them for the time since it last did, the same way
+ * (InstallFace.tick). Null while the farm is open or was never started.
+ */
+export async function farmNews(): Promise<{ ripe: number; pests: number } | null> {
+  ripening ??= ripeTimes()
+  const times = await ripening
+  const stored = save.saveJsonData.farm
+  if (open || !stored) return null
+  const user: Sol = JSON.parse(stored)
+  const now = Math.floor(Date.now() / 1000)
+  const chance = 1 - Math.exp(-(now - Number(user.checked ?? now)) / PEST_TIME)
+  const roll = (): boolean => Math.random() < chance
+  let ripe = 0
+  let pests = 0
+  for (const land of user.farmland as Land[]) {
+    if (!land.crop || land.harvest !== undefined) continue
+    if (now - Number(land.time) >= times[land.crop]) {
+      ripe++
+      continue
+    }
+    if (land.grass === undefined && roll()) land.grass = 1
+    if (land.worm === undefined && roll()) land.worm = 1
+    if (land.farmland === 'FarmlandS' && roll()) land.farmland = 'FarmlandG'
+    if (land.grass !== undefined || land.worm !== undefined || land.farmland === 'FarmlandG') pests++
+  }
+  user.checked = now
+  update('saveJsonData', { farm: JSON.stringify(user) })
+  return { ripe, pests }
 }

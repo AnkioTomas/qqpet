@@ -77,6 +77,12 @@ function settle(): void {
   store()
 }
 
+export function ripeFish(): number {
+  const t = now()
+  for (const f of pond.fishs) grow(f, t)
+  return pond.fishs.filter(ripe).length
+}
+
 function harvested(n: number): void {
   const total = save.gameSaveDatas.fishing_harvestfish + n
   if (total < MASTER) return update('gameSaveDatas', { fishing_harvestfish: total })
