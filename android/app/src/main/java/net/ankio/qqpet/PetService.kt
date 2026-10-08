@@ -71,6 +71,13 @@ class PetService : Service() {
         fitInsetsTypes = 0
     }
 
+    private lateinit var probe: View
+    private val probeParams = LayoutParams(
+        1, 1, LayoutParams.TYPE_APPLICATION_OVERLAY,
+        LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCHABLE or LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        PixelFormat.TRANSLUCENT,
+    ).apply { gravity = Gravity.TOP or Gravity.START }
+
     override fun onBind(intent: Intent?) = null
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -115,6 +122,14 @@ class PetService : Service() {
             true
         }
         wm.addView(root, params)
+        // A hidden window gets no insets, so a separate always-shown pixel watches the status bar.
+        probe = View(this)
+        probe.setOnApplyWindowInsetsListener { _, insets ->
+            fullscreen = !insets.isVisible(WindowInsets.Type.statusBars())
+            applyShown()
+            insets
+        }
+        wm.addView(probe, probeParams)
         web.loadUrl("$ORIGIN/index.html")
     }
 
@@ -134,6 +149,7 @@ class PetService : Service() {
     override fun onDestroy() {
         instance = null
         wm.removeView(root)
+        wm.removeView(probe)
         web.destroy()
         net.shutdownNow()
         super.onDestroy()
@@ -241,8 +257,21 @@ class PetService : Service() {
         }
     }
 
-    /** The overlay stays above every app; it steps aside while one of ours (a file picker, a game) is in front. */
-    fun setShown(on: Boolean) = web.post { root.visibility = if (on) View.VISIBLE else View.GONE }
+    /** One of ours (a file picker, a game) is in front. */
+    private var away = false
+
+    /** The app in front hides the status bar. */
+    private var fullscreen = false
+
+    /** The overlay stays above every app; it steps aside while [away] or [fullscreen]. */
+    private fun applyShown() {
+        root.visibility = if (away || fullscreen) View.GONE else View.VISIBLE
+    }
+
+    fun setShown(on: Boolean) = web.post {
+        away = !on
+        applyShown()
+    }
 
     private fun pickFile(intent: Intent, done: (Uri?) -> Unit) {
         setShown(false)
