@@ -163,7 +163,8 @@ function track(): void {
   else
     for (const el of document.body.querySelectorAll('*')) {
       const box = el.getBoundingClientRect()
-      if (!box.width || !box.height) continue
+      // A hidden pet (opacity 0) or speech bubble (visibility hidden) must not keep a window that swallows touches.
+      if (!box.width || !box.height || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue
       x = Math.min(x, box.left)
       y = Math.min(y, box.top)
       r = Math.max(r, box.right)
