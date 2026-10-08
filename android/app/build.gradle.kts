@@ -6,6 +6,8 @@ plugins {
 }
 
 val pkg = JsonSlurper().parse(rootDir.resolve("../package.json")) as Map<*, *>
+val version = pkg["version"] as String
+val keystore: String? = System.getenv("ANDROID_KEYSTORE")
 
 android {
     namespace = "net.ankio.qqpet"
@@ -15,8 +17,9 @@ android {
         applicationId = "net.ankio.qqpet"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = pkg["version"] as String
+        // 1.2.3 -> 10203: installs only upgrade to a larger code.
+        versionCode = version.substringBefore('-').split('.').fold(0) { code, part -> code * 100 + part.toInt() }
+        versionName = version
     }
 
     // The web build (npm run build:android-web) and the pet art are served from assets.
@@ -29,8 +32,14 @@ android {
 
     buildTypes {
         release {
-            // Unsigned like the desktop builds; sign with your own key to install.
             isMinifyEnabled = false
+            // Without ANDROID_KEYSTORE the APK is unsigned and will not install.
+            if (keystore != null) signingConfig = signingConfigs.create("release") {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
         }
     }
 

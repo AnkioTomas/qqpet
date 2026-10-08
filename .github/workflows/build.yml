@@ -36,8 +36,45 @@ jobs:
             dist/*.deb
           if-no-files-found: error
 
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+      - run: npm run typecheck && npm run build:android-web
+      - run: |
+          : "${KEYSTORE_BASE64:?set the ANDROID_KEYSTORE_BASE64 secret}"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      - run: ./gradlew assembleRelease
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE: ${{ runner.temp }}/release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      - run: mkdir dist && mv android/app/build/outputs/apk/release/app-release.apk "dist/QQPet-${GITHUB_REF_NAME#v}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qqpet-android
+          path: dist/*.apk
+          if-no-files-found: error
+
   release:
-    needs: build
+    needs: [build, android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
