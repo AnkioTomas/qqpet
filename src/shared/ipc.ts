@@ -89,6 +89,9 @@ export interface AiConfig {
   model: string
 }
 
+/** What the network modules need from fetch: Electron's net.fetch in the main process, a native bridge on Android. */
+export type Fetch = (url: string, init?: RequestInit) => Promise<Response>
+
 export interface AiMessage {
   role: 'system' | 'user' | 'assistant'
   content: string

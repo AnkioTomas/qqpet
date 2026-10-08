@@ -18,6 +18,19 @@ body {
   inset: 0;
 }
 
+/* Taps must not flash a highlight or open the long-press callout; dragging the pet or a frame must not pan. */
+@media (pointer: coarse) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  #pet,
+  .box {
+    touch-action: none;
+  }
+}
+
 .float-mood {
   position: absolute;
   width: 80%;

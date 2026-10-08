@@ -1,5 +1,4 @@
-import { net } from 'electron'
-import type { Weather } from '../shared/ipc'
+import type { Fetch, Weather } from './ipc'
 
 /** Redirects to wttr.in's JSON; an empty city locates by the caller's IP. */
 const API = 'https://api.ankio.net/weather?city='
@@ -11,8 +10,8 @@ interface Reply {
 }
 
 /** Today's weather; rejects with the server's error, e.g. for an unknown city. */
-export async function weather(city: string): Promise<Weather> {
-  const r = await net.fetch(API + encodeURIComponent(city), { signal: AbortSignal.timeout(20_000) })
+export async function weather(fetch: Fetch, city: string): Promise<Weather> {
+  const r = await fetch(API + encodeURIComponent(city), { signal: AbortSignal.timeout(20_000) })
   if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 100)}`)
   const {
     current_condition: [now],

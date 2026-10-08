@@ -58,8 +58,12 @@ export const stage = (): Stage => stageOf(save.petComputedlInfo.level)
 /** The first frame of the pet's Stand.swf, framed like the original pet/info/*.svg portraits. */
 export const avatar = (): string => `pet/avatar/${info.sex}${stage()}.png`
 
-/** Base size grows from 144 (level 1) to 164 (level 10+) at 1920 px screen width. */
-export const petSize = (): number => ((144 + 2 * Math.min(save.petComputedlInfo.level, 10)) * innerWidth) / 1920
+// Touch screens are small and fingers are big: there the pet scales with the short side instead.
+const touch = matchMedia('(pointer: coarse)').matches
+
+/** Base size grows from 144 (level 1) to 164 (level 10+) at 1920 px screen width, or at a 576 px short side on touch screens. */
+export const petSize = (): number =>
+  (144 + 2 * Math.min(save.petComputedlInfo.level, 10)) * (touch ? Math.min(innerWidth, innerHeight) / 576 : innerWidth / 1920)
 
 export function growthPerMinute(): number {
   if (info.mood <= 0) return 10 / 60

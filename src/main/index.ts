@@ -1,12 +1,12 @@
-import { app, clipboard, dialog, ipcMain, session } from 'electron'
+import { app, clipboard, dialog, ipcMain, net, session } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
-import { aiChat, aiModels } from './ai'
-import { calendar } from './calendar'
+import { aiChat, aiModels } from '../shared/ai'
+import { calendar } from '../shared/calendar'
+import { weather } from '../shared/weather'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
-import { weather } from './weather'
 import { createPetWindow, openGameWindow } from './window'
 
 if (!app.requestSingleInstanceLock()) app.exit(0)
@@ -68,10 +68,10 @@ app.whenReady().then(() => {
     app.relaunch()
     app.exit(0)
   })
-  ipcMain.handle(IPC.calendar, () => calendar())
-  ipcMain.handle(IPC.aiModels, (_e, c) => aiModels(c))
-  ipcMain.handle(IPC.aiChat, (_e, c, messages) => aiChat(c, messages))
-  ipcMain.handle(IPC.weather, (_e, city: string) => weather(city))
+  ipcMain.handle(IPC.calendar, () => calendar(net.fetch))
+  ipcMain.handle(IPC.aiModels, (_e, c) => aiModels(net.fetch, c))
+  ipcMain.handle(IPC.aiChat, (_e, c, messages) => aiChat(net.fetch, c, messages))
+  ipcMain.handle(IPC.weather, (_e, city: string) => weather(net.fetch, city))
   ipcMain.on(IPC.openGame, (_e, swf: string) => {
     const start = Date.now()
     // Quitting with a game open closes the pet window first.

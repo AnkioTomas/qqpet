@@ -3,6 +3,7 @@
   "productName": "QQPet",
   "version": "0.1.0",
   "description": "QQ 宠物跨平台复刻版（基于 Arctic Penguin T800 逆向重建）",
+  "license": "GPL-3.0-only",
   "private": true,
   "type": "module",
   "main": "out/main/index.js",
@@ -11,7 +12,9 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "import-assets": "node scripts/import-assets.mjs",
-    "dist": "npm run typecheck && electron-vite build && electron-builder --publish never"
+    "dist": "npm run typecheck && electron-vite build && electron-builder --publish never",
+    "build:android-web": "vite build -c vite.android.config.ts",
+    "android": "npm run typecheck && npm run build:android-web && cd android && ./gradlew assembleDebug"
   },
   "devDependencies": {
     "@electron/asar": "^4.3.1",
