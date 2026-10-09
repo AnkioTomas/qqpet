@@ -19,7 +19,7 @@ function flag(v: boolean | string | number): boolean {
 export class Native {
   static readonly METHODS: string[] = [
     'read', 'write', 'http', 'messageBox', 'exportSave', 'importSave',
-    'openGame', 'quit', 'copyText', 'setFocusable', 'setAutoStart',
+    'openGame', 'quit', 'copyText', 'openUrl', 'setFocusable', 'setAutoStart',
     'setTray', 'setBounds', 'safeArea'
   ]
 
@@ -144,6 +144,10 @@ export class Native {
   copyText(text: string): void {
     const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, text)
     pasteboard.getSystemPasteboard().setData(data)
+  }
+
+  openUrl(url: string): void {
+    host().context.startAbility({ action: 'ohos.want.action.viewData', entities: ['entity.system.browsable'], uri: url })
   }
 
   setFocusable(on: boolean | string | number): void {

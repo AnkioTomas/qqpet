@@ -26,6 +26,7 @@ interface Native {
   openGame(swf: string): void
   quit(): void
   copyText(text: string): void
+  openUrl(url: string): void
   setFocusable(on: boolean): void
   setAutoStart(on: boolean): void
   /** The notification standing in for the tray: an icon under pet/img_res/Tray/, and its text unless null. */
@@ -240,6 +241,7 @@ const api: QQPetApi = {
   quit: () => native.quit(),
   messageBox: async (o) => Number(await call((id) => native.messageBox(id, JSON.stringify({ buttons: ['取消', '确定'], ...o })))),
   copyText: (text) => native.copyText(text),
+  openUrl: (url) => native.openUrl(url),
   // The overlay window follows the content instead.
   setClickThrough() {},
   // Overlay windows are always on top.

@@ -1,4 +1,4 @@
-import { app, clipboard, dialog, ipcMain, net, powerMonitor, session } from 'electron'
+import { app, clipboard, dialog, ipcMain, net, powerMonitor, session, shell } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from '../shared/ai'
@@ -87,6 +87,7 @@ app.whenReady().then(() => {
     return r.response
   })
   ipcMain.on(IPC.copyText, (_e, text: string) => clipboard.writeText(text))
+  ipcMain.on(IPC.openUrl, (_e, url: string) => /^https?:\/\//.test(url) && void shell.openExternal(url))
   ipcMain.on(IPC.setClickThrough, (_e, on: boolean) => win.setIgnoreMouseEvents(on))
   ipcMain.on(IPC.setAlwaysOnTop, (_e, on: boolean) => win.setAlwaysOnTop(on, 'screen-saver'))
   ipcMain.on(IPC.setFocusable, (_e, on: boolean) => {

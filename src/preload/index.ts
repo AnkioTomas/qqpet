@@ -20,6 +20,7 @@ const api: QQPetApi = {
   quit: send(IPC.quit),
   messageBox: (options) => ipcRenderer.invoke(IPC.messageBox, options),
   copyText: send(IPC.copyText),
+  openUrl: send(IPC.openUrl),
   setClickThrough: send(IPC.setClickThrough),
   setAlwaysOnTop: send(IPC.setAlwaysOnTop),
   setFocusable: send(IPC.setFocusable),

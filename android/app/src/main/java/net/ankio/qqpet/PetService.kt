@@ -354,6 +354,9 @@ class PetService : Service() {
         fun copyText(text: String) = getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("QQ宠物", text))
 
         @JavascriptInterface
+        fun openUrl(url: String) = startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+
+        @JavascriptInterface
         fun setFocusable(on: Boolean) = web.post { this@PetService.setFocusable(on) }
 
         @JavascriptInterface

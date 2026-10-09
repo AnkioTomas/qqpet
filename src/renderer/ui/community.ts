@@ -1,3 +1,4 @@
+import { askAs } from '../pet/ai'
 import { info, save, update } from '../pet/store'
 import { SwfPlayer } from '../swf/player'
 import { openBox } from './box'
@@ -5,6 +6,8 @@ import './css/community.css'
 import { div } from './dom'
 import { openFishing } from './fishing'
 import { openMstx } from './mstx'
+import { openPetInfo } from './petinfo'
+import { openSetup } from './setup'
 
 const BASE = 'pet/petsoc/'
 /** 夏帕海岸: SceneConfig matches the tiles we actually have. 企鹅镇's bg_V69 is missing from the dump. */
@@ -43,8 +46,10 @@ const RES: Record<string, string> = {
 
 const game = (swf: string) => (): void => window.qqpet.openGame(`企鹅/${swf}.swf`)
 
-/** NPC web pages (by file name) whose game qqpet already ships; the rest of the island's pages are long gone. */
+/** Web pages (by a piece of their URL) qqpet can stand in for; the rest of the island's pages are long gone. */
 const PAGES: Record<string, () => void> = {
+  '$W$[10012]': openPetInfo,
+  happyfight: () => window.qqpet.openUrl('https://fight.qq.com/'),
   diaoyu: openFishing,
   qq_mstx: openMstx,
   dajimu: game('Q宠搭积木'),
@@ -53,6 +58,14 @@ const PAGES: Record<string, () => void> = {
   qq_hhxx: game('QQ好好学习'),
   main_xmxd: game('冒险岛系列/1起航'),
 }
+
+/** Offline the island would be empty: a few guest pets wander and chat through Flash's own GPet API. */
+const GUESTS = ['阿呆', '豆豆', '小胖', '球球', '咕咕', '泡泡']
+const LINES = ['今天天气真好~', '有人一起去钓鱼吗？', '听说密室里藏着宝贝！', '好饿呀，去找点吃的', '你好呀！', '这里风景真不错~', '谁来陪我玩小游戏？', '走累了，歇一会儿']
+const REPLIES = ['哈哈，说得对！', '真的吗？', '嗯嗯~', '你好呀，一起玩吧！', '我也这么觉得~', '嘿嘿~', '好呀好呀！']
+const IDLE = '随口说一句闲聊，可以接着刚才的话题，也可以说说岛上的事。只输出这句话。'
+
+const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
 
 interface Spot {
   scene: number
@@ -368,6 +381,82 @@ function kick(): void {
   }, 0)
 }
 
+interface Guest {
+  id: string
+  name: string
+  x: number
+  y: number
+}
+
+let wander = 0
+let guests: Guest[] = []
+let thinking = false
+/** The island's recent chat, fed back to the AI so guests keep to the topic. */
+const said: string[] = []
+
+function hear(who: string, text: string): void {
+  said.push(`${who}：${text}`)
+  if (said.length > 8) said.shift()
+}
+
+function speak(g: Guest, text: string): void {
+  hear(g.name, text)
+  void flash('PSW.GPetSpeak', 0, g.id, text)
+}
+
+async function line(g: Guest, prompt: string, fallback: string[]): Promise<string> {
+  const others = guests.filter((o) => o !== g).map((o) => o.name).join('、')
+  const who = [
+    `你是QQ宠物企鹅岛社区里的一只小企鹅，名叫「${g.name}」，正在岛上闲逛。岛上还有小企鹅${others}，以及玩家的企鹅「${info.name}」。`,
+    '只写你说出口的那句话：用「我」自称，不写动作和旁白，不加名字前缀和引号，不用表情符号。',
+  ].join('\n')
+  const log = said.length ? `刚才岛上的聊天：\n${said.join('\n')}\n` : ''
+  const text = await askAs(who, [{ role: 'user', content: log + prompt }])
+  // Ruffle's fonts have no emoji; models still narrate now and then (泡泡拍着翅膀说："...").
+  const quoted = text?.match(/说[：:]?\s*[“"「](.+?)[”"」]/)?.[1] ?? text
+  const clean = quoted?.replace(/\p{Extended_Pictographic}|\uFE0F/gu, '').replace(new RegExp(`^${g.name}(说)?[：:]\\s*`), '').trim()
+  return clean || pick(fallback)
+}
+
+/** One or two guests answer what the player said; a whisper is answered by the guest it went to. */
+async function reply(to: unknown): Promise<void> {
+  const target = guests.find((g) => g.id === to)
+  const shuffled = [...guests].sort(() => Math.random() - 0.5)
+  for (const g of target ? [target] : shuffled.slice(0, 1 + Math.floor(Math.random() * 2))) {
+    const text = await line(g, `回应${info.name}刚才说的话。只输出这句话。`, REPLIES)
+    await new Promise((r) => setTimeout(r, 500 + Math.random() * 1000))
+    speak(g, text)
+  }
+}
+
+async function populate(): Promise<void> {
+  clearInterval(wander)
+  guests = []
+  await flash('PSW.ClearAllGuestPlayer')
+  const n = nav
+  if (!n) return
+  const somewhere = (): { x: number; y: number } => snap(n, Math.random() * n.sw, Math.random() * n.sh)
+  guests = GUESTS.map((name, i) => ({ id: `guest${i}`, name, ...somewhere() }))
+  for (const [i, g] of guests.entries()) {
+    await flash('PSW.AddGPet', g.id, i % 2, 5 + Math.floor(Math.random() * 40), Math.round(g.x), Math.round(g.y), 0)
+    await flash('PSW.NotifyUpdateGPetInfo', g.id, 0, g.name, 0, '', 0, 0)
+  }
+  wander = window.setInterval(() => {
+    const g = pick(guests)
+    if (Math.random() < 0.3) {
+      if (thinking) return
+      thinking = true
+      return void line(g, IDLE, LINES)
+        .then((text) => speak(g, text))
+        .finally(() => (thinking = false))
+    }
+    const to = somewhere()
+    const path = findPath(g.x, g.y, to.x, to.y)
+    Object.assign(g, path[path.length - 1])
+    void flash('PSW.GPetWalk', g.id, path)
+  }, 2000)
+}
+
 /** SceneView.reset() zeroes the world size, so MPetInit/SetMPetPos must land before ChangeScene sets it again. */
 async function enter(next = spot): Promise<void> {
   spot = clamp(next)
@@ -384,6 +473,7 @@ async function enter(next = spot): Promise<void> {
   await flash('PSW.SetMPetPos', spot.x, spot.y)
   await flash('PSW.ChangeScene', spot.scene)
   await flash('PSW.SetFps', 30)
+  await populate()
 }
 
 /** 企鹅社区 (pet/petsoc/world_1051.swf). Offline: skip the dead login servers and drop into 企鹅镇. */
@@ -398,9 +488,12 @@ export function openCommunity(): void {
   clearTimeout(resFlush)
   resFlush = 0
   calls.length = 0
+  said.length = 0
   const stage = div('community')
   player = new SwfPlayer(stage)
   window.qqpet.setFocusable(true)
+  // Panels opened from the island (钓鱼, 档案, 设置...) make the window unfocusable again when they close.
+  stage.addEventListener('pointerdown', () => window.qqpet.setFocusable(true), true)
   const route = (_id: unknown, x1: unknown, y1: unknown, x2: unknown, y2: unknown): { x: number; y: number }[] =>
     findPath(Number(x1) || spot.x, Number(y1) || spot.y, Number(x2) || spot.x, Number(y2) || spot.y)
 
@@ -478,15 +571,37 @@ export function openCommunity(): void {
       Name: zones[0]?.name,
       Status: 1,
     }),
-    RequestSendChatMsg: () => 1,
+    RequestSendChatMsg: (type, to, text) => {
+      hear(info.name, String(text))
+      setTimeout(() => {
+        void flash('PSW.MPetSendChatMSG', type, to, text)
+        void reply(to)
+      })
+      return 1
+    },
     RequestAddChatPrivately: () => 1,
     RequestUpdateAvatar: () => 1,
+    OpenSysConfig: () => {
+      setTimeout(openSetup)
+      return 1
+    },
+    // qqpet has no 家园: going home means back to the desktop.
+    LoginHome: () => {
+      setTimeout(close)
+      return 1
+    },
   })
   window.PET = host({
     GetPetInfor: pet,
+    // Another pet's archive: only our guests exist, so the guest says hello instead.
+    OpenArchiveWindow: (id) => {
+      const g = guests.find((o) => o.id === id)
+      if (g) setTimeout(() => void line(g, `${info.name}走过来看你，跟它打个招呼。只输出这句话。`, LINES).then((text) => speak(g, text)))
+      return 1
+    },
     // Calling back into Flash before this call returns re-runs its click handler (and can hang Ruffle).
     ParseURL: (url) => {
-      const page = PAGES[String(url).match(/\/(\w+)\.html/)?.[1] ?? '']
+      const page = Object.entries(PAGES).find(([key]) => String(url).includes(key))?.[1]
       setTimeout(page ?? (() => void flash('PSW.MPetSendChatMSG', 0, '', '这里已经关门啦，下次再来吧~')))
       return 1
     },
@@ -510,8 +625,9 @@ export function openCommunity(): void {
   }
   w.__petsoc = calls
 
-  openBox(div('ui-community', stage), {
+  const close = openBox(div('ui-community', stage), {
     onClose: () => {
+      clearInterval(wander)
       player?.destroy()
       player = null
       pending = []
@@ -527,7 +643,12 @@ export function openCommunity(): void {
       wmode: 'opaque',
       parameters: { uin: String(UIN), qqnumber: String(UIN), basePath: BASE },
       // The world map reads each area's scene id from this server file; the bundled copy carries them.
-      urlRewriteRules: [[/^http:\/\/img\.pet\.qq\.com\/WorldMapHotInfo\.xml/, new URL(`${BASE}Data/WorldMap/WorldMapHotInfo.xml`, location.href).href]],
+      urlRewriteRules: [
+        [/^http:\/\/img\.pet\.qq\.com\/WorldMapHotInfo\.xml/, new URL(`${BASE}Data/WorldMap/WorldMapHotInfo.xml`, location.href).href],
+        // Only main01/main02 survived; the other scene tracks fall back to them.
+        [/(?:sea|snow|live)0([12])\.mp3$/, 'main0$1.mp3'],
+        [/sound3\.mp3$/, 'main01.mp3'],
+      ],
     }),
   )
 }

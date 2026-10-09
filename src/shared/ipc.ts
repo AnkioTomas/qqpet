@@ -15,6 +15,7 @@ export const IPC = {
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
+  openUrl: 'app:open-url',
   clipboard: 'clipboard:text',
   presence: 'app:presence',
   front: 'app:front',
@@ -124,6 +125,8 @@ export interface QQPetApi {
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>
   copyText(text: string): void
+  /** Opens a web page in the system browser. */
+  openUrl(url: string): void
   setClickThrough(enabled: boolean): void
   setAlwaysOnTop(enabled: boolean): void
   setFocusable(enabled: boolean): void

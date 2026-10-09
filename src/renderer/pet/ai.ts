@@ -17,6 +17,8 @@ export function note(s: string): void {
   if (today.length > TODAY) today.shift()
 }
 
+const STYLE = '用可爱、亲昵的口吻说中文，像小孩子撒娇；每次只说一两句话，不超过40个字；不要用Markdown、不要换行。'
+
 function persona(): string {
   const c = save.petComputedlInfo
   const pct = (n: number, max: number): string => `${Math.round((n / max) * 100)}%`
@@ -26,27 +28,35 @@ function persona(): string {
     `你现在的状态：饱食${pct(info.hunger, c.hungerMax)}，清洁${pct(info.clean, c.cleanMax)}，心情${pct(info.mood, c.moodMax)}，健康${info.health}/5。`,
     `现在是${now.getMonth() + 1}月${now.getDate()}日${now.getHours()}点${now.getMinutes()}分，${dayText()}。`,
     today.length ? `今天刚发生：${today.join('；')}。` : '',
-    '用可爱、亲昵的口吻说中文，像小孩子撒娇；每次只说一两句话，不超过40个字；不要用Markdown、不要换行。',
+    STYLE,
   ]
     .filter(Boolean)
     .join('\n')
 }
 
-/** The pet's reply in character; null when AI is off or the request fails, so callers fall back to the original lines. `extra` is appended to the system prompt (chat action protocol); those replies keep every line so the action word is not the whole answer. */
-export async function ask(messages: AiMessage[], extra = ''): Promise<string | null> {
+async function chat(sys: string, messages: AiMessage[]): Promise<string | null> {
   if (!aiOn()) return null
   const s = save.settings
   try {
-    const sys = extra ? `${persona()}\n${extra}` : persona()
-    const reply = await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model: s.aiModel }, [{ role: 'system', content: sys }, ...messages])
-    // Small models sometimes add notes about their answer on the following lines.
-    const text = reply.trim()
-    if (extra) return text.slice(0, 200) || null
-    return text.split('\n')[0].replace(/\s+/g, ' ').slice(0, MAX) || null
+    return (await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model: s.aiModel }, [{ role: 'system', content: sys }, ...messages])).trim()
   } catch (e) {
     console.warn('AI request failed:', e)
     return null
   }
+}
+
+// Small models sometimes add notes about their answer on the following lines.
+const firstLine = (text: string | null): string | null => text?.split('\n')[0].replace(/\s+/g, ' ').slice(0, MAX) || null
+
+/** The pet's reply in character; null when AI is off or the request fails, so callers fall back to the original lines. `extra` is appended to the system prompt (chat action protocol); those replies keep every line so the action word is not the whole answer. */
+export async function ask(messages: AiMessage[], extra = ''): Promise<string | null> {
+  if (!extra) return firstLine(await chat(persona(), messages))
+  return (await chat(`${persona()}\n${extra}`, messages))?.slice(0, 200) || null
+}
+
+/** A line from someone other than the pet: `who` stands in for the pet's persona. */
+export async function askAs(who: string, messages: AiMessage[]): Promise<string | null> {
+  return firstLine(await chat(`${who}\n${STYLE}`, messages))
 }
 
 /** By default the line is only reworded; `how` can ask for more, e.g. small talk around it. */
