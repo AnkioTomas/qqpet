@@ -8,6 +8,7 @@ import type { Fetch, Point, QQPetApi, TrayClick, TrayState } from '../shared/ipc
 import type { SaveData } from '../shared/save'
 import { applyPatch, buried, petOf, startSave } from '../shared/save-logic'
 import { TRAY_STATES, trayTip } from '../shared/tray'
+import { latestRelease } from '../shared/update'
 import { weather } from '../shared/weather'
 
 /** The `QQPetNative` JavaScript interface of PetService. Async calls answer through `__qqpet.resolve(id, value, error)`. */
@@ -238,6 +239,7 @@ const api: QQPetApi = {
   aiModels: (c) => aiModels(nativeFetch, c),
   aiChat: (c, messages) => aiChat(nativeFetch, c, messages),
   weather: (city) => weather(nativeFetch, city),
+  latestRelease: () => latestRelease(nativeFetch),
   quit: () => native.quit(),
   messageBox: async (o) => Number(await call((id) => native.messageBox(id, JSON.stringify({ buttons: ['取消', '确定'], ...o })))),
   copyText: (text) => native.copyText(text),

@@ -108,6 +108,10 @@ export interface Settings {
   aiModel: string
   /** City for weather news; empty locates by IP. */
   weatherCity: string
+  /** Look for a new release once a day. On by default. */
+  autoUpdate: boolean
+  /** Unix seconds of the last automatic release check. */
+  updateCheckedAt: number
 }
 
 export interface SaveData {

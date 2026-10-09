@@ -3,6 +3,7 @@ import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
+import { latestRelease } from '../shared/update'
 import { weather } from '../shared/weather'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
@@ -74,6 +75,7 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.aiModels, (_e, c) => aiModels(net.fetch, c))
   ipcMain.handle(IPC.aiChat, (_e, c, messages) => aiChat(net.fetch, c, messages))
   ipcMain.handle(IPC.weather, (_e, city: string) => weather(net.fetch, city))
+  ipcMain.handle(IPC.latestRelease, () => latestRelease(net.fetch))
   // A focusable pet window holds a full panel (社区, 密室...) that would cover a normal game window.
   let panel = false
   ipcMain.on(IPC.openGame, (_e, swf: string) => {

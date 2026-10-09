@@ -98,6 +98,8 @@ const RULES: Record<string, Record<string, Rule>> = {
     aiKey: str(''),
     aiModel: str(''),
     weatherCity: str(''),
+    autoUpdate: (v) => (typeof v === 'boolean' ? v : true),
+    updateCheckedAt: num(0, ANY, 0),
   },
 }
 
@@ -171,6 +173,8 @@ function fresh(): SaveData {
       aiKey: '',
       aiModel: '',
       weatherCity: '',
+      autoUpdate: true,
+      updateCheckedAt: 0,
     },
   }
 }

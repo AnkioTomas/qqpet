@@ -11,6 +11,7 @@ import './css/setup.css'
 import { button, div, typeable } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
+import { checkUpdate } from './update'
 
 type Option = { label: string; title?: string } & (
   | { type: 'radio'; on: () => boolean; run: () => void }
@@ -240,6 +241,8 @@ const TABS: { label: string; options: Option[] }[] = [
     label: '关于',
     options: [
       { type: 'see', label: '软件', value: `QQPet v${version}` },
+      { type: 'button', label: '检查更新', title: '有新版本时打开 GitHub 下载页', run: () => void checkUpdate(true) },
+      { type: 'radio', label: '每天自动检查更新', on: () => s.autoUpdate, run: () => update('settings', { autoUpdate: !s.autoUpdate }) },
       { type: 'see', label: '简介', value: description },
       { type: 'see', label: '作者', value: 'Ankio' },
       { type: 'see', label: '邮箱', value: 'ankio@ankio.net' },

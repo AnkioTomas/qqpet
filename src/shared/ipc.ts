@@ -12,6 +12,7 @@ export const IPC = {
   aiModels: 'ai:models',
   aiChat: 'ai:chat',
   weather: 'app:weather',
+  latestRelease: 'app:latest-release',
   quit: 'app:quit',
   messageBox: 'app:message-box',
   copyText: 'app:copy-text',
@@ -85,6 +86,13 @@ export interface Weather {
   hours: { hour: number; code: number; wind: number }[]
 }
 
+/** The newest GitHub release; `version` without the leading v, `url` its download page. */
+export interface Release {
+  version: string
+  url: string
+  notes: string
+}
+
 /** An OpenAI-compatible endpoint: `url` ends in /v1; `key` may be empty for local servers. */
 export interface AiConfig {
   url: string
@@ -121,6 +129,8 @@ export interface QQPetApi {
   aiChat(c: AiConfig, messages: AiMessage[]): Promise<string>
   /** An empty city locates by IP; rejects for an unknown city or while offline. */
   weather(city: string): Promise<Weather>
+  /** Rejects while offline. */
+  latestRelease(): Promise<Release>
   quit(): void
   /** Resolves to the index of the clicked button. */
   messageBox(options: MessageBoxOptions): Promise<number>

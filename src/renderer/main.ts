@@ -9,6 +9,7 @@ import { div, pageX, pageY, touch } from './ui/dom'
 import './ui/face'
 import { closeMenu, openMenu } from './ui/menu'
 import { openState } from './ui/state'
+import { startAutoUpdate } from './ui/update'
 
 const petEl = document.getElementById('pet')!
 const HOLD_MS = 500
@@ -246,3 +247,4 @@ if (save.havePet) {
   resumeTask()
   begin()
 } else adoptPet()
+startAutoUpdate()
