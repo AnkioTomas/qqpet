@@ -110,33 +110,47 @@ function feed(id: number): Reply {
 // The SWF takes 20% off prices for pink diamond members; the price charged is the listed one.
 const shop = (): Reply => ({ fries: FRIES.map((f) => ({ ...f, price_yb: info.pinkDiamond ? f.price_yb / 0.8 : f.price_yb })), totalpage: 1 })
 
-function buy(paytype: number, fryid: number): Reply {
+export const pondCap = (): number => (info.pinkDiamond ? 5 : 3)
+
+export function pondRoom(): number {
+  settle()
+  return pondCap() - pond.fishs.length
+}
+
+function buy(paytype: number, fryid: number, n = 1): Reply {
   if (paytype !== 1) return { result: 1 }
-  if (pond.fishs.length >= (info.pinkDiamond ? 5 : 3)) return { result: 5, msg: '已经满了' }
-  const fry = FRIES.find((f) => f.fryid === fryid)!
-  if (info.yb < fry.price_yb) return { result: 1 }
-  setInfo('yb', info.yb - fry.price_yb)
+  const room = pondRoom()
+  if (room <= 0) return { result: 5, msg: '已经满了' }
+  const fry = FRIES.find((f) => f.fryid === fryid)
+  if (!fry) return ERROR
+  n = Math.min(Math.max(n | 0, 1), room)
+  const cost = fry.price_yb * n
+  if (info.yb < cost) return { result: 1 }
+  setInfo('yb', info.yb - cost)
   const t = now()
-  pond.fishs.push({
-    id: t,
-    fryid,
-    name: fry.name,
-    stage: 1,
-    time: 0,
-    interval: fry.interval,
-    costyb: fry.price_yb,
-    YB: fry.sell_price,
-    quantity: fry.quantity,
-    basequantity: fry.quantity,
-    avatar: fry.avator,
-    AIXIN: 0,
-    growth: 0,
-    strong: 0,
-    iq: 0,
-    charm: 0,
-    born: t,
-    siLiao: 0,
-  })
+  const base = Date.now()
+  for (let i = 0; i < n; i++) {
+    pond.fishs.push({
+      id: base + i,
+      fryid,
+      name: fry.name,
+      stage: 1,
+      time: 0,
+      interval: fry.interval,
+      costyb: fry.price_yb,
+      YB: fry.sell_price,
+      quantity: fry.quantity,
+      basequantity: fry.quantity,
+      avatar: fry.avator,
+      AIXIN: 0,
+      growth: 0,
+      strong: 0,
+      iq: 0,
+      charm: 0,
+      born: t,
+      siLiao: 0,
+    })
+  }
   store()
   return { result: 0 }
 }
@@ -181,14 +195,14 @@ function harvestAll(): Reply {
   return { result: 6, msg: '收获成功!' }
 }
 
-type Data = { id: number; paytype: number; fryid: number }
+type Data = { id: number; paytype: number; fryid: number; num?: number }
 
 /** The pond SWF's requests, by head.cmd. */
 const COMMANDS: Record<number, (d: Data) => Reply> = {
   1: pondState,
   2: (d) => ({ id: d.id, ...feed(d.id) }),
   3: shop,
-  4: (d) => buy(d.paytype, d.fryid),
+  4: (d) => buy(d.paytype, d.fryid, d.num),
   5: (d) => ({ id: d.id, ...harvest(d.id) }),
   7: speedUp,
   8: harvestAll,

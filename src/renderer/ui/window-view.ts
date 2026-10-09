@@ -7,10 +7,12 @@ interface Dialog {
   title?: string
   msg: string
   goods?: Pick<Good, 'url' | 'name'>[]
-  /** Shows a quantity picker from 1 to max (initially max). */
+  /** Shows a quantity picker from 1 to max (initially `init` or max). */
   max?: number
+  init?: number
   /** OK button; without it OK just closes. `num` is the picked quantity. */
   ok?: (close: () => void, num: number) => void
+  cancel?: () => void
   /** The sweetheart skin. */
   sweet?: boolean
 }
@@ -20,7 +22,7 @@ let closeCurrent = (): void => {}
 /** The original's single "WindowView" alert: opening one replaces the previous. */
 export function windowView(d: Dialog): void {
   closeCurrent()
-  let num = d.max ?? 1
+  let num = d.init ?? d.max ?? 1
   const count = div('content', String(num))
   const step = (n: number): void => {
     num = Math.min(Math.max(num + n, 1), d.max!)
@@ -58,7 +60,10 @@ export function windowView(d: Dialog): void {
   const close = openFrame(div('ui-window', view), d.sweet ? 'pet/windowTip/sweetHeart/sweetHeart.png' : 'pet/windowTip/alert/bg.png')
   closeCurrent = close
   view.append(
-    button('windowViewBut', close),
+    button('windowViewBut', () => {
+      close()
+      d.cancel?.()
+    }),
     button('windowViewButSubmit', () => (d.ok ? d.ok(close, num) : close())),
   )
 }

@@ -12,6 +12,8 @@ declare global {
     ChooseAPI: { ChooseSex(n: number): void }
     /** Called by fishing/main.swf: requests as `{head, data}` JSON, the pet's profile, and its close button (1). */
     PETSendData(json: string): void
+    /** Official pond pay gate; returning true skips the Flash confirm. */
+    before_pay?(...args: unknown[]): boolean
     SNS_GetSelfPetInfo(): Record<string, unknown>
     close_game(n: number): void
     /** Called by mstx/main_qq_mstx.swf's close button. */

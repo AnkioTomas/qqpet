@@ -1,9 +1,11 @@
-import { pondCommand, pondState } from '../pet/fishing'
+import FRIES from '../pet/data/fries.json'
+import { pondCommand, pondRoom, pondState } from '../pet/fishing'
 import { info, save } from '../pet/store'
 import { SwfPlayer } from '../swf/player'
 import { openFrame } from './box'
 import './css/fishing.css'
 import { div } from './dom'
+import { windowView } from './window-view'
 
 const HEAD = { game: 6, key: '', svr: 0, ver: 1 }
 /** The SWF's "harvest all" button only alerts this; the original answered it with a harvest-all request. */
@@ -28,15 +30,42 @@ export function openFishing(): void {
   const receive = player.callback('PETEventOnReceived')
   const send = async (cmd: number, data: unknown): Promise<void> => void (await receive)(JSON.stringify({ data, head: { ...HEAD, cmd } }))
   const alert = window.alert
+  const confirm = window.confirm
+  const beforePay = window.before_pay
+  // Official client hooked this to skip the Flash "确认支付吗".
+  window.before_pay = () => true
+  window.confirm = () => true
 
   window.PETSendData = (json) => {
     const { head, data } = JSON.parse(json)
+    if (head.cmd === 4) {
+      const room = pondRoom()
+      const fry = FRIES.find((f) => f.fryid === data.fryid)
+      if (!fry || room <= 0) {
+        void send(4, pondCommand(4, data))
+        return
+      }
+      windowView({
+        title: '投放鱼苗',
+        msg: `投放${fry.name}，空位 ${room}，每条 ${fry.price_yb} 元宝`,
+        max: room,
+        init: 1,
+        ok: (close, num) => {
+          const reply = pondCommand(4, { ...data, num })
+          void send(4, reply)
+          if (reply.result === 0) {
+            cooldown.classList.add('controlTFActive')
+            setTimeout(() => cooldown.classList.remove('controlTFActive'), 1000)
+            setTimeout(() => void send(1, pondState()), 100)
+          }
+          close()
+        },
+        cancel: () => void send(4, { result: 5, msg: '取消了' }),
+      })
+      return
+    }
     const reply = pondCommand(head.cmd, data)
     void send(head.cmd, reply)
-    if (head.cmd === 4 && reply.result === 0) {
-      cooldown.classList.add('controlTFActive')
-      setTimeout(() => cooldown.classList.remove('controlTFActive'), 1000)
-    }
     if (head.cmd === 8 && reply.result === 6) setTimeout(() => void send(1, pondState()), 100)
   }
   window.SNS_GetSelfPetInfo = () => ({
@@ -63,6 +92,8 @@ export function openFishing(): void {
     if (n !== 1) return
     remove()
     window.alert = alert
+    window.confirm = confirm
+    window.before_pay = beforePay
     open = false
   }
 
