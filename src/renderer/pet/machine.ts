@@ -1,6 +1,6 @@
 import type { PetSwf } from '../swf/pet-swf'
 import { route, type PoseOpt, type Target } from './router'
-import { info, mood, stage } from './store'
+import { applyEdge, info, mood, stage } from './store'
 
 export interface Pose {
   /** Action name, see router. */
@@ -38,6 +38,8 @@ export class Machine {
   }
 
   add(p: Pose): void {
+    // Peek SWFs only draw a sliver. A queued play/speak is a full-body clip in the same box.
+    if (this.pose.a === 'hideleft' || this.pose.a === 'hideright') return
     this.queue.push(p)
   }
 
@@ -55,7 +57,7 @@ export class Machine {
     const holding = (hold && !this.queue.length) || f.currentFrame !== last || (last === 0 && !this.queue.length)
     if (!this.next && holding) return
 
-    const p = this.next ?? this.queue.shift() ?? { a: 'normal' }
+    const p = this.next ?? this.queue.shift() ?? { a: applyEdge() ?? 'normal' }
     if (info.health === 1 && !DYING_ALLOWED.includes(p.a)) p.a = 'dying'
     if (this.poseOpt?.afterState && !this.poseOpt.afterState.includes(p.a)) return
     if (this.next) this.queue = []

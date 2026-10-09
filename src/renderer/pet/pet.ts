@@ -55,6 +55,7 @@ function cheer(): void {
 
 /** After 20-60 s of standing: play an animation, or chat for a small mood bonus. */
 function idle(): void {
+  if (machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') return
   if (Math.random() < 0.8) return machine.add({ a: 'play' })
   const date = Math.random() < 0.3 ? dateTalk() : null
   speak(date ? { s: date, ai: IDLE } : { c: 'smallTalk', ai: IDLE }, 'speak', { ok: cheer })
@@ -103,6 +104,8 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
     hooks.start?.()
   }
   if (!action || !info.health) return show()
+  // Peek is a sliver SWF; speak/play would draw the full body and walk it off the edge.
+  if ((action === 'speak' || action === 'play') && (machine.pose.a === 'hideleft' || machine.pose.a === 'hideright')) return show()
   const pose: Pose = { a: action, s: show, e: hooks.end }
   if (t.now) machine.play(pose)
   else machine.add(pose)

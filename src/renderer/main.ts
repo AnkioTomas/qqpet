@@ -1,7 +1,7 @@
 import { clipAsk, IDLE, note } from './pet/ai'
 import { resumeTask } from './pet/jobs'
 import { machine, speak, startPet } from './pet/pet'
-import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
+import { applyEdge, info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
 import { div, pageX, pageY, touch } from './ui/dom'
@@ -21,18 +21,9 @@ function clampOnScreen(): void {
 
 /** Left/right: keep the box on-screen. Hide_left/right already peek from the sprite edge. */
 function snapEdge(): 'hideleft' | 'hideright' | null {
-  const s = petSize()
-  const near = 36
-  if (info.lastX <= near) {
-    setInfo('lastX', 0)
-    return 'hideleft'
-  }
-  if (info.lastX + s >= innerWidth - near) {
-    setInfo('lastX', innerWidth - s)
-    return 'hideright'
-  }
-  clampOnScreen()
-  return null
+  const edge = applyEdge()
+  if (!edge) clampOnScreen()
+  return edge
 }
 
 let size = petSize()
