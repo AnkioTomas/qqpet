@@ -15,12 +15,15 @@ import { rand } from './rand'
 import {
   activity,
   addInfo,
+  applyEdge,
   busy,
+  edgeSide,
   fatigue,
   growthPerMinute,
   info,
   mood,
   onInfoChange,
+  petSize,
   refreshTray,
   save,
   setActivity,
@@ -41,7 +44,9 @@ let idleTimer = 0
 
 export const machine = new Machine(new PetSwf(document.getElementById('pet')!), (over, next) => {
   clearTimeout(idleTimer)
-  if (next.a === 'normal') idleTimer = window.setTimeout(idle, Math.trunc(Math.random() * 40000 + 20000))
+  if (next.a === 'normal' || next.a === 'hideleft' || next.a === 'hideright') {
+    idleTimer = window.setTimeout(idle, Math.trunc(Math.random() * 40000 + 20000))
+  }
   over.e?.()
   next.s?.()
 })
@@ -53,10 +58,96 @@ function cheer(): void {
   setInfo('mood', Math.min(info.mood + v, 1000))
 }
 
-/** After 20-60 s of standing: play an animation, or chat for a small mood bonus. */
+/** Official lead cooldown (`operatereffecttime="3600"`). Session-only; a restart may show it once. */
+const LEAD_CD = 3600
+let lastLead = 0
+let walkTick = 0
+
+const peeking = (): boolean => machine.pose.a === 'hideleft' || machine.pose.a === 'hideright'
+
+/** Hungry / dirty / poor, same order as the official lead package. */
+function leadOf(): 'hungry' | 'dirty' | 'poor' | null {
+  if (info.hunger < 300) return 'hungry'
+  if (info.clean < 300) return 'dirty'
+  if (info.yb < 200) return 'poor'
+  return null
+}
+
+/** Adult official pack only shipped poor; hungry/dirty fall back to a speak clip. */
+function leadClip(kind: 'hungry' | 'dirty' | 'poor'): string {
+  if (kind !== 'poor' && stage() === 'Adult') return 'speak'
+  return kind
+}
+
+/** Plays the official need animation (and the unused `state.eat` / `state.clean` lines). */
+function maybeLead(): boolean {
+  if (machine.pose.a !== 'normal' || busy() || info.health < 5 || save.settings.paused) return false
+  if (Date.now() / 1000 - lastLead < LEAD_CD) return false
+  const kind = leadOf()
+  if (!kind) return false
+  lastLead = Date.now() / 1000
+  const talk = kind === 'hungry' ? 'eat' : kind === 'dirty' ? 'clean' : 'poor'
+  speak({ c: 'state', s: talk, now: true }, leadClip(kind))
+  return true
+}
+
+function stopWalk(): void {
+  clearInterval(walkTick)
+  walkTick = 0
+  if (machine.pose.a !== 'walk') return
+  // walkstop is a 1-frame clip; the machine treats those as a hold, so it stuck on the same pose.
+  machine.play({ a: applyEdge() ?? 'normal' })
+}
+
+/** Move only after the walk pose is on screen. play() is async; starting the timer earlier suicides. */
+function startWalkMove(speed: number, until: number): void {
+  clearInterval(walkTick)
+  walkTick = window.setInterval(() => {
+    if (machine.pose.a !== 'walk') {
+      clearInterval(walkTick)
+      walkTick = 0
+      return
+    }
+    const next = info.lastX + speed
+    const max = innerWidth - petSize()
+    if (Date.now() > until || next <= 0 || next >= max) {
+      setInfo('lastX', Math.min(Math.max(next, 0), max))
+      stopWalk()
+      return
+    }
+    setInfo('lastX', next)
+  }, 1000 / 12)
+}
+
+/** In-place walk cycle; we move the box at the official 8 px / 12 fps, scaled to pet size. */
+function walk(): boolean {
+  if (!save.settings.roam || busy() || info.health < 5) return false
+  if (machine.pose.a !== 'normal' || edgeSide()) return false
+  const s = petSize()
+  const roomL = info.lastX
+  const roomR = innerWidth - info.lastX - s
+  if (roomL < 48 && roomR < 48) return false
+  const dir: 'left' | 'right' = roomL < 80 ? 'right' : roomR < 80 ? 'left' : Math.random() < 0.5 ? 'left' : 'right'
+  const speed = 8 * (s / 144) * (dir === 'left' ? -1 : 1)
+  machine.play({
+    a: 'walk',
+    opt: { url: `pet/Action/${info.sex}/${stage()}/walk/walk_${dir}.swf`, opt: {} },
+    s: () => startWalkMove(speed, Date.now() + rand(2000, 5000)),
+  })
+  return true
+}
+
+/** After 20-60 s of standing: walk / play / talk, same timer. Walk only if roam is on. */
 function idle(): void {
-  if (machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') return
-  if (Math.random() < 0.8) return machine.add({ a: 'play' })
+  if (peeking()) return
+  if (maybeLead()) return
+  if (save.settings.roam) {
+    const n = Math.trunc(Math.random() * 3)
+    if (n === 0 && walk()) return
+    if (n !== 2) return machine.add({ a: 'play' })
+  } else if (Math.random() < 0.8) {
+    return machine.add({ a: 'play' })
+  }
   const date = Math.random() < 0.3 ? dateTalk() : null
   speak(date ? { s: date, ai: IDLE } : { c: 'smallTalk', ai: IDLE }, 'speak', { ok: cheer })
 }
@@ -149,6 +240,8 @@ onInfoChange((key, prev) => {
   } else if (key === 'mood' && mood() !== lastMood) {
     lastMood = mood()
     if (stage() === 'Adult') speak({ c: 'mood', s: lastMood, now: true }, 'speak')
+  } else if (key === 'hunger' || key === 'clean' || key === 'yb') {
+    maybeLead()
   }
 })
 

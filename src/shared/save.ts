@@ -100,6 +100,8 @@ export interface Settings {
   clip: boolean
   /** After the same desktop app stays in front for a while, idle talk may mention it. Off by default. */
   watchApp: boolean
+  /** Randomly walk around the desktop. Off by default. */
+  roam: boolean
   /** OpenAI-compatible endpoint; `aiModel` is set only once it passed the settings test, and AI is off while it is empty. */
   aiUrl: string
   aiKey: string

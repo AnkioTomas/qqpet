@@ -43,6 +43,9 @@ function common(o: { enter?: Range; eat?: Range; exit?: Range; clean?: Range; si
     cure: { name: 'Cure', start: 1, end: 2, notNum: o.cure?.notNum },
     hideleft: { name: 'Hide_left', start: 1, end: 1 },
     hideright: { name: 'Hide_right', start: 1, end: 1 },
+    hungry: { name: 'Hungry' },
+    dirty: { name: 'Dirty' },
+    poor: { name: 'Poor' },
   }
 }
 

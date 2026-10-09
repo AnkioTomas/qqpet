@@ -53,7 +53,7 @@ export class Machine {
     const freezeAt = this.poseOpt?.overCurrentFrame
     if (freezeAt && f.currentFrame >= freezeAt && f.isPlaying) f.stop()
     if (this.changing) return
-    const hold = this.pose.a === 'normal' || this.pose.a === 'hideleft' || this.pose.a === 'hideright' || this.pose.a === 'drag'
+    const hold = this.pose.a === 'normal' || this.pose.a === 'hideleft' || this.pose.a === 'hideright' || this.pose.a === 'drag' || this.pose.a === 'walk'
     const holding = (hold && !this.queue.length) || f.currentFrame !== last || (last === 0 && !this.queue.length)
     if (!this.next && holding) return
 
@@ -71,6 +71,9 @@ export class Machine {
       this.pose = p
       this.changing = false
       this.onChange(over, p)
+    }).catch(() => {
+      this.changing = false
+      if (p.a !== 'normal') this.next = { a: 'normal' }
     })
   }
 }

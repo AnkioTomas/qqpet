@@ -744,6 +744,16 @@ export const TALK: Record<string, Line[] | Record<string, Line[]>> = {
         submitText: '你去吧~',
       },
     ],
+    poor: [
+      {
+        tolk: '[host]，我的小金库空空的，穷得叮当响~~',
+        submitText: '知道啦',
+      },
+      {
+        tolk: '[host]，你看我，连根冰棍都买不起了~~',
+        submitText: '下次补给你',
+      },
+    ],
     stopGrowth: [
       {
         tolk: '[host]，我现在暂停成长了~~',
