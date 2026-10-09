@@ -273,21 +273,16 @@ function zoneRows(region: unknown): Row[] {
   return (hit.length ? hit : zones).map((z) => row(z.id, z.name))
 }
 
-function spotOf(a: unknown, b?: unknown, c?: unknown): Spot {
-  if (a && typeof a === 'object') {
-    const o = a as Record<string, unknown>
-    const scene = Number(o.sceneID ?? o.sceneId ?? o.destSceneID ?? o.id ?? o.sid) || spot.scene
-    const d = spawn(scene)
-    return {
-      scene,
-      x: Number(o.x ?? o.X ?? o.enterX) || d.x,
-      y: Number(o.y ?? o.Y ?? o.enterY) || d.y,
-    }
+/** Offline there is no server to pick the arrival point: land at the NPC in `scene` that portals back to `from`. */
+async function portal(scene: number, from: number): Promise<{ x: number; y: number } | null> {
+  const text = await (await fetch(`${BASE}${file(RES.NPCConfigure, scene, 'NpcList.xml')}`)).text()
+  for (const [, attrs, body] of text.matchAll(/<Npc\s([^>]*)>([\s\S]*?)<\/Npc>/g)) {
+    if (!new RegExp(`"enterScene">\\s*<Param name="id">${from}<`).test(body)) continue
+    const x = attrs.match(/\sx="(\d+)"/)
+    const y = attrs.match(/\sy="(\d+)"/)
+    if (x && y) return { x: Number(x[1]), y: Number(y[1]) }
   }
-  const scene = Number(a) || spot.scene
-  const d = spawn(scene)
-  const jumped = scene !== spot.scene && b == null
-  return { scene, x: Number(b) || (jumped ? d.x : spot.x), y: Number(c) || (jumped ? d.y : spot.y) }
+  return null
 }
 
 function trace(name: string, args: unknown[]): void {
@@ -394,8 +389,14 @@ export function openCommunity(): void {
     void enter(loadSpot())
     return 1
   }
-  const goScene = (...args: unknown[]): number => {
-    void enter(spotOf(args[0], args[1], args[2]))
+  const goScene = (id: unknown): number => {
+    const scene = Number(id)
+    void (async () => {
+      // Missing tiles (风语广场, 企鹅镇...): stay put; Failed closes the loading panel the request opened.
+      if (!SCENES.has(scene)) return void (await flash('PSW.RequestChangeSceneFailed', 1))
+      if (scene === spot.scene) return enter()
+      await enter({ scene, ...((await portal(scene, spot.scene)) ?? spawn(scene)) })
+    })()
     return 1
   }
 
@@ -409,6 +410,10 @@ export function openCommunity(): void {
     RequestLoginServer: go,
     RequestChangeScene: goScene,
     RequestJumpScene: goScene,
+    OpenBigMap: () => {
+      void flash('PSW.ShowWorldMap', 1)
+      return 1
+    },
     PetFindPath: route,
     PetFindNPCPath: route,
     PetFindPathPerStep: route,
@@ -493,6 +498,8 @@ export function openCommunity(): void {
     player!.load(`${BASE}world_1051.swf`, BASE, {
       wmode: 'opaque',
       parameters: { uin: String(UIN), qqnumber: String(UIN), basePath: BASE },
+      // The world map reads each area's scene id from this server file; the bundled copy carries them.
+      urlRewriteRules: [[/^http:\/\/img\.pet\.qq\.com\/WorldMapHotInfo\.xml/, new URL(`${BASE}Data/WorldMap/WorldMapHotInfo.xml`, location.href).href]],
     }),
   )
 }
