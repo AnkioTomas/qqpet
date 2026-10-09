@@ -256,6 +256,7 @@ const api: QQPetApi = {
   onGamePlayed: (l) => void listeners.gamePlayed.push(l),
   onClipboard: (l) => void listeners.clipboard.push(l),
   onPresence: (l) => void listeners.presence.push(l),
+  onFront() {},
 }
 
 window.qqpet = api

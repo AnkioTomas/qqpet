@@ -17,6 +17,7 @@ export const IPC = {
   copyText: 'app:copy-text',
   clipboard: 'clipboard:text',
   presence: 'app:presence',
+  front: 'app:front',
   setClickThrough: 'win:set-click-through',
   setAlwaysOnTop: 'win:set-always-on-top',
   setFocusable: 'win:set-focusable',
@@ -137,4 +138,6 @@ export interface QQPetApi {
   onClipboard(listener: (text: string) => void): void
   /** The user left the machine (screen off / idle) or came back. */
   onPresence(listener: (away: boolean) => void): void
+  /** Frontmost app, as a short label or the process name. Desktop only; never fires on the phone. */
+  onFront(listener: (name: string) => void): void
 }

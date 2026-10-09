@@ -257,6 +257,7 @@ const api: QQPetApi = {
   // Android only lets the focused app read the clipboard; text arrives through the selection menu and share sheet instead.
   onClipboard: (l) => void listeners.clipboard.push(l),
   onPresence: (l) => void listeners.presence.push(l),
+  onFront() {},
 }
 
 window.qqpet = api

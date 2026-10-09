@@ -7,6 +7,7 @@ import { weather } from '../shared/weather'
 import { handleScheme, registerScheme } from './protocol'
 import { exportSave, getSave, importSave, loadSave, patchSave, resetSave } from './save'
 import { createPetTray } from './tray'
+import { frontName } from './front'
 import { createPetWindow, openGameWindow } from './window'
 
 if (!app.requestSingleInstanceLock()) app.exit(0)
@@ -43,6 +44,7 @@ app.whenReady().then(() => {
     patchSave(patch)
     if (patch.petInfo) tray.retip(getSave().petInfo)
     if (patch.settings?.hd !== undefined) tray.setState(getSave())
+    if (patch.settings?.watchApp !== undefined) watchFront(getSave().settings.watchApp)
   })
   ipcMain.on(IPC.resetPet, (_e, sex?: Sex) => {
     resetSave(sex)
@@ -101,6 +103,25 @@ app.whenReady().then(() => {
   powerMonitor.on('unlock-screen', () => presence(false))
   powerMonitor.on('suspend', () => presence(true))
   powerMonitor.on('resume', () => presence(false))
+
+  let frontTimer: ReturnType<typeof setInterval> | undefined
+  let lastFront = ''
+  const watchFront = (on: boolean): void => {
+    clearInterval(frontTimer)
+    frontTimer = undefined
+    lastFront = ''
+    if (!on) return
+    const tick = (): void => {
+      void frontName().then((name) => {
+        if (!name || name === lastFront) return
+        lastFront = name
+        win.webContents.send(IPC.front, name)
+      })
+    }
+    tick()
+    frontTimer = setInterval(tick, 15_000)
+  }
+  watchFront(getSave().settings.watchApp)
 })
 
 app.on('window-all-closed', () => app.quit())

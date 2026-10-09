@@ -184,6 +184,7 @@ const TABS: { label: string; options: Option[] }[] = [
     label: '工具',
     options: [
       { type: 'radio', label: '实时监听播报剪切板', title: '复制文字后，宠物会把它念出来', on: () => s.clip, run: () => update('settings', { clip: !s.clip }) },
+      { type: 'radio', label: '留意前台在用的软件（仅电脑，默认关）', title: '同一软件开太久，闲聊时可能会提起。不读窗口内容。', on: () => s.watchApp, run: () => update('settings', { watchApp: !s.watchApp }) },
     ],
   },
   {
