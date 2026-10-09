@@ -1,4 +1,4 @@
-import { app, clipboard, dialog, ipcMain, net, session } from 'electron'
+import { app, clipboard, dialog, ipcMain, net, powerMonitor, session } from 'electron'
 import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from '../shared/ai'
@@ -88,6 +88,19 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.setFocusable, (_e, on: boolean) => win.setFocusable(on))
   ipcMain.on(IPC.setAutoStart, (_e, on: boolean) => app.setLoginItemSettings({ openAtLogin: on }))
   ipcMain.on(IPC.setTrayState, (_e, state: TrayState) => tray.setState(getSave(), state))
+
+  const AWAY_S = 300
+  let away = false
+  const presence = (on: boolean): void => {
+    if (on === away) return
+    away = on
+    win.webContents.send(IPC.presence, away)
+  }
+  setInterval(() => presence(powerMonitor.getSystemIdleTime() >= AWAY_S), 5000)
+  powerMonitor.on('lock-screen', () => presence(true))
+  powerMonitor.on('unlock-screen', () => presence(false))
+  powerMonitor.on('suspend', () => presence(true))
+  powerMonitor.on('resume', () => presence(false))
 })
 
 app.on('window-all-closed', () => app.quit())

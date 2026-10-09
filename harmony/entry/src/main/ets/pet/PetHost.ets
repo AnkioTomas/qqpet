@@ -1,5 +1,5 @@
 import { abilityAccessCtrl, common, Want, wantAgent } from '@kit.AbilityKit'
-import { BusinessError } from '@kit.BasicServicesKit'
+import { BusinessError, commonEventManager } from '@kit.BasicServicesKit'
 import { display, window } from '@kit.ArkUI'
 import { hilog } from '@kit.PerformanceAnalysisKit'
 import { image } from '@kit.ImageKit'
@@ -22,6 +22,7 @@ export class PetHost {
   away: boolean = false
   private trayIcon: string = ''
   private trayTip: string = '点按查看宠物状态'
+  private subscriber: commonEventManager.CommonEventSubscriber | null = null
 
   constructor(context: common.UIAbilityContext) {
     this.context = context
@@ -86,6 +87,20 @@ export class PetHost {
     }
     await this.win.showWindow()
     await this.postTray()
+    await this.watchScreen()
+  }
+
+  private async watchScreen(): Promise<void> {
+    try {
+      this.subscriber = await commonEventManager.createSubscriber({
+        events: ['usual.event.SCREEN_OFF', 'usual.event.SCREEN_ON']
+      })
+      commonEventManager.subscribe(this.subscriber, (_err, data) => {
+        this.emit('presence', data.event === 'usual.event.SCREEN_OFF' ? 'true' : 'false')
+      })
+    } catch (_e) {
+      // Screen events are optional; the pet still talks.
+    }
   }
 
   attach(controller: webview.WebviewController): void {
@@ -240,6 +255,13 @@ export class PetHost {
   }
 
   async quit(): Promise<void> {
+    if (this.subscriber) {
+      try {
+        await commonEventManager.unsubscribe(this.subscriber)
+      } catch (_e) {
+      }
+      this.subscriber = null
+    }
     try {
       await notificationManager.cancel(TRAY_ID)
     } catch (_e) {

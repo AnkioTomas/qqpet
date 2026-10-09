@@ -33,6 +33,7 @@ interface Events {
   gamePlayed: number
   outside: void
   clipboard: string
+  presence: boolean
 }
 
 declare global {
@@ -55,7 +56,7 @@ const call = (start: (id: number) => void): Promise<string | null> =>
     start(seq)
   })
 
-const listeners: { [K in keyof Events]: ((p: Events[K]) => void)[] } = { trayClick: [], gamePlayed: [], outside: [], clipboard: [] }
+const listeners: { [K in keyof Events]: ((p: Events[K]) => void)[] } = { trayClick: [], gamePlayed: [], outside: [], clipboard: [], presence: [] }
 
 window.__qqpet = {
   resolve(id, value, error) {
@@ -254,6 +255,7 @@ const api: QQPetApi = {
   onTrayClick: (l) => void listeners.trayClick.push((c) => l({ ...c, x: innerWidth / 2, y: innerHeight / 2 })),
   onGamePlayed: (l) => void listeners.gamePlayed.push(l),
   onClipboard: (l) => void listeners.clipboard.push(l),
+  onPresence: (l) => void listeners.presence.push(l),
 }
 
 window.qqpet = api

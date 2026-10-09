@@ -7,9 +7,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -18,6 +21,7 @@ import android.graphics.Color
 import android.graphics.drawable.Icon
 import android.graphics.PixelFormat
 import android.net.Uri
+import android.os.Build
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.KeyEvent
@@ -131,6 +135,30 @@ class PetService : Service() {
         }
         wm.addView(probe, probeParams)
         web.loadUrl("$ORIGIN/index.html")
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(screen, filter, RECEIVER_NOT_EXPORTED)
+        else @Suppress("UnspecifiedRegisterReceiverFlag") registerReceiver(screen, filter)
+    }
+
+    private var gone = false
+
+    private fun presence(on: Boolean) {
+        if (on == gone) return
+        gone = on
+        emit("presence", if (on) "true" else "false")
+    }
+
+    private val screen = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, i: Intent) {
+            when (i.action) {
+                Intent.ACTION_SCREEN_OFF -> presence(true)
+                Intent.ACTION_SCREEN_ON, Intent.ACTION_USER_PRESENT -> presence(false)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -148,6 +176,7 @@ class PetService : Service() {
 
     override fun onDestroy() {
         instance = null
+        unregisterReceiver(screen)
         wm.removeView(root)
         wm.removeView(probe)
         web.destroy()
