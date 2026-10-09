@@ -3,6 +3,8 @@ import { SwfPlayer } from '../swf/player'
 import { openBox } from './box'
 import './css/community.css'
 import { div } from './dom'
+import { openFishing } from './fishing'
+import { openMstx } from './mstx'
 
 const BASE = 'pet/petsoc/'
 /** 夏帕海岸: SceneConfig matches the tiles we actually have. 企鹅镇's bg_V69 is missing from the dump. */
@@ -37,6 +39,19 @@ const RES: Record<string, string> = {
   PetStatus: 'petstatusdesc2',
   StaticRes: 'StaticRes1041',
   Animation: 'Data/Animation_1042',
+}
+
+const game = (swf: string) => (): void => window.qqpet.openGame(`企鹅/${swf}.swf`)
+
+/** NPC web pages (by file name) whose game qqpet already ships; the rest of the island's pages are long gone. */
+const PAGES: Record<string, () => void> = {
+  diaoyu: openFishing,
+  qq_mstx: openMstx,
+  dajimu: game('Q宠搭积木'),
+  dg_tqd: game('QQ跆拳道'),
+  qq_ddp: game('QQ端盘子'),
+  qq_hhxx: game('QQ好好学习'),
+  main_xmxd: game('冒险岛系列/1起航'),
 }
 
 interface Spot {
@@ -202,6 +217,7 @@ function pet(): Record<string, unknown> {
     petid: '1',
     uin: UIN,
     qqname: info.host,
+    mastername: info.host,
     petname: info.name,
     vip: info.pinkDiamond ? 1 : 0,
     viplevel: info.PDiamondLevel,
@@ -468,6 +484,12 @@ export function openCommunity(): void {
   })
   window.PET = host({
     GetPetInfor: pet,
+    // Calling back into Flash before this call returns re-runs its click handler (and can hang Ruffle).
+    ParseURL: (url) => {
+      const page = PAGES[String(url).match(/\/(\w+)\.html/)?.[1] ?? '']
+      setTimeout(page ?? (() => void flash('PSW.MPetSendChatMSG', 0, '', '这里已经关门啦，下次再来吧~')))
+      return 1
+    },
     GetState: () => 1,
     GetPrivateProfileInt: () => 0,
     GetPrivateProfileString: () => '',
