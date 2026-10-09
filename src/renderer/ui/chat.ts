@@ -1,10 +1,45 @@
 import type { AiMessage } from '../../shared/ipc'
-import { ask } from '../pet/ai'
+import { ask, note } from '../pet/ai'
+import { listGoods } from '../pet/goods'
+import { useItem } from '../pet/items'
+import { work, workGoods } from '../pet/jobs'
 import { speak } from '../pet/pet'
-import { info } from '../pet/store'
+import { info, save, update } from '../pet/store'
 import { openFrame } from './box'
 import './css/chat.css'
 import { button, div } from './dom'
+import { setHidden } from './menu'
+
+const DO =
+  '办事时第一行只写 FEED、CLEAN、WORK、HIDE、QUIET 或 NONE，第二行才是要说的话。FEED=吃背包里的食物，CLEAN=用清洁用品，WORK=去打工，HIDE=隐身，QUIET=免打扰。不是办事就写 NONE。不要解释这些词。'
+
+const ACT = /^(FEED|CLEAN|WORK|HIDE|QUIET|NONE)\s*(?:\n|$)([\s\S]*)/i
+
+function parse(text: string): { act: string; say: string } {
+  const m = text.match(ACT)
+  if (!m) return { act: 'NONE', say: text }
+  return { act: m[1].toUpperCase(), say: m[2].trim() || '嗯！' }
+}
+
+function doAct(act: string, say: string): void {
+  if (act === 'FEED') {
+    const g = listGoods('food', 1, 1).list[0]
+    if (g) return useItem(g, false, say)
+  } else if (act === 'CLEAN') {
+    const g = listGoods('clean', 1, 1).list[0]
+    if (g) return useItem(g, false, say)
+  } else if (act === 'WORK') {
+    const g = workGoods()[0]
+    if (g && work(g)) return
+  } else if (act === 'HIDE' && !save.settings.hidden) {
+    speak({ s: say, now: true, ai: false }, 'hide', { end: () => setHidden(true) })
+    return
+  } else if (act === 'QUIET' && !save.settings.quiet) {
+    speak({ s: say, now: true, ai: false }, 'speak', { start: () => update('settings', { quiet: true }) })
+    return
+  }
+  speak({ s: say, now: true, ai: false }, 'speak')
+}
 
 /** The conversation, kept until the app quits; the latest turns go to the AI. */
 const history: AiMessage[] = []
@@ -30,10 +65,13 @@ export function openChat(): void {
     input.disabled = true
     const said: AiMessage = { role: 'user', content }
     show(said)
-    const reply = await ask([...history.slice(-TURNS), said])
-    if (reply) history.push(said, { role: 'assistant', content: reply })
-    show({ role: 'assistant', content: reply ?? '呜…我现在脑袋转不动，等会儿再聊吧~' })
-    if (reply) speak({ s: reply, now: true, ai: false }, 'speak')
+    const reply = await ask([{ role: 'user', content: DO }, ...history.slice(-TURNS), said])
+    const { act, say } = parse(reply ?? '')
+    const line = reply ? say : '呜…我现在脑袋转不动，等会儿再聊吧~'
+    if (reply) history.push(said, { role: 'assistant', content: line })
+    show({ role: 'assistant', content: line })
+    note('刚和主人聊过天')
+    if (reply) doAct(act, say)
     input.disabled = false
     input.focus()
   }
