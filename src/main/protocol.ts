@@ -2,6 +2,7 @@ import { app, net, protocol } from 'electron'
 import { join, normalize, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { hidpiSvg } from './hidpi'
+import { petsocPath } from './nocase'
 
 // The renderer and every SWF are served from app://bundle/. Ruffle loads SWFs,
 // XML configs and wasm through fetch(), which file:// does not support.
@@ -19,7 +20,7 @@ export function registerScheme(): void {
 
 export function handleScheme(): void {
   protocol.handle('app', (req) => {
-    const path = decodeURIComponent(new URL(req.url).pathname).replace(/\/pet\/petsoc\/data(?=\/)/i, '/pet/petsoc/Data')
+    const path = petsocPath(resourcesRoot, decodeURIComponent(new URL(req.url).pathname))
     const root = path.startsWith('/pet/') ? resourcesRoot : rendererRoot
     const file = normalize(join(root, path))
     if (!file.startsWith(root + sep)) return new Response(null, { status: 403 })
