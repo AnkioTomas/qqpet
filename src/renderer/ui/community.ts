@@ -11,8 +11,8 @@ const UIN = 66666666
 /** 小艾旁边：草地/邮筒/长椅。1270,1020 是空沙滩，镜头跟过去就是一片白。 */
 const PLAZA = { x: 800, y: 620 }
 const DEAD = { x: 1270, y: 1020 }
-/** SceneConfig_1065 folders. 1/2 exist only on the world map. */
-const SCENES = new Set([3, 5, 7, 8, 13, 15, 16, 18, 20, 21, 23, 26, 27, 29, 30, 31, 32])
+/** Scenes whose tiles we have. 风语广场 (22) lost its bottom row, so its SceneConfig is cut to 9 rows. */
+const SCENES = new Set([3, 5, 7, 8, 13, 15, 16, 18, 20, 21, 22, 23, 26, 27, 29, 30, 31, 32])
 /** 夏帕海岸/粉钻雪山 were rebuilt as 24/25 (no tiles in the dump), yet 竞技场/粉钻雪山/度假村 exits already point there. */
 const ALIAS: Record<number, number> = { 24: 3, 25: 5 }
 const SPAWN: Record<number, { x: number; y: number }> = {
@@ -69,8 +69,8 @@ function clamp(s: Spot): Spot {
   const d = spawn(scene)
   return {
     scene,
-    x: s.x > 80 ? s.x : d.x,
-    y: s.y > 80 ? s.y : d.y,
+    x: s.x > 0 ? s.x : d.x,
+    y: s.y > 0 ? s.y : d.y,
   }
 }
 

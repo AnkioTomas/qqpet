@@ -1,8 +1,9 @@
-"""Rebuild the community scene/mini map pictures missing from the PetSoc dump.
+"""Rebuild the community pictures missing from the PetSoc dump.
 
-The maps are the scene's background tiles plus its entities, scaled to the
-size WorldMapConfig/MiniMapConfig ask for. Entities that are SWFs get their
-first frame through JPEXS ffdec.
+The scene/mini maps are the scene's background tiles plus its entities, scaled
+to the size WorldMapConfig/MiniMapConfig ask for. Entities that are SWFs get
+their first frame through JPEXS ffdec. A missing nav picture is painted from
+the scene's nav mesh.
 
     python3 scripts/petsoc-maps.py /path/to/ffdec.jar
 """
@@ -15,7 +16,7 @@ import tempfile
 import zlib
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent / 'resources/pet/petsoc'
 FFDEC = sys.argv[1]
@@ -99,10 +100,27 @@ def render(scene: int) -> Image.Image | None:
     return canvas
 
 
-def targets(config: str) -> dict[int, tuple[str, int, int]]:
+def walkable(scene: int) -> None:
+    """The host pathfinder reads red pixels from the nav picture; without one, paint it from the nav mesh."""
+    cfg = nocase(f'Data/SceneConfig_1065/{scene}/Config.xml').read_text(encoding='utf-8')
+    out = ROOT / re.search(r'<Navigator[\s\S]*?<Path value="([^"]+)"', cfg)[1]
+    if out.exists():
+        return
+    w, h = map(int, re.search(r'<SceneModel[^>]*\sw="(\d+)"\s+h="(\d+)"', cfg).groups())
+    mesh = nocase(f'Data/NavigationMap_1065/{scene}/NavigationMap.xml').read_text(encoding='utf-8')
+    points = [(int(x) / 10, int(y) / 10) for x, y in re.findall(r'<Point x="(-?\d+)" y="(-?\d+)"', mesh)]
+    img = Image.new('RGBA', (round(w / 10), round(h / 10)))
+    draw = ImageDraw.Draw(img)
+    for cell in re.findall(r'<Cell pt0="(\d+)" pt1="(\d+)" pt2="(\d+)"', mesh):
+        draw.polygon([points[int(i)] for i in cell], fill=(241, 23, 1, 255))
+    img.save(out)
+    print(scene, out.relative_to(ROOT), img.size)
+
+
+def targets(config: str) -> dict[int, tuple[str, int, int, int, int]]:
     text = nocase(config).read_text(encoding='utf-8')
-    found = re.findall(r'<SceneModel id="(\d+)"[^>]*backmapWidth="(\d+)" backmapHight="(\d+)"[^>]*>[^<]*<backmap src="([^"]+)"', text)
-    return {int(i): (src, int(w), int(h)) for i, w, h, src in found}
+    found = re.findall(r'<SceneModel id="(\d+)"[^>]*SceneMapWidth="(\d+)" SceneMapHigh="(\d+)" backmapWidth="(\d+)" backmapHight="(\d+)"[^>]*>[^<]*<backmap src="([^"]+)"', text)
+    return {int(i): (src, int(mw), int(mh), int(w), int(h)) for i, mw, mh, w, h, src in found}
 
 
 large = targets('Data/MapCfg_1065/WorldMapConfig.xml')
@@ -114,7 +132,9 @@ for scene in sorted(large.keys() | mini.keys()):
     if full is None:
         print(scene, 'skipped: background tiles missing')
         continue
-    for src, w, h in filter(None, (large.get(scene), mini.get(scene))):
+    walkable(scene)
+    # Map dots are placed against SceneMapWidth/High; 风语广场 is shorter than that since its bottom row is lost.
+    for src, mw, mh, w, h in filter(None, (large.get(scene), mini.get(scene))):
         out = ROOT / src
-        full.resize((w, h), Image.LANCZOS).save(out, quality=88)
+        full.crop((0, 0, mw, mh)).resize((w, h), Image.LANCZOS).save(out, quality=88)
         print(scene, out.relative_to(ROOT), (w, h))
