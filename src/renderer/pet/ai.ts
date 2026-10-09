@@ -32,14 +32,17 @@ function persona(): string {
     .join('\n')
 }
 
-/** The pet's reply in character; null when AI is off or the request fails, so callers fall back to the original lines. */
-export async function ask(messages: AiMessage[]): Promise<string | null> {
+/** The pet's reply in character; null when AI is off or the request fails, so callers fall back to the original lines. `extra` is appended to the system prompt (chat action protocol); those replies keep every line so the action word is not the whole answer. */
+export async function ask(messages: AiMessage[], extra = ''): Promise<string | null> {
   if (!aiOn()) return null
   const s = save.settings
   try {
-    const reply = await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model: s.aiModel }, [{ role: 'system', content: persona() }, ...messages])
+    const sys = extra ? `${persona()}\n${extra}` : persona()
+    const reply = await window.qqpet.aiChat({ url: s.aiUrl, key: s.aiKey, model: s.aiModel }, [{ role: 'system', content: sys }, ...messages])
     // Small models sometimes add notes about their answer on the following lines.
-    return reply.trim().split('\n')[0].replace(/\s+/g, ' ').slice(0, MAX) || null
+    const text = reply.trim()
+    if (extra) return text.slice(0, 200) || null
+    return text.split('\n')[0].replace(/\s+/g, ' ').slice(0, MAX) || null
   } catch (e) {
     console.warn('AI request failed:', e)
     return null

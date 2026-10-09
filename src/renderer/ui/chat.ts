@@ -11,14 +11,16 @@ import { button, div } from './dom'
 import { setHidden } from './menu'
 
 const DO =
-  '办事时第一行只写 FEED、CLEAN、WORK、HIDE、QUIET 或 NONE，第二行才是要说的话。FEED=吃背包里的食物，CLEAN=用清洁用品，WORK=去打工，HIDE=隐身，QUIET=免打扰。不是办事就写 NONE。不要解释这些词。'
+  '回复写成：动作 台词。动作只能是 FEED、CLEAN、WORK、HIDE、QUIET 或 NONE。FEED=吃背包食物，CLEAN=用清洁用品，WORK=去打工，HIDE=隐身，QUIET=免打扰。不是办事就写 NONE。台词必须写在动作后面，不要只回动作词。'
 
-const ACT = /^(FEED|CLEAN|WORK|HIDE|QUIET|NONE)\s*(?:\n|$)([\s\S]*)/i
+const ACT = /^(FEED|CLEAN|WORK|HIDE|QUIET|NONE)\b[:：]?\s*(.*)$/i
 
 function parse(text: string): { act: string; say: string } {
-  const m = text.match(ACT)
-  if (!m) return { act: 'NONE', say: text }
-  return { act: m[1].toUpperCase(), say: m[2].trim() || '嗯！' }
+  const lines = text.split(/\n+/).map((s) => s.trim()).filter(Boolean)
+  const head = lines[0] ?? ''
+  const m = head.match(ACT)
+  if (!m) return { act: 'NONE', say: text.replace(/\s+/g, ' ').trim() }
+  return { act: m[1].toUpperCase(), say: m[2].trim() || lines[1] || '' }
 }
 
 function doAct(act: string, say: string): void {
@@ -65,13 +67,13 @@ export function openChat(): void {
     input.disabled = true
     const said: AiMessage = { role: 'user', content }
     show(said)
-    const reply = await ask([{ role: 'user', content: DO }, ...history.slice(-TURNS), said])
+    const reply = await ask([...history.slice(-TURNS), said], DO)
     const { act, say } = parse(reply ?? '')
-    const line = reply ? say : '呜…我现在脑袋转不动，等会儿再聊吧~'
+    const line = reply ? say || '……' : '呜…我现在脑袋转不动，等会儿再聊吧~'
     if (reply) history.push(said, { role: 'assistant', content: line })
     show({ role: 'assistant', content: line })
     note('刚和主人聊过天')
-    if (reply) doAct(act, say)
+    if (reply) doAct(act, line)
     input.disabled = false
     input.focus()
   }
