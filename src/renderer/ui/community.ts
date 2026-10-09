@@ -5,7 +5,7 @@ import { openBox } from './box'
 import './css/community.css'
 import { div } from './dom'
 import { openFishing } from './fishing'
-import { deliver, ISLAND } from './island'
+import { arrive, chatted, ISLAND, meet, played } from './island'
 import { openMstx } from './mstx'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
@@ -46,15 +46,29 @@ const RES: Record<string, string> = {
   Animation: 'Data/Animation_1042',
 }
 
-const game = (swf: string) => (): void => window.qqpet.openGame(`企鹅/${swf}.swf`)
-/** The 新闻 button loads Tencent's magazine SWF itself, with no host call: its request opens the island paper instead. */
-const MAGAZINE = 'img.pet.qq.com/swf/games/message.swf'
+/** The community game open now; errands count it once it has been played a minute. */
+let playing = ''
+const game = (swf: string) => (): void => {
+  playing = swf
+  window.qqpet.openGame(`企鹅/${swf}.swf`)
+}
+/**
+ * Some NPCs and the 新闻 button make Flash load a SWF from Tencent's dead game host itself, with no host call:
+ * such a request opens whatever stands in for it, quietly when nothing does.
+ */
+const GONE = 'img.pet.qq.com/swf/games/'
 const fetchNet = window.fetch
 window.fetch = (input, init) => {
-  if (!String(input instanceof Request ? input.url : input).includes(MAGAZINE)) return fetchNet(input, init)
-  setTimeout(ISLAND['qqpet://news'])
+  const url = String(input instanceof Request ? input.url : input)
+  if (!url.includes(GONE)) return fetchNet(input, init)
+  setTimeout(() => visit(url))
   return Promise.resolve(new Response(null, { status: 404 }))
 }
+window.qqpet.onGamePlayed((minutes) => {
+  const done = minutes >= 1 && played(playing)
+  playing = ''
+  if (done) say(done)
+})
 
 /** Web pages (by a piece of their URL) qqpet can stand in for; the rest of the island's pages are long gone. */
 const PAGES: Record<string, () => void> = {
@@ -67,7 +81,23 @@ const PAGES: Record<string, () => void> = {
   qq_ddp: game('QQ端盘子'),
   qq_hhxx: game('QQ好好学习'),
   main_xmxd: game('冒险岛系列/1起航'),
+  guanxingtai: game('满天星'),
+  qcdzk: game('Q宠邀你来找茬'),
+  'qq.com/td.html': game('Q宠守护使'),
+  'qq.com/td2.html': game('Q宠守护使'),
+  qq_tdsj: game('Q宠守护使'),
+  sanmingzhi: game('QQ煎饼摊'),
+  couxingxing: game('QQ宠物摘星星'),
+  qq_qqpp: game('QQ宠物泡泡'),
   ...ISLAND,
+}
+
+/** Opens what stands in for an island page; false when nothing does. */
+function visit(url: string): boolean {
+  const page = Object.entries(PAGES).find(([key]) => url.includes(key))?.[1]
+  if (!page) return meet(url)
+  page()
+  return true
 }
 
 /** Offline the island would be empty: a few guest pets wander and chat through Flash's own GPet API. */
@@ -485,6 +515,8 @@ async function enter(next = spot): Promise<void> {
   await flash('PSW.ChangeScene', spot.scene)
   await flash('PSW.SetFps', 30)
   await populate()
+  const done = arrive(spot.scene)
+  if (done) say(done)
 }
 
 /** The player's pet says `text` on the island. */
@@ -521,7 +553,7 @@ export function openCommunity(): void {
       // Missing tiles (风语广场, 企鹅镇...): stay put; Failed closes the loading panel the request opened.
       if (!SCENES.has(scene)) {
         await flash('PSW.RequestChangeSceneFailed', 1)
-        return void (await flash('PSW.MPetSendChatMSG', 0, '', '前面的路还没修好，过不去呢~'))
+        return say('前面的路还没修好，过不去呢~')
       }
       if (scene === spot.scene) return enter()
       await enter({ scene, ...((await portal(scene, spot.scene)) ?? spawn(scene)) })
@@ -590,6 +622,8 @@ export function openCommunity(): void {
       setTimeout(() => {
         void flash('PSW.MPetSendChatMSG', type, to, text)
         void reply(to)
+        const done = chatted()
+        if (done) setTimeout(() => say(done), 800)
       })
       return 1
     },
@@ -623,8 +657,7 @@ export function openCommunity(): void {
     },
     // Calling back into Flash before this call returns re-runs its click handler (and can hang Ruffle).
     ParseURL: (url) => {
-      const page = Object.entries(PAGES).find(([key]) => String(url).includes(key))?.[1]
-      setTimeout(page ?? (() => deliver(String(url)) || void flash('PSW.MPetSendChatMSG', 0, '', '这里已经关门啦，下次再来吧~')))
+      setTimeout(() => visit(String(url)) || say('这里已经关门啦，下次再来吧~'))
       return 1
     },
     GetState: () => 1,

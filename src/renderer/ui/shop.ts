@@ -76,6 +76,8 @@ const MALL: Tab[] = [
 
 /** Item ids per mall tab, type and page. */
 const PAGES = SHOP as Record<string, Partial<Record<GoodType, string[][]>>>
+/** Ids the mall sells. */
+export const SOLD = new Set(Object.values(PAGES).flatMap((tab) => Object.values(tab).flat(2)))
 
 /** Where the "add to cart" image of mall slot k (two per row) starts, and where it flies to. */
 const slot = (k: number): { x: number; y: number } => ({

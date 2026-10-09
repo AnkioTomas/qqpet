@@ -6,4 +6,4 @@
 .ui-island .i_head {color:#f18922;font-size:14px;font-weight:500}
 .ui-island .i_good {display:inline-flex;align-items:center;margin:8px 12px 0 0}
 .ui-island .goodImg {width:30px;height:30px;margin-right:4px}
-.ui-island .i_ok {align-self:center;margin-top:10px}
+.ui-island .i_acts {display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}
