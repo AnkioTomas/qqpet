@@ -1,5 +1,5 @@
 import { speak } from '../pet/pet'
-import { addInfo, busy, info, refreshTray, save, setInfo, setTray, stage } from '../pet/store'
+import { addInfo, busy, info, playingDesk, refreshTray, save, setDeskGame, setInfo, setTray, stage } from '../pet/store'
 import { addCount } from '../pet/tasks'
 import { SwfPlayer } from '../swf/player'
 import './css/smallgame.css'
@@ -86,6 +86,7 @@ function destroy(w: Win): void {
 function finish(): void {
   root = null
   dir = ''
+  setDeskGame('')
   document.getElementById('pet')!.hidden = false
   window.qqpet.setFocusable(false)
   addCount('GameRound')
@@ -210,11 +211,12 @@ function open(name: string, parent: Win | null, swf: string, x: number, y: numbe
 }
 
 export function playSmallGame(g: (typeof SMALL_GAMES)[number]): void {
-  if (root) return
+  if (root || playingDesk()) return
   const st = stage()
   if (st === 'Egg') return speak({ s: '[host]，我还是个蛋呢，等破壳了再陪你玩~', now: true }, 'speak')
   if (busy()) return speak({ s: '[host]，我正忙着呢，忙完再陪你玩~', now: true }, 'speak')
   dir = g.dir
+  setDeskGame(g.dir)
   const pet = document.getElementById('pet')!
   const r = pet.getBoundingClientRect()
   pet.hidden = true

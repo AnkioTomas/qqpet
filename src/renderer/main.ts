@@ -3,6 +3,7 @@ import { resumeTask } from './pet/jobs'
 import { machine, speak, startPet } from './pet/pet'
 import { applyEdge, info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
+import { catchDiudiule, releaseDiudiule } from './ui/diudiule'
 import { scheduleHide, showControl } from './ui/control'
 import { div, pageX, pageY, touch } from './ui/dom'
 import './ui/face'
@@ -85,12 +86,29 @@ petEl.addEventListener('pointerdown', (e) => {
   closeMenu()
   showControl()
   dragging = true
+  catchDiudiule()
   let dx = pageX(e) - info.lastX
   let dy = pageY(e) - info.lastY
+  let px = pageX(e)
+  let py = pageY(e)
+  let pt = performance.now()
+  let vx = 0
+  let vy = 0
   // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
   const hold = touch ? setTimeout(() => openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet), HOLD_MS) : 0
   let lifted = false
   const move = (m: PointerEvent): void => {
+    const x = pageX(m)
+    const y = pageY(m)
+    const t = performance.now()
+    const dt = (t - pt) / 1000
+    if (dt > 0) {
+      vx = (x - px) / dt
+      vy = (y - py) / dt
+    }
+    px = x
+    py = y
+    pt = t
     if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) {
       clearTimeout(hold)
       if (!lifted) {
@@ -102,8 +120,8 @@ petEl.addEventListener('pointerdown', (e) => {
         dy = size * 0.14
       }
     }
-    setInfo('lastX', pageX(m) - dx)
-    setInfo('lastY', pageY(m) - dy)
+    setInfo('lastX', x - dx)
+    setInfo('lastY', y - dy)
     // Once lifted the scruff is the cursor; clamping the box would pull it off.
     if (!lifted) clampOnScreen()
   }
@@ -115,6 +133,14 @@ petEl.addEventListener('pointerdown', (e) => {
       clearTimeout(hold)
       dragging = false
       petEl.removeEventListener('pointermove', move)
+      if (performance.now() - pt > 80) {
+        vx = 0
+        vy = 0
+      }
+      if (releaseDiudiule(lifted, vx, vy)) {
+        scheduleHide()
+        return
+      }
       const edge = snapEdge()
       if (edge) machine.play({ a: edge })
       else if (lifted || machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') machine.play({ a: 'normal' })

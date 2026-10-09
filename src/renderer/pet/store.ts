@@ -94,6 +94,13 @@ export function growthPerMinute(): number {
 
 export const busy = (): boolean => Boolean(activity('work') || activity('study') || activity('trip'))
 
+/** Session-only desktop minigame name. Not saved. */
+let deskGame = ''
+export const playingDesk = (): string => deskGame
+export const setDeskGame = (name: string): void => {
+  deskGame = name
+}
+
 /** 0 (fresh) and up; drives random illness and health loss. */
 export function fatigue(): number {
   const c = save.petComputedlInfo

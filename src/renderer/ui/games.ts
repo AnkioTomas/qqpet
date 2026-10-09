@@ -6,6 +6,7 @@ import { openBox } from './box'
 import './css/games.css'
 import { button, div } from './dom'
 import { floatMood } from './float'
+import { playDiudiule } from './diudiule'
 import { playSmallGame, SMALL_GAMES } from './smallgame'
 
 let open = false
@@ -33,14 +34,24 @@ export function openGames(): void {
   const cats = [
     {
       name: '陪我玩',
-      games: SMALL_GAMES.map((g) => ({
-        name: g.name,
-        run: () => {
-          close()
-          open = false
-          playSmallGame(g)
+      games: [
+        ...SMALL_GAMES.map((g) => ({
+          name: g.name,
+          run: () => {
+            close()
+            open = false
+            playSmallGame(g)
+          },
+        })),
+        {
+          name: '丢丢乐',
+          run: () => {
+            close()
+            open = false
+            playDiudiule()
+          },
         },
-      })),
+      ],
     },
     ...GAMES.map((c) => ({ name: c.name, games: c.games.map((g) => ({ name: g, run: () => window.qqpet.openGame(`${c.dir}/${g}.swf`) })) })),
   ]

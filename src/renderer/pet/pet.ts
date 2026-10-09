@@ -24,6 +24,7 @@ import {
   mood,
   onInfoChange,
   petSize,
+  playingDesk,
   refreshTray,
   save,
   setActivity,
@@ -121,7 +122,7 @@ function startWalkMove(speed: number, until: number): void {
 
 /** In-place walk cycle; we move the box at the official 8 px / 12 fps, scaled to pet size. */
 function walk(): boolean {
-  if (!save.settings.roam || busy() || info.health < 5) return false
+  if (!save.settings.roam || busy() || playingDesk() || info.health < 5) return false
   if (machine.pose.a !== 'normal' || edgeSide()) return false
   const s = petSize()
   const roomL = info.lastX
@@ -139,7 +140,7 @@ function walk(): boolean {
 
 /** After 20-60 s of standing: walk / play / talk, same timer. Walk only if roam is on. */
 function idle(): void {
-  if (peeking()) return
+  if (peeking() || playingDesk()) return
   if (maybeLead()) return
   if (save.settings.roam) {
     const n = Math.trunc(Math.random() * 3)
