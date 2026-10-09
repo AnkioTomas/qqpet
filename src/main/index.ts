@@ -1,5 +1,5 @@
 import { app, clipboard, dialog, ipcMain, net, powerMonitor, session, shell } from 'electron'
-import { IPC, type MessageBoxOptions, type TrayState } from '../shared/ipc'
+import { IPC, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
@@ -59,15 +59,10 @@ app.whenReady().then(() => {
     exportSave(r.filePath)
     return true
   })
-  ipcMain.on(IPC.importSave, async () => {
+  ipcMain.handle(IPC.importSave, async () => {
     const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'QQ宠物存档', extensions: ['json'] }] })
     if (r.canceled) return
-    try {
-      importSave(r.filePaths[0])
-    } catch (e) {
-      await dialog.showMessageBox(win, { type: 'error', message: '这不是有效的QQ宠物存档', detail: String(e) })
-      return
-    }
+    importSave(r.filePaths[0])
     app.relaunch()
     app.exit(0)
   })
@@ -84,10 +79,6 @@ app.whenReady().then(() => {
     openGameWindow(swf, panel ? win : undefined).on('closed', () => win.isDestroyed() || win.webContents.send(IPC.gamePlayed, (Date.now() - start) / 60000))
   })
   ipcMain.on(IPC.quit, () => app.quit())
-  ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {
-    const r = await dialog.showMessageBox(win, { type: 'none', buttons: ['取消', '确定'], ...o })
-    return r.response
-  })
   ipcMain.on(IPC.copyText, (_e, text: string) => clipboard.writeText(text))
   ipcMain.on(IPC.openUrl, (_e, url: string) => /^https?:\/\//.test(url) && void shell.openExternal(url))
   ipcMain.on(IPC.setClickThrough, (_e, on: boolean) => win.setIgnoreMouseEvents(on))

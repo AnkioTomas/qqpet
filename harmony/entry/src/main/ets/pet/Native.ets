@@ -18,7 +18,7 @@ function flag(v: boolean | string | number): boolean {
 
 export class Native {
   static readonly METHODS: string[] = [
-    'read', 'write', 'http', 'messageBox', 'exportSave', 'importSave',
+    'read', 'write', 'http', 'exportSave', 'importSave',
     'openGame', 'quit', 'copyText', 'openUrl', 'setFocusable', 'setAutoStart',
     'setTray', 'setBounds', 'safeArea'
   ]
@@ -73,32 +73,6 @@ export class Native {
     }).catch((e: Error) => {
       host().resolve(hid, null, e.toString())
       client.destroy()
-    })
-  }
-
-  messageBox(id: number | string, options: string): void {
-    const hid = num(id)
-    const o = JSON.parse(options) as Record<string, Object>
-    const buttons = (o['buttons'] as string[]) ?? ['取消', '确定']
-    const prompt = host().win?.getUIContext().getPromptAction()
-    if (!prompt) {
-      host().resolve(hid, '0')
-      return
-    }
-    const dialogButtons: DialogButton[] = []
-    for (let i = 0; i < buttons.length; i++) {
-      const btn: DialogButton = { text: buttons[i], color: '#007DFF' }
-      dialogButtons.push(btn)
-    }
-    const dialog: DialogOptions = {
-      title: (o['title'] as string) ?? '',
-      message: o['message'] as string,
-      buttons: dialogButtons
-    }
-    prompt.showDialog(dialog).then((r: promptActionResult) => {
-      host().resolve(hid, `${r.index}`)
-    }).catch((_e: Error) => {
-      host().resolve(hid, '0')
     })
   }
 
@@ -170,19 +144,4 @@ export class Native {
   safeArea(viewport: number | string): string {
     return host().safeArea(num(viewport))
   }
-}
-
-interface promptActionResult {
-  index: number
-}
-
-interface DialogButton {
-  text: string
-  color: string
-}
-
-interface DialogOptions {
-  title: string
-  message: string
-  buttons: DialogButton[]
 }

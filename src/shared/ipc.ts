@@ -14,7 +14,6 @@ export const IPC = {
   weather: 'app:weather',
   latestRelease: 'app:latest-release',
   quit: 'app:quit',
-  messageBox: 'app:message-box',
   copyText: 'app:copy-text',
   openUrl: 'app:open-url',
   clipboard: 'clipboard:text',
@@ -57,13 +56,6 @@ export interface TrayClick {
   y?: number
 }
 
-export interface MessageBoxOptions {
-  type?: 'none' | 'info' | 'error' | 'question' | 'warning'
-  title?: string
-  message: string
-  buttons?: string[]
-}
-
 /** One local date from the calendar API. */
 export interface CalendarDay {
   /** YYYY-MM-DD. */
@@ -90,7 +82,6 @@ export interface Weather {
 export interface Release {
   version: string
   url: string
-  notes: string
 }
 
 /** An OpenAI-compatible endpoint: `url` ends in /v1; `key` may be empty for local servers. */
@@ -117,8 +108,8 @@ export interface QQPetApi {
   resetPet(sex?: Sex): void
   /** Asks where to write the save; false when cancelled. */
   exportSave(): Promise<boolean>
-  /** Asks for a save file (ours or the original's config.json), then relaunches with it. */
-  importSave(): void
+  /** Asks for a save file (ours or the original's config.json), then relaunches with it. Rejects when the file is not a save. */
+  importSave(): Promise<void>
   /** Plays pet/game/<swf> in its own resizable window. */
   openGame(swf: string): void
   /** Today and the next 30 days from the calendar API; empty while offline. */
@@ -132,8 +123,6 @@ export interface QQPetApi {
   /** Rejects while offline. */
   latestRelease(): Promise<Release>
   quit(): void
-  /** Resolves to the index of the clicked button. */
-  messageBox(options: MessageBoxOptions): Promise<number>
   copyText(text: string): void
   /** Opens a web page in the system browser. */
   openUrl(url: string): void

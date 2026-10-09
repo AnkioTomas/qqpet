@@ -16,7 +16,6 @@ interface Native {
   read(name: string): string
   write(name: string, text: string): void
   http(id: number, method: string, url: string, headers: string, body: string): void
-  messageBox(id: number, options: string): void
   exportSave(id: number, name: string, text: string): void
   importSave(id: number): void
   openGame(swf: string): void
@@ -226,15 +225,10 @@ const api: QQPetApi = {
   async importSave() {
     const text = await call((id) => native.importSave(id))
     if (text === null) return
-    try {
-      const pet = petOf(JSON.parse(text))
-      if (pet.havePet !== true) throw new Error('no pet in this file')
-      native.write(`${FILE}.bak`, JSON.stringify(save))
-      native.write(FILE, JSON.stringify(pet))
-    } catch (e) {
-      await api.messageBox({ type: 'error', message: `这不是有效的QQ宠物存档\n${e}`, buttons: ['确定'] })
-      return
-    }
+    const pet = petOf(JSON.parse(text))
+    if (pet.havePet !== true) throw new Error('no pet in this file')
+    native.write(`${FILE}.bak`, JSON.stringify(save))
+    native.write(FILE, JSON.stringify(pet))
     relaunch()
   },
   openGame: (swf) => native.openGame(swf),
@@ -244,7 +238,6 @@ const api: QQPetApi = {
   weather: (city) => weather(nativeFetch, city),
   latestRelease: () => latestRelease(nativeFetch),
   quit: () => native.quit(),
-  messageBox: async (o) => Number(await call((id) => native.messageBox(id, JSON.stringify({ buttons: ['取消', '确定'], ...o })))),
   copyText: (text) => native.copyText(text),
   openUrl: (url) => native.openUrl(url),
   setClickThrough() {},

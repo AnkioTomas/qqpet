@@ -9,6 +9,7 @@ import { frame } from './frame'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
 import { openShop } from './shop'
+import { windowView } from './window-view'
 
 const ditu = (n: number): string => `pet/Menu/ditu0${n}.png`
 
@@ -36,10 +37,9 @@ function quit(): void {
   machine.play({ a: 'exit', s: () => setTray('leave'), e: () => window.qqpet.quit() })
 }
 
-export async function readopt(): Promise<void> {
+export function readopt(): void {
   closeMenu()
-  const message = '点击将会清空当前宠物数据，并且重置为未领养状态，请慎重选择'
-  if ((await window.qqpet.messageBox({ type: 'question', title: '重新领养宠物~', message })) === 1) window.qqpet.resetPet()
+  windowView({ title: '重新领养宠物~', msg: '点击将会清空当前宠物数据，并且重置为未领养状态，请慎重选择', ok: () => window.qqpet.resetPet() })
 }
 
 export function setHidden(on: boolean): void {

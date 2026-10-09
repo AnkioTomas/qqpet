@@ -1,7 +1,6 @@
 package net.ankio.qqpet
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -22,7 +21,6 @@ import android.graphics.drawable.Icon
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
-import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -252,21 +250,6 @@ class PetService : Service() {
         wm.updateViewLayout(root, params)
     }
 
-    private fun messageBox(id: Int, options: String) {
-        val o = JSONObject(options)
-        val buttons = o.getJSONArray("buttons")
-        val last = buttons.length() - 1
-        val dialog = AlertDialog.Builder(ContextThemeWrapper(this, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert))
-            .setTitle(o.optString("title").ifEmpty { null })
-            .setMessage(o.getString("message"))
-            .setPositiveButton(buttons.getString(last)) { _, _ -> resolve(id, "$last") }
-            .apply { if (last > 0) setNegativeButton(buttons.getString(0)) { _, _ -> resolve(id, "0") } }
-            .setOnCancelListener { resolve(id, "0") }
-            .create()
-        dialog.window!!.setType(LayoutParams.TYPE_APPLICATION_OVERLAY)
-        dialog.show()
-    }
-
     private fun http(id: Int, method: String, url: String, headers: String, body: String?) = net.execute {
         try {
             val c = URL(url).openConnection() as HttpURLConnection
@@ -325,9 +308,6 @@ class PetService : Service() {
 
         @JavascriptInterface
         fun http(id: Int, method: String, url: String, headers: String, body: String?) = this@PetService.http(id, method, url, headers, body)
-
-        @JavascriptInterface
-        fun messageBox(id: Int, options: String) = web.post { this@PetService.messageBox(id, options) }
 
         @JavascriptInterface
         fun exportSave(id: Int, name: String, text: String) {

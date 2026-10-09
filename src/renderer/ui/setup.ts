@@ -12,6 +12,7 @@ import { button, div, typeable } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
 import { checkUpdate } from './update'
+import { windowView } from './window-view'
 
 type Option = { label: string; title?: string } & (
   | { type: 'radio'; on: () => boolean; run: () => void }
@@ -54,14 +55,23 @@ async function exportSave(): Promise<void> {
   if (await window.qqpet.exportSave()) speak({ s: '[host],存档导出成功啦~', now: true }, 'speak')
 }
 
-async function importSave(): Promise<void> {
-  const message = '导入的存档会替换当前宠物（当前存档会备份为 save.json.bak），导入后自动重启，确定吗？'
-  if ((await window.qqpet.messageBox({ type: 'question', title: '导入存档', message })) === 1) window.qqpet.importSave()
+function importSave(): void {
+  windowView({
+    title: '导入存档',
+    msg: '导入的存档会替换当前宠物（当前存档会备份为 save.json.bak），导入后自动重启，确定吗？',
+    ok: (close) => {
+      close()
+      void window.qqpet.importSave().catch(() => windowView({ title: '导入存档', msg: '这不是有效的QQ宠物存档~' }))
+    },
+  })
 }
 
-async function rebornAsOther(): Promise<void> {
-  const message = '点击将会清空当前宠物数据，并重生为另一个性别的宠物，请慎重选择'
-  if ((await window.qqpet.messageBox({ type: 'question', title: '重生为另一个性别~', message })) === 1) window.qqpet.resetPet(info.sex === 'GG' ? 'MM' : 'GG')
+function rebornAsOther(): void {
+  windowView({
+    title: '重生为另一个性别~',
+    msg: '点击将会清空当前宠物数据，并重生为另一个性别的宠物，请慎重选择',
+    ok: () => window.qqpet.resetPet(info.sex === 'GG' ? 'MM' : 'GG'),
+  })
 }
 
 /** Ten of a random good of `type`. */
