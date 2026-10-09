@@ -1,6 +1,6 @@
 import { clipAsk, IDLE, note } from './pet/ai'
 import { resumeTask } from './pet/jobs'
-import { speak, startPet } from './pet/pet'
+import { machine, speak, startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
@@ -12,10 +12,26 @@ import { openState } from './ui/state'
 const petEl = document.getElementById('pet')!
 const HOLD_MS = 500
 
-function clampPosition(): void {
-  const max = (n: number, limit: number): number => Math.min(Math.max(n, 0), limit - petSize())
-  setInfo('lastX', max(info.lastX, innerWidth))
-  setInfo('lastY', max(info.lastY, innerHeight))
+function clampOnScreen(): void {
+  const s = petSize()
+  setInfo('lastX', Math.min(Math.max(info.lastX, 0), innerWidth - s))
+  setInfo('lastY', Math.min(Math.max(info.lastY, 0), innerHeight - s))
+}
+
+/** Left/right: keep the box on-screen. Hide_left/right already peek from the sprite edge. */
+function snapEdge(): 'hideleft' | 'hideright' | null {
+  const s = petSize()
+  const near = 36
+  if (info.lastX <= near) {
+    setInfo('lastX', 0)
+    return 'hideleft'
+  }
+  if (info.lastX + s >= innerWidth - near) {
+    setInfo('lastX', innerWidth - s)
+    return 'hideright'
+  }
+  clampOnScreen()
+  return null
 }
 
 let size = petSize()
@@ -26,14 +42,14 @@ function layout(): void {
     size = petSize()
     setInfo('lastX', info.lastX - shift)
     setInfo('lastY', info.lastY - shift)
-    clampPosition()
+    clampOnScreen()
   }
   petEl.style.width = petEl.style.height = `${size}px`
   petEl.style.left = `${info.lastX}px`
   petEl.style.top = `${info.lastY}px`
 }
 
-if (info.lastX < 0 || info.lastY < 0) {
+if (info.lastX === -1 && info.lastY === -1) {
   setInfo('lastX', (innerWidth - size) / 2)
   setInfo('lastY', (innerHeight - size) / 2)
 }
@@ -75,10 +91,18 @@ petEl.addEventListener('pointerdown', (e) => {
   const dy = pageY(e) - info.lastY
   // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
   const hold = touch ? setTimeout(() => openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet), HOLD_MS) : 0
+  let lifted = false
   const move = (m: PointerEvent): void => {
-    if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) clearTimeout(hold)
+    if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) {
+      clearTimeout(hold)
+      if (!lifted) {
+        lifted = true
+        machine.play({ a: 'drag', opt: { url: 'pet/Action/drag.swf', opt: {} } })
+      }
+    }
     setInfo('lastX', pageX(m) - dx)
     setInfo('lastY', pageY(m) - dy)
+    clampOnScreen()
   }
   petEl.setPointerCapture(e.pointerId)
   petEl.addEventListener('pointermove', move)
@@ -88,7 +112,9 @@ petEl.addEventListener('pointerdown', (e) => {
       clearTimeout(hold)
       dragging = false
       petEl.removeEventListener('pointermove', move)
-      clampPosition()
+      const edge = snapEdge()
+      if (edge) machine.play({ a: edge })
+      else if (lifted || machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') machine.play({ a: 'normal' })
       scheduleHide()
     },
     { once: true },

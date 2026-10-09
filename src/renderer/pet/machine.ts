@@ -51,7 +51,8 @@ export class Machine {
     const freezeAt = this.poseOpt?.overCurrentFrame
     if (freezeAt && f.currentFrame >= freezeAt && f.isPlaying) f.stop()
     if (this.changing) return
-    const holding = (this.pose.a === 'normal' && !this.queue.length) || f.currentFrame !== last || (last === 0 && !this.queue.length)
+    const hold = this.pose.a === 'normal' || this.pose.a === 'hideleft' || this.pose.a === 'hideright' || this.pose.a === 'drag'
+    const holding = (hold && !this.queue.length) || f.currentFrame !== last || (last === 0 && !this.queue.length)
     if (!this.next && holding) return
 
     const p = this.next ?? this.queue.shift() ?? { a: 'normal' }
