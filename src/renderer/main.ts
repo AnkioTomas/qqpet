@@ -172,19 +172,6 @@ window.qqpet.onPresence((gone) => {
   speak({ s: '[host]，你回来啦~', now: true, ai: IDLE }, 'appear')
 })
 
-petEl.addEventListener('dragover', (e) => {
-  e.preventDefault()
-  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
-})
-petEl.addEventListener('drop', (e) => {
-  e.preventDefault()
-  if (!save.havePet) return
-  const name = e.dataTransfer?.files[0]?.name.slice(0, 40)
-  if (!name) return
-  note(`主人丢过来「${name}」`)
-  speak({ s: `[host]，这是「${name}」吗？`, now: true, ai: IDLE }, 'speak')
-})
-
 const DWELL = 10 * 60 * 1000
 let front = ''
 let frontSince = 0
