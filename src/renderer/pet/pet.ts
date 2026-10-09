@@ -327,7 +327,8 @@ function healthRoll(): void {
   const f = fatigue()
   if (!f) return
   if (info.health !== 5) {
-    if (rand(0, 700 - f * 50) < 5) setInfo('health', info.health - 1)
+    // 8x slower than the original: at its rate an unattended Lv1 pet died within one night (median ~9.5 h).
+    if (rand(0, (700 - f * 50) * 8) < 5) setInfo('health', info.health - 1)
     return
   }
   const r = rand(0, 1300 - f * 100)
