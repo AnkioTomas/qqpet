@@ -1,6 +1,10 @@
 /** The primary pointer is a finger: small screen, no hover, big hit targets. */
 export const touch = matchMedia('(pointer: coarse)').matches
 
+/** Page coordinates. Harmony crops the float window with a CSS translate; `clientX` is visual. */
+export const pageX = (e: PointerEvent): number => e.clientX + Number(document.documentElement.dataset.cropX || 0)
+export const pageY = (e: PointerEvent): number => e.clientY + Number(document.documentElement.dataset.cropY || 0)
+
 /** `<div class=cls>` with children; strings become text nodes. */
 export function div(cls: string, ...children: (Node | string)[]): HTMLDivElement {
   const d = document.createElement('div')

@@ -73,8 +73,23 @@ jobs:
           path: dist/*.apk
           if-no-files-found: error
 
+  # GitHub has no DevEco: this checks the Harmony web + rawfile pack, not a HAP.
+  harmony:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
+      - run: npm run typecheck && npm run build:harmony-web && node scripts/pack-harmony.mjs
+
   release:
-    needs: [build, android]
+    needs: [build, android, harmony]
     runs-on: ubuntu-latest
     permissions:
       contents: write

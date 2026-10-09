@@ -1,6 +1,6 @@
 # QQPet
 
-QQ 宠物跨平台复刻（Windows / macOS / Linux / Android），基于 Arctic Penguin T800 逆向重建。Flash 内容由 [Ruffle](https://ruffle.rs) 播放。
+QQ 宠物跨平台复刻（Windows / macOS / Linux / Android / HarmonyOS），基于 Arctic Penguin T800 逆向重建。Flash 内容由 [Ruffle](https://ruffle.rs) 播放。
 
 > **版权声明**：QQ 宠物的美术资源与 SWF 版权归腾讯所有；旅行照片素材版权归《旅行青蛙·中国之旅》所有。本项目仅供学习交流，请勿用于商业用途。
 
@@ -46,6 +46,20 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux / Android），基于 Arctic 
 - 小游戏和密室探险全屏横屏运行，并显示可改键的虚拟手柄。
 - 系统不允许后台读取剪贴板：在其他应用里选中文字后，从选择菜单或分享面板选「QQ宠物」，交给宠物点评或翻译。
 
+### HarmonyOS
+
+纯血鸿蒙（HarmonyOS NEXT / 5 及以上，在 7 模拟器上验证过）不能装 Android APK。宠物同样以悬浮窗显示，JS 桥和 Android 是同一份 `QQPetNative` 契约，原生壳在 `harmony/`，渲染层不改。
+
+- 首次打开需允许「显示在其他应用的上层」和通知；通知栏通知代替桌面版的托盘图标。
+- 小游戏和密室探险全屏横屏运行（`GameAbility`）。
+- 系统不允许后台读剪贴板：在其他应用里分享文字给「QQ宠物」，交给宠物点评或翻译。
+- 没有开机自启：当前 SDK 没有可用的开机广播扩展。
+- 窗口按页面可见内容裁剪；拖动时会铺满屏幕，避免跟手错位。
+
+本地打包：`npm run harmony`，需要本机 [DevEco Studio](https://developer.huawei.com/consumer/cn/deveco-studio/)（`harmony/hvigorw` 默认使用 `/Applications/DevEco-Studio.app`，可用 `DEVECO_SDK_HOME` / `NODE_HOME` / `JAVA_HOME` 覆盖）。未签名 HAP 可装模拟器；真机或上架要在 DevEco 里配置签名。产物在 `harmony/entry/build/default/outputs/default/`。
+
+GitHub Actions 打 `v*` 标签时会做鸿蒙的类型检查、web 构建和 rawfile 打包，**不**产出 HAP（Runner 上没有 DevEco）。
+
 ## 下载安装
 
 从 [Releases](https://github.com/AnkioTomas/qqpet/releases/latest) 下载对应平台的安装包：
@@ -57,6 +71,7 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux / Android），基于 Arctic 
 | macOS（Intel） | `QQPet-<版本>.dmg` |
 | Linux | `QQPet-<版本>.AppImage` 或 `qqpet_<版本>_amd64.deb` |
 | Android（11 及以上） | `QQPet-<版本>.apk` |
+| HarmonyOS（5 及以上） | 不在 Releases；本机 `npm run harmony` 打 HAP |
 
 安装包**没有代码签名**，系统会拦截首次运行：
 
@@ -70,6 +85,7 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux / Android），基于 Arctic 
   也可以先打开一次，再到「系统设置 → 隐私与安全性」底部点「仍要打开」。
 - **Linux**：AppImage 需要可执行权限，`chmod +x QQPet-*.AppImage` 后运行；Ubuntu 22.04 起若报缺少 FUSE，安装 `libfuse2`（24.04 为 `libfuse2t64`）。deb 包用 `sudo apt install ./qqpet_*_amd64.deb` 安装。
 - **Android**：在浏览器或文件管理器中打开 APK，按提示允许「安装未知应用」。
+- **HarmonyOS**：Releases 不提供 HAP。本机用 DevEco 打出 debug 包后，用 hdc 装到模拟器或已开启调试的真机。
 
 ## 开发
 
@@ -82,10 +98,12 @@ npm run dev
 ## 构建
 
 ```bash
-npm run dist   # 类型检查 + 构建 + 打包当前平台安装包到 dist/
+npm run dist      # 类型检查 + 构建 + 打包当前平台安装包到 dist/
+npm run android   # Android debug APK
+npm run harmony   # HarmonyOS debug HAP（需要本机 DevEco Studio）
 ```
 
-推送 `v*` 标签时由 GitHub Actions 打出三平台安装包和 Android APK 并发布 Release，其他推送不触发构建。
+推送 `v*` 标签时由 GitHub Actions 打出三平台安装包和 Android APK 并发布 Release，同时校验 Harmony 的类型检查、web 构建和 rawfile 打包（不产出 HAP）。其他推送不触发构建。
 
 Android 版本地调试用 `npm run android`（debug 包，输出到 `android/app/build/outputs/apk/debug/`），需要 Android SDK 和 JDK 17（Gradle 8 不支持更新的 JDK，可用 `JAVA_HOME` 指定）。CI 打的 release 包需要在仓库 Secrets 中配置签名密钥：
 
@@ -119,6 +137,8 @@ Android 版本地调试用 `npm run android`（debug 包，输出到 `android/ap
 | `src/shared` | 主进程与渲染层共享的 IPC 与存档类型 |
 | `src/android` | Android 版的 `window.qqpet` 实现，经 WebView 接口调用原生层 |
 | `android/` | Android 原生工程：悬浮窗服务、游戏页、文件选择、文字分享入口、开机自启 |
+| `src/harmony` | HarmonyOS 版的 `window.qqpet` 实现，经 ArkWeb 接口调用原生层 |
+| `harmony/` | HarmonyOS 原生工程：浮动窗、游戏页、存档选择、分享入口 |
 | `resources/pet` | 原版资源，`npm run import-assets -- <app.asar>` 可重新导入 |
 | `tools/` | 反混淆脚本、原版 CSS 移植脚本、CDP 调试脚本 |
 

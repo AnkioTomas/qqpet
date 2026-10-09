@@ -1,0 +1,11 @@
+{
+  "app": {
+    "bundleName": "net.ankio.qqpet",
+    "vendor": "ankio",
+    "versionCode": 100,
+    "versionName": "0.1.0",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name",
+    "debug": true
+  }
+}

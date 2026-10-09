@@ -10,11 +10,13 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.harmony.json",
     "import-assets": "node scripts/import-assets.mjs",
     "dist": "npm run typecheck && electron-vite build && electron-builder --publish never",
     "build:android-web": "vite build -c vite.android.config.ts",
-    "android": "npm run typecheck && npm run build:android-web && cd android && ./gradlew assembleDebug"
+    "android": "npm run typecheck && npm run build:android-web && cd android && ./gradlew assembleDebug",
+    "build:harmony-web": "vite build -c vite.harmony.config.ts",
+    "harmony": "npm run typecheck && npm run build:harmony-web && node scripts/pack-harmony.mjs && cd harmony && ./hvigorw assembleHap -p product=default -p buildMode=debug"
   },
   "devDependencies": {
     "@electron/asar": "^4.3.1",

@@ -4,7 +4,7 @@ import { speak, startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
 import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
-import { div, touch } from './ui/dom'
+import { div, pageX, pageY, touch } from './ui/dom'
 import './ui/face'
 import { closeMenu, openMenu } from './ui/menu'
 import { openState } from './ui/state'
@@ -71,14 +71,14 @@ petEl.addEventListener('pointerdown', (e) => {
   closeMenu()
   showControl()
   dragging = true
-  const dx = e.clientX - info.lastX
-  const dy = e.clientY - info.lastY
+  const dx = pageX(e) - info.lastX
+  const dy = pageY(e) - info.lastY
   // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
-  const hold = touch ? setTimeout(() => openMenu({ x: e.clientX, y: e.clientY, pet: true }, adoptPet), HOLD_MS) : 0
+  const hold = touch ? setTimeout(() => openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet), HOLD_MS) : 0
   const move = (m: PointerEvent): void => {
     if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) clearTimeout(hold)
-    setInfo('lastX', m.clientX - dx)
-    setInfo('lastY', m.clientY - dy)
+    setInfo('lastX', pageX(m) - dx)
+    setInfo('lastY', pageY(m) - dy)
   }
   petEl.setPointerCapture(e.pointerId)
   petEl.addEventListener('pointermove', move)

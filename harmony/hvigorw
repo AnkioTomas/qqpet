@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+export NODE_HOME="${NODE_HOME:-/Applications/DevEco-Studio.app/Contents/tools/node}"
+export DEVECO_SDK_HOME="${DEVECO_SDK_HOME:-/Applications/DevEco-Studio.app/Contents/sdk}"
+export JAVA_HOME="${JAVA_HOME:-/Applications/DevEco-Studio.app/Contents/jbr/Contents/Home}"
+export PATH="$NODE_HOME/bin:/Applications/DevEco-Studio.app/Contents/tools/ohpm/bin:/Applications/DevEco-Studio.app/Contents/tools/hvigor/bin:$JAVA_HOME/bin:$PATH"
+if [ ! -f "$ROOT/local.properties" ]; then
+  printf 'hwsdk.dir=%s\nsdk.dir=%s\n' "$DEVECO_SDK_HOME" "$DEVECO_SDK_HOME" > "$ROOT/local.properties"
+fi
+cd "$ROOT"
+exec /Applications/DevEco-Studio.app/Contents/tools/hvigor/bin/hvigorw "$@"

@@ -1,0 +1,10 @@
+/.hvigor
+/oh_modules
+/build
+/local.properties
+/.idea
+entry/build
+entry/oh_modules
+entry/src/main/resources/rawfile
+*.hap
+*.app

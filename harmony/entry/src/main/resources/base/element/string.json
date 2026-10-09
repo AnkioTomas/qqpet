@@ -1,0 +1,12 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "QQ宠物" },
+    { "name": "EntryAbility_desc", "value": "QQ宠物" },
+    { "name": "EntryAbility_label", "value": "QQ宠物" },
+    { "name": "GameAbility_desc", "value": "QQ宠物小游戏" },
+    { "name": "GameAbility_label", "value": "QQ宠物小游戏" },
+    { "name": "TextAbility_desc", "value": "把文字交给QQ宠物" },
+    { "name": "BootAbility_desc", "value": "开机启动QQ宠物" },
+    { "name": "float_reason", "value": "把宠物显示在其他应用上层" }
+  ]
+}
