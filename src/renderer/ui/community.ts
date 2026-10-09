@@ -5,6 +5,7 @@ import { openBox } from './box'
 import './css/community.css'
 import { div } from './dom'
 import { openFishing } from './fishing'
+import { deliver, ISLAND } from './island'
 import { openMstx } from './mstx'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
@@ -57,6 +58,7 @@ const PAGES: Record<string, () => void> = {
   qq_ddp: game('QQ端盘子'),
   qq_hhxx: game('QQ好好学习'),
   main_xmxd: game('冒险岛系列/1起航'),
+  ...ISLAND,
 }
 
 /** Offline the island would be empty: a few guest pets wander and chat through Flash's own GPet API. */
@@ -602,7 +604,7 @@ export function openCommunity(): void {
     // Calling back into Flash before this call returns re-runs its click handler (and can hang Ruffle).
     ParseURL: (url) => {
       const page = Object.entries(PAGES).find(([key]) => String(url).includes(key))?.[1]
-      setTimeout(page ?? (() => void flash('PSW.MPetSendChatMSG', 0, '', '这里已经关门啦，下次再来吧~')))
+      setTimeout(page ?? (() => deliver(String(url)) || void flash('PSW.MPetSendChatMSG', 0, '', '这里已经关门啦，下次再来吧~')))
       return 1
     },
     GetState: () => 1,
@@ -645,6 +647,8 @@ export function openCommunity(): void {
       // The world map reads each area's scene id from this server file; the bundled copy carries them.
       urlRewriteRules: [
         [/^http:\/\/img\.pet\.qq\.com\/WorldMapHotInfo\.xml/, new URL(`${BASE}Data/WorldMap/WorldMapHotInfo.xml`, location.href).href],
+        // The right-hand panel: island NPCs and places, and pages qqpet stands in for.
+        [/^http:\/\/img\.pet\.qq\.com\/newnavigation\.xml/, new URL(`${BASE}Data/newnavigation.xml`, location.href).href],
         // Only main01/main02 survived; the other scene tracks fall back to them.
         [/(?:sea|snow|live)0([12])\.mp3$/, 'main0$1.mp3'],
         [/sound3\.mp3$/, 'main01.mp3'],

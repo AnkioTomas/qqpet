@@ -54,9 +54,13 @@ export async function ask(messages: AiMessage[], extra = ''): Promise<string | n
   return (await chat(`${persona()}\n${extra}`, messages))?.slice(0, 200) || null
 }
 
+/** Small models get stuck now and then: 糖糖糖糖…, or the same phrase twice in a row. */
+const LOOP = /(.{3,})\1|(.)\2{4}/
+
 /** A line from someone other than the pet: `who` stands in for the pet's persona. */
 export async function askAs(who: string, messages: AiMessage[]): Promise<string | null> {
-  return firstLine(await chat(`${who}\n${STYLE}`, messages))
+  const line = firstLine(await chat(`${who}\n${STYLE}`, messages))
+  return line && !LOOP.test(line) ? line : null
 }
 
 /** By default the line is only reworded; `how` can ask for more, e.g. small talk around it. */

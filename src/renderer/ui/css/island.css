@@ -1,0 +1,9 @@
+.ui-island .island {width:580px;min-height:200px;max-height:440px;padding:0 12px 12px;background-color:#fdecdd;font-size:13px;color:#535353;line-height:1.6}
+.ui-island .i_title {padding:8px 3px;color:#edbd8c;font-size:14px;font-weight:700;text-shadow:.2px .2px 1px #000}
+.ui-island .i_body {border:1px solid #f1ac65;border-radius:8px;padding:10px 12px;overflow:hidden auto}
+.ui-island .i_row {padding:4px 0;border-bottom:1px solid #f1ac65}
+.ui-island .i_row:last-child {border-bottom:0}
+.ui-island .i_head {color:#f18922;font-size:14px;font-weight:500}
+.ui-island .i_good {display:inline-flex;align-items:center;margin:8px 12px 0 0}
+.ui-island .goodImg {width:30px;height:30px;margin-right:4px}
+.ui-island .i_ok {align-self:center;margin-top:10px}
