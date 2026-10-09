@@ -54,6 +54,8 @@ const cursor = { x: 0, y: 0 }
 window.API = {
   GetCursorPosition: () => `${cursor.x},${cursor.y},0`,
   GetWindowRect: () => `${info.lastX},${info.lastY},${size},${size}`,
+  // No PetEden.ini: every key reads as its default, as the Windows call does for a missing file.
+  GetPrivateProfileString: (_section, _key, fallback) => fallback,
 }
 
 // The window is click-through except while the cursor is over a [data-hit]

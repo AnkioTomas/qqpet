@@ -9,6 +9,7 @@ import { deliver, ISLAND } from './island'
 import { openMstx } from './mstx'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
+import { openShop } from './shop'
 
 const BASE = 'pet/petsoc/'
 /** 夏帕海岸: SceneConfig matches the tiles we actually have. 企鹅镇's bg_V69 is missing from the dump. */
@@ -46,6 +47,14 @@ const RES: Record<string, string> = {
 }
 
 const game = (swf: string) => (): void => window.qqpet.openGame(`企鹅/${swf}.swf`)
+/** The 新闻 button loads Tencent's magazine SWF itself, with no host call: its request opens the island paper instead. */
+const MAGAZINE = 'img.pet.qq.com/swf/games/message.swf'
+const fetchNet = window.fetch
+window.fetch = (input, init) => {
+  if (!String(input instanceof Request ? input.url : input).includes(MAGAZINE)) return fetchNet(input, init)
+  setTimeout(ISLAND['qqpet://news'])
+  return Promise.resolve(new Response(null, { status: 404 }))
+}
 
 /** Web pages (by a piece of their URL) qqpet can stand in for; the rest of the island's pages are long gone. */
 const PAGES: Record<string, () => void> = {
@@ -478,6 +487,9 @@ async function enter(next = spot): Promise<void> {
   await populate()
 }
 
+/** The player's pet says `text` on the island. */
+const say = (text: string): void => void flash('PSW.MPetSendChatMSG', 0, '', text)
+
 /** 企鹅社区 (pet/petsoc/world_1051.swf). Offline: skip the dead login servers and drop into 企鹅镇. */
 export function openCommunity(): void {
   if (open) return
@@ -587,9 +599,17 @@ export function openCommunity(): void {
       setTimeout(openSetup)
       return 1
     },
-    // qqpet has no 家园: going home means back to the desktop.
+    // The 物品 button: qqpet keeps its goods in the shop's left half.
+    OpenItemBox: () => {
+      setTimeout(openShop)
+      return 1
+    },
     LoginHome: () => {
-      setTimeout(close)
+      setTimeout(() => say('家园暂不支持哦~'))
+      return 1
+    },
+    OpenFriendList: () => {
+      setTimeout(() => say('好友暂不支持哦~'))
       return 1
     },
   })
@@ -627,7 +647,7 @@ export function openCommunity(): void {
   }
   w.__petsoc = calls
 
-  const close = openBox(div('ui-community', stage), {
+  openBox(div('ui-community', stage), {
     onClose: () => {
       clearInterval(wander)
       player?.destroy()
