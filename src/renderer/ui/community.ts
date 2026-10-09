@@ -6,6 +6,7 @@ import './css/community.css'
 import { div } from './dom'
 import { openFishing } from './fishing'
 import { arrive, chatted, ISLAND, meet, played, stage } from './island'
+import { SAYS } from './island-talk'
 import { openMstx } from './mstx'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
@@ -102,8 +103,33 @@ function visit(url: string): boolean {
 
 /** Offline the island would be empty: a few guest pets wander and chat through Flash's own GPet API. */
 const GUESTS = ['阿呆', '豆豆', '小胖', '球球', '咕咕', '泡泡']
-const LINES = ['今天天气真好~', '有人一起去钓鱼吗？', '听说密室里藏着宝贝！', '好饿呀，去找点吃的', '你好呀！', '这里风景真不错~', '谁来陪我玩小游戏？', '走累了，歇一会儿']
-const REPLIES = ['哈哈，说得对！', '真的吗？', '嗯嗯~', '你好呀，一起玩吧！', '我也这么觉得~', '嘿嘿~', '好呀好呀！']
+const LINES = [
+  '今天天气真好~',
+  '有人一起去钓鱼吗？',
+  '听说密室里藏着宝贝！',
+  '好饿呀，去找点吃的',
+  '你好呀！',
+  '这里风景真不错~',
+  '谁来陪我玩小游戏？',
+  '走累了，歇一会儿',
+  '东郊荒地又有妖怪出没啦，好可怕！',
+  '我刚从咖啡厅出来，翠花做的点心真好吃。',
+  '谁知道图图在哪儿？我想要宝藏图碎片。',
+  '风语广场今天人好多呀~',
+]
+const REPLIES = [
+  '哈哈，说得对！',
+  '真的吗？',
+  '嗯嗯~',
+  '你好呀，一起玩吧！',
+  '我也这么觉得~',
+  '嘿嘿~',
+  '好呀好呀！',
+  '算我一个！',
+  '哇，好厉害！',
+  '我也想去看看~',
+  '下次叫上我呀！',
+]
 const IDLE = '随口说一句闲聊，可以接着刚才的话题，也可以说说岛上的事。只输出这句话。'
 
 const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
@@ -558,7 +584,7 @@ export function openCommunity(): void {
       // Missing tiles (风语广场, 企鹅镇...): stay put; Failed closes the loading panel the request opened.
       if (!SCENES.has(scene)) {
         await flash('PSW.RequestChangeSceneFailed', 1)
-        return say('前面的路还没修好，过不去呢~')
+        return say(pick(SAYS.road))
       }
       if (scene === spot.scene) return enter()
       await enter({ scene, ...((await portal(scene, spot.scene)) ?? spawn(scene)) })
@@ -644,11 +670,11 @@ export function openCommunity(): void {
       return 1
     },
     LoginHome: () => {
-      setTimeout(() => say('家园暂不支持哦~'))
+      setTimeout(() => say(pick(SAYS.home)))
       return 1
     },
     OpenFriendList: () => {
-      setTimeout(() => say('好友暂不支持哦~'))
+      setTimeout(() => say(pick(SAYS.friends)))
       return 1
     },
   })
@@ -662,7 +688,7 @@ export function openCommunity(): void {
     },
     // Calling back into Flash before this call returns re-runs its click handler (and can hang Ruffle).
     ParseURL: (url) => {
-      setTimeout(() => visit(String(url)) || say('这里已经关门啦，下次再来吧~'))
+      setTimeout(() => visit(String(url)) || say(pick(SAYS.closed)))
       return 1
     },
     GetState: () => 1,

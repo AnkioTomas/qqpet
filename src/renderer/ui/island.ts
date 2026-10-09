@@ -12,10 +12,14 @@ import { dayStart } from '../pet/vip'
 import { openBox } from './box'
 import './css/island.css'
 import { button, div, img } from './dom'
+import { TALK } from './island-talk'
 import { openShop, SOLD } from './shop'
 import { openTask } from './task'
 
 const pick = <T>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)]
+/** One line of `pool` with its {slots} filled; {pet} is the pet's name. */
+const say = (pool: readonly string[], slots: Record<string, string | number> = {}): string =>
+  pick(pool).replace(/\{(\w+)\}/g, (_, k: string) => String({ pet: info.name, ...slots }[k]))
 const shuffle = <T>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
 
 const PLACES: Record<number, string> = {
@@ -136,12 +140,34 @@ const SPOTS: Record<string, { name: string; what: string; lines: string[] }> = {
   pet_carnival: {
     name: '嘉年华',
     what: '去夏帕海岸的嘉年华凑凑热闹',
-    lines: ['嘉年华的彩车还停在沙滩上，音乐一响，大家都跳起舞来。', '小丑往你手里塞了一个气球，又翻着跟头跑远了。'],
+    lines: [
+      '嘉年华的彩车还停在沙滩上，音乐一响，大家都跳起舞来。',
+      '小丑往你手里塞了一个气球，又翻着跟头跑远了。',
+      '套圈摊的老板冲你招手：“三个圈，套中就送大熊！”',
+      '彩带从天上飘下来，正好落在你的头顶。',
+      '一群企鹅排着队跳兔子舞，你也被拉了进去。',
+      '棉花糖机呼呼转着，空气里全是甜甜的味道。',
+      '魔术师从帽子里掏出一只小海鸥，大家都看呆了。',
+      '踩高跷的叔叔弯下腰，跟你击了个掌。',
+      '烟花在海面上炸开，把沙滩照得亮堂堂的。',
+      '旋转木马叮叮当当地转，一圈又一圈。',
+    ],
   },
   jycat: {
     name: '监狱猫',
     what: '抓住逃出来的监狱猫，它常在夏帕海岸和粉钻雪山出没',
-    lines: ['喵呜！被你发现了……好吧好吧，我自己走回去。', '监狱猫舔舔爪子：“外面的鱼干就是比牢饭香。”说完乖乖跟你走了。'],
+    lines: [
+      '喵呜！被你发现了……好吧好吧，我自己走回去。',
+      '监狱猫舔舔爪子：“外面的鱼干就是比牢饭香。”说完乖乖跟你走了。',
+      '监狱猫正趴在沙滩上晒太阳，被你一把抱了起来。',
+      '雪地里一串小梅花脚印，尽头蹲着一只瑟瑟发抖的监狱猫。',
+      '监狱猫叼着一条小鱼想跑，被你堵在了墙角。',
+      '“喵！我只是出来散散步！”监狱猫心虚地说。',
+      '你学了一声猫叫，监狱猫好奇地从草丛里探出头来。',
+      '监狱猫冻得直打喷嚏，自己钻进了你的怀里。',
+      '你掏出一根逗猫棒，监狱猫立刻扑了过来。',
+      '监狱猫叹了口气：“自由的日子总是这么短。”',
+    ],
   },
   'treasure_map?cmd=6': {
     name: '藏宝点',
@@ -150,77 +176,238 @@ const SPOTS: Record<string, { name: string; what: string; lines: string[] }> = {
       '挖呀挖，挖出一枚亮晶晶的贝壳……可惜不值钱。',
       '泡泡咕嘟一声，冒出一张纸条：“宝藏在图图那儿。”',
       '挖出一只生锈的小铁盒，里面空空的，只有一股海风味。',
+      '铲子碰到了硬东西——原来是一块圆溜溜的石头。',
+      '挖出一枚旧硬币，上面刻着一只企鹅的头像。',
+      '泡泡越冒越多，最后冒出一只迷路的小螃蟹。',
+      '挖到一个玻璃瓶，里面卷着一张写着“加油”的纸条。',
+      '挖了半天只挖出一只袜子，不知道是谁埋的。',
+      '土里埋着一颗闪闪发亮的玻璃珠，真好看。',
+      '挖出了一张藏宝图的边角，上面画着半个红叉叉。',
     ],
   },
   'treasure_map/index': {
     name: '魔法宝箱',
     what: '去风语广场摸一摸魔法宝箱',
-    lines: ['魔法宝箱闪了一下光，咔哒一声又锁上了。', '宝箱里传出小声的嘀咕：“明天再来，明天再来。”'],
+    lines: [
+      '魔法宝箱闪了一下光，咔哒一声又锁上了。',
+      '宝箱里传出小声的嘀咕：“明天再来，明天再来。”',
+      '你一摸宝箱，箱盖上的星星图案就亮了起来。',
+      '宝箱打了个嗝，吐出一颗水果糖。',
+      '宝箱上的锁眼眨了眨，好像在对你笑。',
+      '宝箱微微发烫，里面有什么东西在叮当作响。',
+      '你敲了敲宝箱，里面回了一声：“谁呀？”',
+      '宝箱冒出一串彩色泡泡，飘得满广场都是。',
+      '宝箱的锁转了半圈，又不情愿地转了回去。',
+      '宝箱上刻着一行小字：心诚则开。',
+    ],
   },
   pk_wdh: {
     name: '天下第一武道会',
     what: '去竞技场给天下第一武道会报个名',
-    lines: ['报名簿上又多了一个名字，下一届比赛就等你上场了！', '台上两只企鹅正打得难解难分，台下喊声一片。'],
+    lines: [
+      '报名簿上又多了一个名字，下一届比赛就等你上场了！',
+      '台上两只企鹅正打得难解难分，台下喊声一片。',
+      '报名处的裁判给你发了一个号码牌：第88号。',
+      '你在报名表上按了一个小脚印，算是签名啦。',
+      '去年的冠军路过，拍拍你的肩膀：“加油哦！”',
+      '擂台边挂满了历届冠军的照片，看得你热血沸腾。',
+      '裁判吹了一声哨子，又一场比赛开始了。',
+      '报名的队伍排得老长，大家都在活动手脚。',
+      '有只企鹅在台上摔了个屁股墩，全场都笑了。',
+      '你对着擂台比划了两下，感觉自己也能行！',
+    ],
   },
   pk_zq: {
     name: 'PK世界杯',
     what: '去竞技场看一场PK世界杯',
-    lines: ['球进啦！看台上的企鹅全都站起来欢呼。', '守门员一个飞扑，把球稳稳抱住了。'],
+    lines: [
+      '球进啦！看台上的企鹅全都站起来欢呼。',
+      '守门员一个飞扑，把球稳稳抱住了。',
+      '前锋一脚射门，球打在门柱上弹了回来。',
+      '看台上掀起了人浪，你也跟着举起了翅膀。',
+      '裁判掏出一张黄牌，场上一片嘘声。',
+      '中场休息，啦啦队跳起了企鹅舞。',
+      '比分一比一，最后一分钟谁也不敢松懈。',
+      '一记漂亮的倒挂金钩，全场都惊呆了！',
+      '你旁边的企鹅激动得把爆米花撒了一地。',
+      '点球大战开始了，大家紧张得捂住了眼睛。',
+    ],
   },
   pk_scdz: {
     name: '蔬菜大作战',
     what: '去竞技场参加蔬菜大作战',
-    lines: ['一颗番茄啪地砸过来，你一闪身躲开了！', '萝卜队和白菜队打成了平手，满地都是菜叶。'],
+    lines: [
+      '一颗番茄啪地砸过来，你一闪身躲开了！',
+      '萝卜队和白菜队打成了平手，满地都是菜叶。',
+      '你抓起一根黄瓜当宝剑，冲进了战场。',
+      '一颗土豆骨碌碌滚到你脚边，你顺手扔了回去。',
+      '茄子队派出了秘密武器：一个超大的南瓜！',
+      '你被一片生菜叶糊了一脸，大家都笑了。',
+      '玉米粒像下雨一样噼里啪啦落下来。',
+      '你躲在一棵大白菜后面，偷偷瞄准了对面。',
+      '辣椒队一出场，对面就辣得直掉眼泪。',
+      '比赛结束，大家一起把蔬菜捡起来煮了一锅汤。',
+    ],
   },
   x_cgdb: {
     name: '闯关夺宝',
     what: '去竞技场或超级游乐场试试闯关夺宝的机关',
-    lines: ['机关咔咔转了一圈，一切正常。', '第一关的翻板有点松，记下来告诉管理员。'],
+    lines: [
+      '机关咔咔转了一圈，一切正常。',
+      '第一关的翻板有点松，记下来告诉管理员。',
+      '你踩上跷跷板，另一头的沙袋一下子弹了起来。',
+      '摇摆的吊桥晃得厉害，你张开翅膀才站稳。',
+      '旋转的大风车差点把你扫下去，好险！',
+      '第三关的弹簧床弹得你翻了两个跟头。',
+      '你钻过一条长长的管道，出来时满身都是灰。',
+      '滚石机关轰隆隆地滚过，你赶紧趴了下来。',
+      '终点的铃铛被你一按，叮铃铃响个不停。',
+      '你在滑梯上滑得太快，一头扎进了海洋球池。',
+    ],
   },
   'coffee/food_index': {
     name: '咖啡厅的点心',
     what: '去咖啡厅尝一尝桌上的点心',
-    lines: ['甜甜的，还带一点咖啡香，好吃！', '这块有点烤焦了，不过不能告诉翠花。'],
+    lines: [
+      '甜甜的，还带一点咖啡香，好吃！',
+      '这块有点烤焦了，不过不能告诉翠花。',
+      '奶油蛋糕软软的，一口下去满嘴都是奶香。',
+      '这块饼干硬得像石头，差点硌着牙。',
+      '蓝莓挞酸酸甜甜的，你忍不住又吃了一块。',
+      '巧克力慕斯入口即化，好吃得眯起了眼睛。',
+      '这块面包里藏着一颗整颗的栗子，惊喜！',
+      '布丁晃来晃去，你追着它吃了半天。',
+      '这块蛋糕咸咸的……翠花大概把盐当成糖了。',
+      '抹茶卷有点苦，配上一口牛奶刚刚好。',
+    ],
   },
   qq_sgbb: {
     name: '水果冰淇淋',
     what: '去粉钻雪山买一支水果冰淇淋',
-    lines: ['冰淇淋上堆满了水果，在雪山上吃居然一点也不冷。'],
+    lines: [
+      '冰淇淋上堆满了水果，在雪山上吃居然一点也不冷。',
+      '草莓味的冰淇淋上插着一片薄荷叶，好看又好吃。',
+      '你咬了一大口，冰得直跺脚。',
+      '芒果冰淇淋化得太快，滴了一翅膀。',
+      '老板多给你加了一勺，说是今天的第一百位客人。',
+      '冰淇淋上的樱桃骨碌碌滚进了雪地里。',
+      '西瓜味的冰淇淋，吃起来像在过夏天。',
+      '你一边滑雪一边吃，冰淇淋全糊到了嘴巴上。',
+      '蓝莓冰淇淋把你的舌头染成了紫色。',
+      '雪山上的冰淇淋，连蛋筒都是脆脆凉凉的。',
+    ],
   },
   phb_Top: {
     name: '名宠俱乐部',
     what: '去风语广场的名宠俱乐部看看排行榜',
-    lines: ['排行榜上的名字一个比一个厉害，总有一天会有你的。'],
+    lines: [
+      '排行榜上的名字一个比一个厉害，总有一天会有你的。',
+      '榜首的宠物照片闪闪发光，旁边围了一圈企鹅。',
+      '你踮起脚找了半天，没找到自己的名字。',
+      '俱乐部的门口挂着一块牌子：名宠专用通道。',
+      '一只戴墨镜的企鹅从俱乐部里走出来，酷极了。',
+      '排行榜刚刚刷新，第三名和第四名换了位置。',
+      '你对着排行榜默默许愿：明年我也要上榜！',
+      '俱乐部里传来阵阵掌声，好像在颁奖。',
+      '排行榜下面有一行小字：努力的宠物最可爱。',
+      '你数了数，榜上有好多都是你认识的名字。',
+    ],
   },
   qq_cjxt: {
     name: '成就树',
     what: '去风语广场给成就树浇浇水',
-    lines: ['成就树的叶子沙沙响，好像又长高了一点。'],
+    lines: [
+      '成就树的叶子沙沙响，好像又长高了一点。',
+      '你浇完水，树枝上冒出了一个小小的嫩芽。',
+      '成就树上挂满了大家的愿望卡，在风里轻轻摇。',
+      '一片金色的叶子飘下来，落在你的手心里。',
+      '树下有只松鼠探出头，冲你吱吱叫了两声。',
+      '你给成就树唱了一首歌，树叶好像在跟着打拍子。',
+      '水一浇下去，树根那儿冒出几朵小蘑菇。',
+      '成就树开出了几朵白色的小花，香香的。',
+      '树干上刻着好多名字，你也想把自己的刻上去。',
+      '一阵风吹过，成就树像在对你点头道谢。',
+    ],
   },
   tiaoshui: {
     name: '跳水台',
     what: '去风语广场的跳水台跳一次水',
-    lines: ['扑通！水花溅得老高，围观的企鹅都鼓起掌来。'],
+    lines: [
+      '扑通！水花溅得老高，围观的企鹅都鼓起掌来。',
+      '你在空中转了一圈半，稳稳地扎进了水里。',
+      '站在跳台上往下看，腿有点发软……还是跳了！',
+      '一个漂亮的燕式跳水，裁判举起了满分牌。',
+      '你肚皮先着地，啪的一声，水花溅了评委一身。',
+      '水里凉丝丝的，你游了一圈才舍得上岸。',
+      '跳台旁边的企鹅齐声倒数：三、二、一，跳！',
+      '你抱着膝盖跳了个炸弹式，溅起的水花像喷泉。',
+      '从水里钻出来，发现帽子还在跳台上。',
+      '跳完一次还不过瘾，你又排到了队伍后面。',
+    ],
   },
   'attribute_pk/pk.html': {
     name: '属性擂台',
     what: '去风语广场的属性擂台上站一站',
-    lines: ['站上擂台，四周顿时安静了，大家都在看你。'],
+    lines: [
+      '站上擂台，四周顿时安静了，大家都在看你。',
+      '杰无双高喊：“天下英雄，又来一位！”',
+      '擂台边的大屏幕亮了，上面显示着你的属性。',
+      '台下有企鹅喊你的名字，给你加油打气。',
+      '你摆了一个威风的姿势，闪光灯咔嚓咔嚓响。',
+      '擂台的地板软软的，踩上去有点弹。',
+      '对面的空位上写着：虚位以待，等你来战。',
+      '你在擂台上转了一圈，向四面八方挥挥手。',
+      '一阵风吹过，擂台的大旗呼啦啦地飘。',
+      '站在擂台中央，你觉得自己高大了好多。',
+    ],
   },
   qq_ggw: {
     name: '农场灌溉王',
     what: '去粉钻度假村帮农场浇浇水',
-    lines: ['一桶水浇下去，小苗都抬起头来了。'],
+    lines: [
+      '一桶水浇下去，小苗都抬起头来了。',
+      '你拿着小喷壶，一垄一垄慢慢地浇。',
+      '水渠被一块石头堵住了，你把它搬开，水哗哗流了过去。',
+      '浇完水的菜地亮晶晶的，叶子上挂着小水珠。',
+      '一只青蛙从菜叶下跳出来，吓了你一跳。',
+      '你不小心踩进泥坑，溅了一身的泥点子。',
+      '番茄红了好几个，农场主说等会儿摘给你吃。',
+      '水管突然喷水，把你浇成了落汤企鹅。',
+      '小黄瓜刚开出黄色的小花，你给它多浇了一点。',
+      '浇完最后一块地，太阳正好落山。',
+    ],
   },
   qq_zjps: {
     name: '杂技抛伞',
     what: '去粉钻度假村看杂技抛伞',
-    lines: ['一把把小伞被抛上天，又稳稳落回杂技演员手里。'],
+    lines: [
+      '一把把小伞被抛上天，又稳稳落回杂技演员手里。',
+      '演员用脚尖转着一把伞，伞上还站着一只小鸟。',
+      '五把伞同时在空中飞，看得你眼花缭乱。',
+      '一把伞没接住，落在了你的头上，大家都笑了。',
+      '演员把伞抛给你，你手忙脚乱地接住了！',
+      '彩色的伞在空中转成了一朵大花。',
+      '演员蒙着眼睛抛伞，一把都没掉。',
+      '最后一招，演员撑着伞从高台上慢慢飘了下来。',
+      '你跟着节奏拍手，演员冲你眨了眨眼。',
+      '演出结束，演员们撑着伞一起向大家鞠躬。',
+    ],
   },
   qqbsg: {
     name: 'QQ搬水果',
     what: '去粉钻度假村帮忙搬水果',
-    lines: ['搬完一筐苹果，果农塞给你一个最大最红的。'],
+    lines: [
+      '搬完一筐苹果，果农塞给你一个最大最红的。',
+      '一筐橘子太重了，你推着它一路滚了过去。',
+      '西瓜圆滚滚的，抱在怀里像抱着一个大皮球。',
+      '香蕉一串一串的，你挂在脖子上搬了好几趟。',
+      '葡萄差点被你挤破，赶紧放轻了动作。',
+      '搬着搬着，你偷偷尝了一颗草莓，好甜！',
+      '果筐翻了，苹果滚了一地，大家一起帮你捡。',
+      '你把水果码得整整齐齐，果农直夸你能干。',
+      '菠萝扎得你翅膀痒痒的，你忍不住笑出了声。',
+      '最后一筐搬完，你累得坐在了水果堆上。',
+    ],
   },
 }
 /** The wilds' monsters by their old page's id: name, scene and what they are like. Tougher as the id grows. */
@@ -249,9 +436,54 @@ const MONSTERS: Record<string, [string, number, string]> = {
 }
 /** Ways to take a monster on: the stat each leans on, said, and what the pet does with it when there is no AI. */
 const TACTICS = {
-  硬拼: { stat: 'strong', said: '武力', moves: ['使出企鹅旋风踢', '一记肚皮撞飞了过去', '抡起翅膀连拍三下'] },
-  智取: { stat: 'intel', said: '智力', moves: ['假装逃跑，绕到背后偷袭', '出了一道谜题把它绕晕了', '挖了个小坑等它掉进去'] },
-  说服: { stat: 'charm', said: '魅力', moves: ['递上一块小饼干套近乎', '眨着大眼睛讲道理', '唱了一首歌给它听'] },
+  硬拼: {
+    stat: 'strong',
+    said: '武力',
+    moves: [
+      '使出企鹅旋风踢',
+      '一记肚皮撞飞了过去',
+      '抡起翅膀连拍三下',
+      '助跑三步，来了个飞身扑',
+      '扎稳马步，一拳打了出去',
+      '抱住它的腿想把它摔倒',
+      '用脑门结结实实顶了过去',
+      '跳起来使出一招泰山压顶',
+      '连踢带踹，打出一套组合拳',
+      '滑着肚皮冲过去撞它的脚',
+    ],
+  },
+  智取: {
+    stat: 'intel',
+    said: '智力',
+    moves: [
+      '假装逃跑，绕到背后偷袭',
+      '出了一道谜题把它绕晕了',
+      '挖了个小坑等它掉进去',
+      '指着它身后大喊“看，飞碟！”',
+      '在地上撒了一把滑溜溜的豆子',
+      '学它的样子说话，把它弄糊涂了',
+      '用树枝和藤条做了个小陷阱',
+      '躲在石头后面扔小石子引开它',
+      '算准了它的步子，提前躲开',
+      '借着太阳光晃它的眼睛',
+    ],
+  },
+  说服: {
+    stat: 'charm',
+    said: '魅力',
+    moves: [
+      '递上一块小饼干套近乎',
+      '眨着大眼睛讲道理',
+      '唱了一首歌给它听',
+      '夸它的毛色真漂亮',
+      '跳了一段可爱的企鹅舞',
+      '讲了一个好笑的故事',
+      '拉着它的爪子说想交个朋友',
+      '送上一朵刚摘的小花',
+      '给它讲为什么不要欺负别人',
+      '撒娇说自己只是路过',
+    ],
+  },
 } as const
 type Tactic = keyof typeof TACTICS
 /** Chance to beat a monster with a tactic: at least even for the weakest one, falling with the square of its id. */
@@ -268,10 +500,6 @@ const TOWER = '30'
 /** Set by the community while it is open: plays a banner over the pet, shows a face on it. */
 export const stage = { play: (_n: number): void => {}, face: (_n: number): void => {} }
 /** A fight told without AI: what the monster says and does, and how it ends. */
-const TAUNTS = ['哪来的小企鹅，敢闯我的地盘！', '嘿嘿，今天的点心自己送上门了~', '想过去？先问问我答不答应！', '本大王今天心情不好，你来得正好！', '又来一个不怕死的？']
-const STRIKES = ['张牙舞爪地扑了过来', '一声怪叫，掀起一阵沙土', '使出了看家本领', '绕着你转圈圈想把你转晕', '猛地一个回马枪']
-const WINS = ['抱着脑袋逃走了：“下次再也不敢了！”', '扑通一声坐在地上认输了', '心服口服，答应再也不捣乱了', '眼冒金星，晕乎乎地举起了白旗']
-const LOSSES = ['哈哈大笑，把你赶出了它的地盘', '轻轻一推，你就滚出去老远', '得意地拍拍手：“回去再练练吧！”', '一口气把你吹回了荒地口']
 /** Desktop things an islander may ask for, by the day's counter: said, and at most how many times. */
 const CHORES: Partial<Record<Counter, [string, number]>> = {
   Work: ['去打工', 2],
@@ -650,7 +878,7 @@ function roll(): Errand[] {
     .map((from): Errand => {
       const kind = pick(ROLLED)
       const e: Errand = { from, kind, to: KINDS[kind].roll!(from), ask: '', got: 0, took: false }
-      e.ask = `能帮我${KINDS[kind].what(e)}吗？`
+      e.ask = say(TALK.ask, { what: KINDS[kind].what(e) })
       return e
     })
   const word = (e: Errand, prompt: string): void =>
@@ -677,6 +905,12 @@ async function voice(npc: string, prompt: string, fallback: string): Promise<str
   const who = `你是QQ宠物企鹅岛社区里的「${npc}」，${where}正在和小企鹅「${info.name}」说话。只写你说出口的话，不写动作和旁白，不加名字前缀和引号。`
   const text = await askAs(who, [{ role: 'user', content: `${prompt}只输出这句话。` }])
   return text?.replace(/^[「“"]+|[」”"]+$/g, '') || fallback
+}
+
+/** The narrator's line about what the pet does; `fallback` when AI is off or fails. */
+async function tell(prompt: string, fallback: string): Promise<string> {
+  const text = await askAs('你是QQ宠物企鹅岛社区的说书人，讲小企鹅在岛上的经历，童趣、不血腥。', [{ role: 'user', content: `${prompt}只输出这句话。` }])
+  return text ?? fallback
 }
 
 let closeTalk = (): void => {}
@@ -710,15 +944,15 @@ const rows = (list: News[]): HTMLElement[] => list.map(([h, t]) => div('i_row', 
 async function letter(): Promise<void> {
   const s = today()
   const where = (name: string): string => `${PLACES[FOLK[name].scene]}的${name}`
-  if (s.letter) return talk('布袋长老', [`信还没送到呢！快去找${where(s.letter)}吧。`, `「${s.note}」`])
-  if (s.sent >= LETTERS) return talk('布袋长老', ['今天的信都送完啦，明天再来帮老头子跑腿吧~'])
+  if (s.letter) return talk('布袋长老', [say(TALK.notYet, { to: where(s.letter) }), `「${s.note}」`])
+  if (s.sent >= LETTERS) return talk('布袋长老', [say(TALK.lettersDone)])
   const left = FOLKS.filter((n) => !s.lit.includes(n))
   const next = pick(left.length ? left : FOLKS)
   const from = pick(SENDERS)
-  const note = await voice(from, `你托布袋长老给${where(next)}捎一封信，说出信里写的一句话。`, `${next}，好久不见，有空来风语广场玩呀！`)
+  const note = await voice(from, `你托布袋长老给${where(next)}捎一封信，说出信里写的一句话。`, say(TALK.note, { to: next }))
   talk(
     '布袋长老',
-    [`${from}有封信要交给${where(next)}，帮老头子跑一趟吧！（今天第${s.sent + 1}/${LETTERS}封）`, `「${note}」`],
+    [`${say(TALK.letterAsk, { from, to: where(next) })}（今天第${s.sent + 1}/${LETTERS}封）`, `「${note}」`],
     [],
     [
       [
@@ -745,9 +979,9 @@ function deliver(to: string): void {
   if (lamp) s.lamps.push(scene)
   store()
   const goods = [parseGood(`_yb*${rand(5, 20) * 10 + (lamp ? 500 : 0)}`), ...(lamp ? loot(3) : [])]
-  give(goods, '[host],我们帮布袋长老把信送到啦！~~')
-  const lit = lamp ? `${PLACES[scene]}的岛民都收到过信啦，送你一份大礼包！` : `已经给${s.lit.length}/${FOLKS.length}位岛民送过信。`
-  void voice(to, `${info.name}帮布袋长老给你送来一封信，信上写着「${note}」。读完信，对它说一句话。`, '谢谢你帮我送信！').then((line) =>
+  give(goods, say(TALK.got, { did: '帮布袋长老把信送到' }))
+  const lit = lamp ? say(TALK.lamp, { place: PLACES[scene] }) : `（已经给${s.lit.length}/${FOLKS.length}位岛民送过信）`
+  void voice(to, `${info.name}帮布袋长老给你送来一封信，信上写着「${note}」。读完信，对它说一句话。`, say(TALK.letterThanks)).then((line) =>
     talk(to, [line, lit], goods),
   )
 }
@@ -755,7 +989,7 @@ function deliver(to: string): void {
 /** The errand's giver: what they asked, or their thanks and reward once it is done. */
 function errand(e: Errand): void {
   const what = KINDS[e.kind].what(e)
-  if (e.took) return talk(e.from, [e.got ? '今天多亏你帮忙啦，明天再来玩吧~' : '今天的题没答对，明天再来考你~'])
+  if (e.took) return talk(e.from, [say(e.got ? TALK.helped : TALK.failed)])
   if (e.kind === 'quiz') return quiz(e)
   if (e.kind === 'bring') {
     const g = findGood(e.to)
@@ -779,7 +1013,7 @@ function quiz(e: Errand): void {
     if (o === q.answer) return finish(e)
     e.took = true
     store()
-    talk(e.from, [`答错啦，正确答案是「${q.answer}」。明天再来考你！`])
+    talk(e.from, [say(TALK.wrong, { answer: q.answer })])
   }
   talk(
     e.from,
@@ -794,8 +1028,8 @@ function finish(e: Errand): void {
   e.took = true
   store()
   const goods = [parseGood(`_yb*${rand(5, 15) * 10}`), ...(Math.random() < 0.3 ? loot(1) : [])]
-  give(goods, `[host],我们帮${e.from}办完事啦！~~`)
-  void voice(e.from, `你之前请${info.name}帮忙：「${e.ask}」它已经替你办好了，向它道谢。`, '太谢谢你啦，这是我的一点心意~').then((line) =>
+  give(goods, say(TALK.got, { did: `帮${e.from}办完事` }))
+  void voice(e.from, `你之前请${info.name}帮忙：「${e.ask}」它已经替你办好了，向它道谢。`, say(TALK.thanks)).then((line) =>
     talk(e.from, [line], goods),
   )
 }
@@ -806,27 +1040,30 @@ export function meet(url: string): boolean {
   const spot = Object.keys(SPOTS).find((k) => url.includes(k))
   const monster = url.match(/shenqichuangshuo\.html\?id=(\d+)/)?.[1]
   if (name) islander(name)
-  else if (spot) look(spot)
+  else if (spot) void look(spot)
   else if (monster && MONSTERS[monster]) void duel(monster)
   else return false
   return true
 }
 
 /** A sight: what the pet finds there, and the errand that sent it, if any, done. */
-function look(key: string): void {
+async function look(key: string): Promise<void> {
+  const { name, lines } = SPOTS[key]
   const e = today().errands.find((e) => e.kind === 'spot' && e.to === key && !e.got)
   if (e) {
     e.got = 1
     store()
   }
-  talk(SPOTS[key].name, [pick(SPOTS[key].lines), ...(e ? [`${e.from}交代的事办好了，回去告诉${e.from}吧！`] : [])])
+  const seen = pick(lines)
+  const line = await tell(`小企鹅「${info.name}」来到了「${name}」。照着这句的意思，换个说法讲它在这里碰到的事：${seen}`, seen)
+  talk(name, [line, ...(e ? [say(TALK.done, { did: `${e.from}交代的事办好了`, from: e.from })] : [])])
 }
 
 /** A monster bars the way and picks a fight; the pet chooses how to take it on. One fight each a day. */
 async function duel(id: string): Promise<void> {
   const [name, , about] = MONSTERS[id]
-  if (today().fought.includes(id)) return talk(name, [`今天已经和${name}交过手了，明天再来吧。`])
-  const taunt = await voice(name, `你是企鹅岛上的妖怪，${about}。小企鹅闯进了你的地盘，凶巴巴地挑衅它一句。`, pick(TAUNTS))
+  if (today().fought.includes(id)) return talk(name, [say(TALK.fought, { name })])
+  const taunt = await voice(name, `你是企鹅岛上的妖怪，${about}。小企鹅闯进了你的地盘，凶巴巴地挑衅它一句。`, say(TALK.taunt))
   const pct = (t: Tactic): number => Math.max(1, Math.round(odds(id, t) * 100))
   talk(
     name,
@@ -849,12 +1086,13 @@ async function fight(id: string, t: Tactic): Promise<void> {
   store()
 
   stage.face(FACE.sweat)
-  const log = div('i_log', `${info.name}决定${t}！`)
+  const log = div('i_log', say(TALK.decide, { t }))
   talk(name, [log])
-  const told = await askAs('你是QQ宠物企鹅岛的说书人，讲小企鹅和妖怪打架，童趣、不血腥。', [
-    { role: 'user', content: `小企鹅「${info.name}」靠${TACTICS[t].said}和妖怪「${name}」（${about}）交手，结果${info.name}${won ? '赢了' : '输了'}。用一句话讲这场打斗怎么分出胜负，只输出这句话。` },
+  const fighting = `小企鹅「${info.name}」和妖怪「${name}」（${about}）交手，它选择靠${TACTICS[t].said}来${t}，比如${TACTICS[t].moves.join('、')}。`
+  const story = await Promise.all([
+    tell(`${fighting}用一句话讲它出的第一招，还没分出胜负。`, `${info.name}${pick(TACTICS[t].moves)}`),
+    tell(`${fighting}最后${won ? `${info.name}赢了，${name}认输` : `${name}赢了，${info.name}没打过、只好逃走`}。用一句话讲最后是怎么分出胜负的，一定要讲清楚是谁赢了。`, `${name}${say(TALK.strike)}，${name}${say(won ? TALK.win : TALK.loss)}`),
   ])
-  const story = [`${info.name}${pick(TACTICS[t].moves)}`, ...(told ? [told] : [`${name}${pick(STRIKES)}`, `${name}${pick(won ? WINS : LOSSES)}`])]
   for (const line of story) {
     await new Promise((r) => setTimeout(r, 700))
     log.append(div('i_line', line))
@@ -864,13 +1102,13 @@ async function fight(id: string, t: Tactic): Promise<void> {
   if (!won) {
     stage.play(FX.lose)
     stage.face(FACE.cry)
-    return talk(name, [...story, `${info.name}输了……练练${TACTICS[t].said}，明天再来吧。`])
+    return talk(name, [...story, say(TALK.lost, { said: TACTICS[t].said })])
   }
   stage.play(id === TOWER ? FX.fireworks : s.wins % 100 === 0 ? FX.hundred : chance < UPSET ? FX.upset : FX.win)
   stage.face(FACE.happy)
   const goods = [parseGood(`_yb*${10 + 5 * Number(id)}`), ...(Math.random() < 0.1 ? loot(1) : [])]
-  give(goods, `[host],我们打败了${name}！~~`)
-  talk(name, [...story, `${info.name}打败了${name}！`, ...(e ? [`回去告诉${e.from}吧！`] : [])], goods)
+  give(goods, say(TALK.got, { did: `打败了${name}` }))
+  talk(name, [...story, say(TALK.beat, { name }), ...(e ? [say(TALK.done, { did: `${e.from}交代的妖怪打跑了`, from: e.from })] : [])], goods)
 }
 
 /** An islander: a letter, a message passed on, their errand, or small talk. */
@@ -883,13 +1121,13 @@ function islander(name: string): void {
   }
   if (s.letter === name) deliver(name)
   else if (asked)
-    void voice(name, `${info.name}替${asked.from}来找你，${asked.from}说：「${asked.ask}」回它一句话。`, `知道啦，替我谢谢${asked.from}！`).then((line) =>
-      talk(name, [line, `话带到了，回去告诉${asked.from}吧。`]),
+    void voice(name, `${info.name}替${asked.from}来找你，${asked.from}说：「${asked.ask}」回它一句话。`, say(TALK.reply, { from: asked.from })).then((line) =>
+      talk(name, [line, say(TALK.done, { did: '话带到了', from: asked.from })]),
     )
   else {
     const mine = s.errands.find((e) => e.from === name)
     if (mine) errand(mine)
-    else void voice(name, `${info.name}路过你这里，跟它随便聊一句。`, '今天天气真不错呀~').then((line) => talk(name, [line]))
+    else void voice(name, `${info.name}路过你这里，跟它随便聊一句。`, say(TALK.chat)).then((line) => talk(name, [line]))
   }
 }
 
@@ -901,9 +1139,9 @@ export function arrive(scene: number): string | null {
   const e = s.errands.find((e) => (e.kind === 'visit' || e.kind === 'seek') && Number(e.to) === scene && !e.got)
   if (e) e.got = 1
   store()
-  if (!e) return tour && tour.got >= need(tour) ? `逛完${need(tour)}个地方啦，回去告诉${tour.from}吧！` : null
-  if (e.kind === 'seek') return `找到${e.from}啦！${e.from}说先回${PLACES[FOLK[e.from].scene]}，等我去领奖~`
-  return `${PLACES[scene]}看过啦，回去告诉${e.from}吧！`
+  if (!e) return tour && tour.got >= need(tour) ? say(TALK.done, { did: `逛完${need(tour)}个地方了`, from: tour.from }) : null
+  if (e.kind === 'seek') return say(TALK.found, { from: e.from, place: PLACES[FOLK[e.from].scene] })
+  return say(TALK.done, { did: `${PLACES[scene]}看过了`, from: e.from })
 }
 
 /** The pet played a community game `swf` for a minute or more; what it says when that finishes an errand. */
@@ -912,7 +1150,7 @@ export function played(swf: string): string | null {
   if (!e) return null
   e.got = 1
   store()
-  return `${PLAYS[swf]}玩过啦，回去告诉${e.from}吧！`
+  return say(TALK.done, { did: `${PLAYS[swf]}玩过了`, from: e.from })
 }
 
 /** The pet said something in the island chat; what it says when that finishes an errand. */
@@ -921,7 +1159,7 @@ export function chatted(): string | null {
   if (!e) return null
   e.got++
   store()
-  return e.got < need(e) ? null : `${e.from}交代的话都说完啦，回去找${e.from}吧！`
+  return e.got < need(e) ? null : say(TALK.done, { did: `${e.from}交代的话都说完了`, from: e.from })
 }
 
 /** 科洛's board: today's errands and how far along they are. */
@@ -941,43 +1179,46 @@ async function growth(): Promise<void> {
   const s = today()
   const level = save.petComputedlInfo.level
   const tier = Math.floor(level / TIER)
-  if (tier <= s.tier) return talk('天使坏坏', [`每长${TIER}级来找我领一次成长奖励哦，${(s.tier + 1) * TIER}级的时候再来吧~`])
+  if (tier <= s.tier) return talk('天使坏坏', [say(TALK.growWait, { tier: TIER, next: (s.tier + 1) * TIER })])
   const n = tier - s.tier
   s.tier = tier
   store()
   const goods = [parseGood(`_yb*${200 * n}`), ...loot(n)]
-  give(goods, '[host],天使坏坏送了我们成长奖励！~~')
-  talk('天使坏坏', [await voice('天使坏坏', `${info.name}长到${level}级了，夸夸它，送它成长奖励。`, `哇，${level}级啦，长得真快！这是给你的成长奖励~`)], goods)
+  give(goods, say(TALK.got, { did: '收到了天使坏坏的成长奖励' }))
+  talk('天使坏坏', [await voice('天使坏坏', `${info.name}长到${level}级了，夸夸它，送它成长奖励。`, say(TALK.grow, { level }))], goods)
 }
 
-function treasure(): void {
+async function treasure(): Promise<void> {
   const s = today()
-  if (s.piece) return talk('图图', [`今天的碎片已经给过你啦，明天再来吧！现在有${s.pieces}/${PIECES}张。`])
+  if (s.piece) return talk('图图', [say(TALK.pieceGiven), `（现在有${s.pieces}/${PIECES}张）`])
   s.piece = true
   s.pieces++
   const full = s.pieces >= PIECES
   if (full) s.pieces = 0
   store()
-  if (!full) return talk('图图', [`给你一张宝藏图碎片！现在有${s.pieces}/${PIECES}张，集齐${PIECES}张就能挖宝藏。`])
+  if (!full) {
+    const line = await voice('图图', `你送给${info.name}一张宝藏图碎片，说一句神秘兮兮的话。`, say(TALK.piece))
+    return talk('图图', [line, `（现在有${s.pieces}/${PIECES}张，集齐${PIECES}张就能挖宝藏）`])
+  }
   const goods = [parseGood('_yb*500'), ...loot(4)]
-  give(goods, '[host],我们拼好宝藏图挖到宝藏啦！~~')
-  talk('图图', [`${PIECES}张碎片拼成了完整的宝藏图，挖到宝藏啦！`], goods)
+  give(goods, say(TALK.got, { did: '拼好宝藏图挖到了宝藏' }))
+  talk('图图', [await voice('图图', `${info.name}集齐了${PIECES}张碎片，拼成宝藏图挖到了宝藏，替它高兴。`, say(TALK.dug, { pieces: PIECES }))], goods)
 }
 
 async function love(): Promise<void> {
   const s = today()
-  if (s.loved) return talk('小艾', ['谢谢你今天的爱心，明天再来看看我吧~'])
+  if (s.loved) return talk('小艾', [say(TALK.loved)])
   const want = findGood(s.want)
   if (!hasGood(want.type, want.id))
     return talk(
       '小艾',
-      [await voice('小艾', `你今天想要一个「${want.name}」，请${info.name}帮你找一个来。`, `我今天想要一个${want.name}，你能帮我找一个来吗？`)],
+      [await voice('小艾', `你今天想要一个「${want.name}」，请${info.name}帮你找一个来。`, say(TALK.want, { want: want.name }))],
       [want],
       [['去商店', openShop]],
     )
   talk(
     '小艾',
-    [`你带来了${want.name}！可以送给我吗？`],
+    [await voice('小艾', `${info.name}带来了你今天最想要的「${want.name}」，你又惊又喜，问它可不可以把${want.name}送给你。`, say(TALK.brought, { want: want.name }))],
     [want],
     [
       [
@@ -987,8 +1228,8 @@ async function love(): Promise<void> {
           s.loved = true
           store()
           const goods = [parseGood(`_yb*${rand(10, 30) * 10}`), ...loot(1)]
-          give(goods, '[host],我们完成了小艾的爱心任务！~~')
-          talk('小艾', ['太谢谢你啦！这是我的一点心意~'], goods)
+          give(goods, say(TALK.got, { did: '完成了小艾的爱心任务' }))
+          void voice('小艾', `${info.name}把「${want.name}」送给了你，向它道谢。`, say(TALK.gifted)).then((line) => talk('小艾', [line], goods))
         },
       ],
     ],
@@ -1031,7 +1272,7 @@ const openGuide = (): void => talk('社区向导', rows(GUIDE))
 export const ISLAND: Record<string, () => void> = {
   npc_bdzl: () => void letter(),
   npc_tshh: () => void growth(),
-  npc_tutu: treasure,
+  npc_tutu: () => void treasure(),
   npc_xiaoai: () => void love(),
   daytask: board,
   stf_index: openGuide,
