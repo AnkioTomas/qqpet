@@ -188,6 +188,9 @@ const calls: unknown[][] = []
 let open = false
 let spot = loadSpot()
 let player: SwfPlayer | null = null
+let task = 0
+let waiting = false
+let armed = 0
 
 async function flash(name: string, ...args: unknown[]): Promise<boolean> {
   if (!player) return false
@@ -202,18 +205,24 @@ async function flash(name: string, ...args: unknown[]): Promise<boolean> {
   return true
 }
 
+function place(): void {
+  if (!waiting) return
+  waiting = false
+  const self = pet()
+  void (async () => {
+    await flash('PSW.MPetInit', String(self.petid), Number(self.sex), Number(self.grade), spot.x, spot.y)
+    await flash('PSW.SetMPetData', String(self.petid), String(self.petname), Number(self.sex), Number(self.grade), Number(self.vip), '')
+    await flash('PSW.SetMPetPos', spot.x, spot.y)
+  })()
+}
+
 async function enter(next = spot): Promise<void> {
   spot = clamp(next)
   saveSpot(spot)
-  const self = pet()
+  waiting = true
   await flash('PSW.PushAndUpdateLoadingInfo', 100, '完成')
   await flash('PSW.ResetLoadingInfo')
   await flash('PSW.ChangeScene', spot.scene)
-  for (const name of ['PSW.MPetInit', 'MPetInit']) {
-    if (await flash(name, self)) break
-  }
-  await flash('PSW.SetMPetData', self)
-  await flash('PSW.SetMPetPos', spot.x, spot.y)
 }
 
 /** 企鹅社区 (pet/petsoc/world_1051.swf). Offline: skip the dead login servers and drop into 企鹅镇. */
@@ -221,6 +230,9 @@ export function openCommunity(): void {
   if (open) return
   open = true
   spot = loadSpot()
+  task = 0
+  waiting = false
+  clearTimeout(armed)
   calls.length = 0
   const stage = div('community')
   player = new SwfPlayer(stage)
@@ -237,14 +249,7 @@ export function openCommunity(): void {
 
   window.PSW = host({
     FLASHINITCOMPLETE: () => {
-      void (async () => {
-        await loadCatalog()
-        await flash('PSW.PetSocNotifyUIUpdateZoomServerList', zoneRows(regions[0]?.Name))
-        await flash('PSW.PetSocNotifyUIUpdateAreaServerList', areas)
-        await flash('PSW.ShowServerListUI')
-        await new Promise((r) => setTimeout(r, 1500))
-        await enter()
-      })()
+      void loadCatalog().then(() => enter())
     },
     RandomLogin: go,
     PetSocLoginServer: go,
@@ -262,11 +267,14 @@ export function openCommunity(): void {
     },
     GetRes: (id) => {
       const path = (RES[String(id)] ?? String(id ?? '')).replace(/\\/g, '/')
-      const url = new URL(path, new URL(BASE, location.href)).href
-      void fetch(url)
-        .then((r) => r.arrayBuffer())
-        .then((buf) => flash('PSW.OnGetRes', path, new Uint8Array(buf)))
-      return 1
+      const n = ++task
+      setTimeout(() => {
+        void flash('PSW.OnGetRes', n, 1, path).then(() => {
+          clearTimeout(armed)
+          armed = window.setTimeout(place, 200)
+        })
+      }, 0)
+      return n
     },
     GetSoundVolume: () => Math.round(save.settings.music * 100),
     GetWindowBreState: () => 0,

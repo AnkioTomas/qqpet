@@ -32,6 +32,8 @@ export default defineConfig({
         name: 'hidpi',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
+            // world_1051.swf fetches data/...; the dump's folder is Data/.
+            if (req.url) req.url = req.url.replace(/\/pet\/petsoc\/data(?=\/)/i, '/pet/petsoc/Data')
             const url = decodeURIComponent((req.url ?? '').split('?')[0])
             const svg =
               req.headers['x-hd'] && req.headers.accept?.includes('image/svg+xml') && url.startsWith('/pet/') && hidpiSvg(join(resolve('resources'), normalize(url)))

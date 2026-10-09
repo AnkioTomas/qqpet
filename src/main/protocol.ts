@@ -19,7 +19,7 @@ export function registerScheme(): void {
 
 export function handleScheme(): void {
   protocol.handle('app', (req) => {
-    const path = decodeURIComponent(new URL(req.url).pathname)
+    const path = decodeURIComponent(new URL(req.url).pathname).replace(/\/pet\/petsoc\/data(?=\/)/i, '/pet/petsoc/Data')
     const root = path.startsWith('/pet/') ? resourcesRoot : rendererRoot
     const file = normalize(join(root, path))
     if (!file.startsWith(root + sep)) return new Response(null, { status: 403 })
