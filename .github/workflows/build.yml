@@ -73,9 +73,9 @@ jobs:
           path: dist/*.apk
           if-no-files-found: error
 
-  # GitHub has no DevEco: this checks the Harmony web + rawfile pack, not a HAP.
   harmony:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,6 +87,38 @@ jobs:
       - run: npm ci
       - run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
       - run: npm run typecheck && npm run build:harmony-web && node scripts/pack-harmony.mjs
+      - name: Stamp Harmony version
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync, writeFileSync } from 'node:fs'
+          const version = JSON.parse(readFileSync('package.json', 'utf8')).version
+          const code = version.split('-')[0].split('.').reduce((c, p) => c * 100 + Number(p), 0)
+          const p = 'harmony/AppScope/app.json5'
+          writeFileSync(p, readFileSync(p, 'utf8')
+            .replace(/"versionCode":\s*\d+/, `"versionCode": ${code}`)
+            .replace(/"versionName":\s*"[^"]+"/, `"versionName": "${version}"`)
+            .replace(/"debug":\s*true/, '"debug": false'))
+          EOF
+      - uses: isaced/setup-ohos@v1
+        with:
+          hvigor: true
+      - name: Assemble HAP
+        working-directory: harmony
+        run: |
+          : "${DEVECO_SDK_HOME:?setup-ohos did not set DEVECO_SDK_HOME}"
+          printf 'hwsdk.dir=%s\nsdk.dir=%s\n' "$DEVECO_SDK_HOME" "$DEVECO_SDK_HOME" > local.properties
+          hvigorw assembleHap --mode module -p product=default -p buildMode=release --no-daemon
+      - name: Name HAP
+        run: |
+          hap=$(ls harmony/entry/build/default/outputs/default/entry-default-*.hap)
+          test -f "$hap"
+          mkdir dist
+          mv "$hap" "dist/QQPet-${GITHUB_REF_NAME#v}.hap"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qqpet-harmony
+          path: dist/*.hap
+          if-no-files-found: error
 
   release:
     needs: [build, android, harmony]

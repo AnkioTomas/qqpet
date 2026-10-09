@@ -56,9 +56,9 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux / Android / HarmonyOS），�
 - 没有开机自启：当前 SDK 没有可用的开机广播扩展。
 - 窗口按页面可见内容裁剪；拖动时会铺满屏幕，避免跟手错位。
 
-本地打包：`npm run harmony`，需要本机 [DevEco Studio](https://developer.huawei.com/consumer/cn/deveco-studio/)（`harmony/hvigorw` 默认使用 `/Applications/DevEco-Studio.app`，可用 `DEVECO_SDK_HOME` / `NODE_HOME` / `JAVA_HOME` 覆盖）。未签名 HAP 可装模拟器；真机或上架要在 DevEco 里配置签名。产物在 `harmony/entry/build/default/outputs/default/`。
+本地打包：`npm run harmony`，需要本机 [DevEco Studio](https://developer.huawei.com/consumer/cn/deveco-studio/)（`harmony/hvigorw` 默认使用 `/Applications/DevEco-Studio.app`，可用 `DEVECO_SDK_HOME` / `NODE_HOME` / `JAVA_HOME` 覆盖）。产物在 `harmony/entry/build/default/outputs/default/`。
 
-GitHub Actions 打 `v*` 标签时会做鸿蒙的类型检查、web 构建和 rawfile 打包，**不**产出 HAP（Runner 上没有 DevEco）。
+GitHub Actions 打 `v*` 标签时产出未签名 HAP 并放进 Release。和桌面包一样没有商店签名；用 hdc 装到模拟器或已开启调试的真机。上架或普通真机日常安装要在 DevEco 里配签名，目前仓库没有这份材料。
 
 ## 下载安装
 
@@ -71,7 +71,7 @@ GitHub Actions 打 `v*` 标签时会做鸿蒙的类型检查、web 构建和 raw
 | macOS（Intel） | `QQPet-<版本>.dmg` |
 | Linux | `QQPet-<版本>.AppImage` 或 `qqpet_<版本>_amd64.deb` |
 | Android（11 及以上） | `QQPet-<版本>.apk` |
-| HarmonyOS（5 及以上） | 不在 Releases；本机 `npm run harmony` 打 HAP |
+| HarmonyOS（5 及以上） | `QQPet-<版本>.hap` |
 
 安装包**没有代码签名**，系统会拦截首次运行：
 
@@ -85,7 +85,7 @@ GitHub Actions 打 `v*` 标签时会做鸿蒙的类型检查、web 构建和 raw
   也可以先打开一次，再到「系统设置 → 隐私与安全性」底部点「仍要打开」。
 - **Linux**：AppImage 需要可执行权限，`chmod +x QQPet-*.AppImage` 后运行；Ubuntu 22.04 起若报缺少 FUSE，安装 `libfuse2`（24.04 为 `libfuse2t64`）。deb 包用 `sudo apt install ./qqpet_*_amd64.deb` 安装。
 - **Android**：在浏览器或文件管理器中打开 APK，按提示允许「安装未知应用」。
-- **HarmonyOS**：Releases 不提供 HAP。本机用 DevEco 打出 debug 包后，用 hdc 装到模拟器或已开启调试的真机。
+- **HarmonyOS**：下载 HAP 后用 hdc 安装（需开发者模式）：`hdc install QQPet-*.hap`。未签名，不能走应用市场那套安装。
 
 ## 开发
 
@@ -103,7 +103,7 @@ npm run android   # Android debug APK
 npm run harmony   # HarmonyOS debug HAP（需要本机 DevEco Studio）
 ```
 
-推送 `v*` 标签时由 GitHub Actions 打出三平台安装包和 Android APK 并发布 Release，同时校验 Harmony 的类型检查、web 构建和 rawfile 打包（不产出 HAP）。其他推送不触发构建。
+推送 `v*` 标签时由 GitHub Actions 打出三平台安装包、Android APK 和 Harmony HAP 并发布 Release。其他推送不触发构建。
 
 Android 版本地调试用 `npm run android`（debug 包，输出到 `android/app/build/outputs/apk/debug/`），需要 Android SDK 和 JDK 17（Gradle 8 不支持更新的 JDK，可用 `JAVA_HOME` 指定）。CI 打的 release 包需要在仓库 Secrets 中配置签名密钥：
 
