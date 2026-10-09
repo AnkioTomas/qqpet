@@ -85,6 +85,8 @@ export interface GameSaveDatas {
 export interface Settings {
   /** Pet, control bar and window opacity, 0..1. */
   opacity: number
+  /** Desktop BGM (`pet/music/main01.mp3`) volume, 0..1. */
+  music: number
   /** Face spots: 0 off, 1 on, 2 on and marked. */
   faceClick: 0 | 1 | 2
   /** Do-not-disturb: no speech bubbles. */

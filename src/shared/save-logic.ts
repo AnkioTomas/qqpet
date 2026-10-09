@@ -84,6 +84,7 @@ const RULES: Record<string, Record<string, Rule>> = {
   },
   settings: {
     opacity: num(0, 1, 1),
+    music: num(0, 1, 1),
     faceClick: (v) => (v === 0 || v === 1 || v === 2 ? v : 2),
     quiet: bool,
     autoStart: bool,
@@ -155,6 +156,7 @@ function fresh(): SaveData {
     saveJsonData: { email: '{}', task: '{}', signin: '{}', fishs: '{}' },
     settings: {
       opacity: 1,
+      music: 1,
       faceClick: 2,
       quiet: false,
       autoStart: false,

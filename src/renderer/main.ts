@@ -6,6 +6,7 @@ import { adopt } from './ui/adopt'
 import { scheduleHide, showControl } from './ui/control'
 import { div, pageX, pageY, touch } from './ui/dom'
 import './ui/face'
+import './ui/music'
 import { closeMenu, openMenu } from './ui/menu'
 import { openState } from './ui/state'
 

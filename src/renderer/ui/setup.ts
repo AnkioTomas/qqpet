@@ -10,6 +10,7 @@ import './css/setup.css'
 import { button, div, typeable } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
+import { setMusic } from './music'
 
 type Option = { label: string; title?: string } & (
   | { type: 'radio'; on: () => boolean; run: () => void }
@@ -159,6 +160,7 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '重生为另一个性别~~~（注意数据丢失）', run: rebornAsOther },
       { type: 'button', label: '宠物不见了？点我试试', run: homing },
       { type: 'slider', label: '透明度', value: () => s.opacity, step: (d) => setOpacity(s.opacity + d) },
+      { type: 'slider', label: '背景音乐', value: () => s.music, step: (d) => setMusic(s.music + d) },
       { type: 'radio', label: '开机自启', on: () => s.autoStart, run: toggleAutoStart },
       { type: 'input', label: '天气城市（留空按网络位置自动定位）', value: () => s.weatherCity, set: setCity },
       {
