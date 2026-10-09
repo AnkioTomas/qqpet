@@ -5,7 +5,7 @@ import { useItem } from '../pet/items'
 import { work, workGoods } from '../pet/jobs'
 import { speak } from '../pet/pet'
 import { info, save, update } from '../pet/store'
-import { openFrame } from './box'
+import { openBox } from './box'
 import './css/chat.css'
 import { button, div } from './dom'
 import { setHidden } from './menu'
@@ -81,16 +81,12 @@ export function openChat(): void {
     if (e.key === 'Enter') void send()
   })
 
-  const remove = openFrame(
+  close = openBox(
     div(
       'ui-chat',
       div(
         'chatMain fC',
-        div(
-          'chatTitle fc',
-          div('f1', `和${info.name}聊天`),
-          button('chatClose', () => close?.(), '×'),
-        ),
+        div('chatTitle', `和${info.name}聊天`),
         log,
         div(
           'chatBar fc',
@@ -99,12 +95,13 @@ export function openChat(): void {
         ),
       ),
     ),
+    {
+      onClose: () => {
+        window.qqpet.setFocusable(false)
+        close = null
+      },
+    },
   )
   window.qqpet.setFocusable(true)
   input.focus()
-  close = () => {
-    remove()
-    window.qqpet.setFocusable(false)
-    close = null
-  }
 }

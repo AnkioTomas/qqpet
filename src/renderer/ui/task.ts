@@ -1,4 +1,3 @@
-import { info } from '../pet/store'
 import { claim, TABS, tasks, type Tab } from '../pet/tasks'
 import { openBox } from './box'
 import './css/task.css'
@@ -47,5 +46,5 @@ export function openTask(): void {
     root.replaceChildren(div('task fC', div('t_top f1 fC h0', div('t_title', '活动列表'), div('t_tabs', ...tabs), div('tasks f1 mt8 h0', ...items))))
   }
   render()
-  openBox(root, { vip: info.pinkDiamond, onClose: () => (open = false) })
+  openBox(root, { onClose: () => (open = false) })
 }

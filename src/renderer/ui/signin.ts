@@ -216,7 +216,6 @@ export function openSignIn(): void {
 
   root.append(div('SignIn fc', left, signView, giftView))
   openBox(root, {
-    vip: info.pinkDiamond,
     onClose: () => {
       clearInterval(timer)
       open = false

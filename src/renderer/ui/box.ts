@@ -1,4 +1,4 @@
-import { save } from '../pet/store'
+import { info, save } from '../pet/store'
 import { div, touch } from './dom'
 
 const SKINS = {
@@ -115,9 +115,10 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
  * frame, with a close button. Returns a function that removes it.
  */
 export function openBox(content: HTMLElement, opts: { vip?: boolean; onClose?: () => void } = {}): () => void {
-  const skin = SKINS[opts.vip ? 'vip' : 'normal']
+  const vip = opts.vip ?? info.pinkDiamond
+  const skin = SKINS[vip ? 'vip' : 'normal']
   const frame = document.createElement('div')
-  frame.className = opts.vip ? 'box vip' : 'box'
+  frame.className = vip ? 'box vip' : 'box'
 
   const closeBtn = document.createElement('div')
   closeBtn.className = 'close'
@@ -131,11 +132,15 @@ export function openBox(content: HTMLElement, opts: { vip?: boolean; onClose?: (
   }
   frame.append(row('head', skin.head, closeBtn), body, row('foot', skin.foot))
 
-  const close = show(frame, content)
-  closeBtn.addEventListener('click', () => {
-    close()
+  const hide = show(frame, content)
+  let closed = false
+  const close = (): void => {
+    if (closed) return
+    closed = true
+    hide()
     opts.onClose?.()
-  })
+  }
+  closeBtn.addEventListener('click', close)
   return close
 }
 

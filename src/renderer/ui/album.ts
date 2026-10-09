@@ -1,5 +1,5 @@
 import { isBuddy, photoUrl, PHOTOS, shots, type Shot } from '../pet/album'
-import { openFrame } from './box'
+import { openBox } from './box'
 import './css/album.css'
 import { formatDate } from './date'
 import { button, div, img } from './dom'
@@ -9,15 +9,11 @@ const caption = (s: Shot): string => `${s.city}${isBuddy(s.id) ? ' · 和旅游�
 /** A photo at full size; `id` must be in the album. */
 export function openPhoto(id: string): void {
   const s = shots().find((x) => x.id === id)!
-  const remove = openFrame(
+  openBox(
     div(
       'ui-photo fC',
       img('photoImg', photoUrl(id)),
-      div(
-        'photoBar fc',
-        div('f1', caption(s)),
-        button('photoClose fcc', () => remove(), '×'),
-      ),
+      div('photoBar', caption(s)),
     ),
   )
 }

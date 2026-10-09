@@ -26,6 +26,13 @@ function settle(today: number): void {
   setInfo('PDgrowthValue_next', LEVELS[level])
 }
 
+/** Drops the membership now. Growth history stays; the window skin goes gold. */
+export function clearPinkDiamond(): void {
+  setInfo('PDiamondExpirationDate', 0)
+  setInfo('PDiamondBeginDate', 0)
+  settle(dayStart())
+}
+
 /** Opens pink diamond for `days` from today's 06:00, or extends a running one. */
 export function openPinkDiamond(days: number): void {
   const today = dayStart()

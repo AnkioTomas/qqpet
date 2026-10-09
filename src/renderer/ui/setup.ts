@@ -4,6 +4,7 @@ import { give } from '../pet/items'
 import { speak } from '../pet/pet'
 import { rand } from '../pet/rand'
 import { addInfo, info, save, setInfo, update } from '../pet/store'
+import { clearPinkDiamond, openPinkDiamond } from '../pet/vip'
 import { weatherNow } from '../pet/weather'
 import { openFrame } from './box'
 import './css/setup.css'
@@ -204,6 +205,30 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '随机获得 10 个食物', run: () => grant('food') },
       { type: 'button', label: '随机获得 10 个清洁用品', run: () => grant('clean') },
       { type: 'button', label: '随机获得 10 个药品', run: () => grant('medicine') },
+      {
+        type: 'button',
+        label: '粉钻 30天',
+        run: () => {
+          openPinkDiamond(30)
+          speak({ s: '[host]，粉钻开了30天！', now: true }, 'appear')
+        },
+      },
+      {
+        type: 'button',
+        label: '粉钻 年费',
+        run: () => {
+          openPinkDiamond(365)
+          speak({ s: '[host]，粉钻开了365天！', now: true }, 'appear')
+        },
+      },
+      {
+        type: 'button',
+        label: '粉钻 清除',
+        run: () => {
+          clearPinkDiamond()
+          speak({ s: '[host]，粉钻已清除~', now: true }, 'appear')
+        },
+      },
     ],
   },
   {

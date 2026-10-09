@@ -1,7 +1,7 @@
 import { goodOf } from '../pet/data/goods'
 import { diploma } from '../pet/jobs'
 import { avatar, fatigue, growthPerMinute, info, luck, save, setInfo } from '../pet/store'
-import { openFrame } from './box'
+import { openBox } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
 import { button, div, img, touch, typeable } from './dom'
@@ -94,7 +94,6 @@ export function openPetInfo(): void {
 
   const main = div(
     'petInfoMain focusPress',
-    button('close', () => close()),
     head,
     ...(info.PDiamondLevel ? [pd] : []),
     title,
@@ -115,11 +114,11 @@ export function openPetInfo(): void {
     div('rightRow statusValue', div('label', '宠物状态')),
     stats,
   )
-  const remove = openFrame(div('ui-petinfo', main))
-  close = (): void => {
-    clearInterval(timer)
-    window.qqpet.setFocusable(false)
-    remove()
-    close = () => {}
-  }
+  close = openBox(div('ui-petinfo', main), {
+    onClose: () => {
+      clearInterval(timer)
+      window.qqpet.setFocusable(false)
+      close = () => {}
+    },
+  })
 }

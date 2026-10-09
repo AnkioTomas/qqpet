@@ -3,7 +3,7 @@ import CHINA from '../pet/data/china.json'
 import { pay } from '../pet/items'
 import { PROVINCES, travel } from '../pet/jobs'
 import { speak } from '../pet/pet'
-import { activity, info, save, update } from '../pet/store'
+import { activity, save, update } from '../pet/store'
 import { resetTour } from '../pet/tasks'
 import { albumView } from './album'
 import { openBox } from './box'
@@ -99,7 +99,6 @@ export function openTravel(): void {
   show(0)
   const content = div('travel fC', div('travelTabs fc', ...tabs), mapPane, albumPane)
   openBox(div('ui-travel', content), {
-    vip: info.pinkDiamond,
     onClose: () => {
       clearInterval(timer)
       open = false

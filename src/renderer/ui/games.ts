@@ -51,5 +51,5 @@ export function openGames(): void {
     list.replaceChildren(...cats[i].games.map((g) => Object.assign(button('gameItem', g.run, g.name), { title: g.name })))
   }
   show(0)
-  const close = openBox(div('ui-games', tabs, list), { vip: info.pinkDiamond, onClose: () => (open = false) })
+  const close = openBox(div('ui-games', tabs, list), { onClose: () => (open = false) })
 }

@@ -87,7 +87,6 @@ export function openFarm(): void {
   )
   window.qqpet.setFocusable(true)
   openBox(div('ui-farm', host, actions), {
-    vip: info.pinkDiamond,
     onClose: () => {
       clearInterval(timer)
       settle()

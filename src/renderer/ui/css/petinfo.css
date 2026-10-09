@@ -1,4 +1,4 @@
-.ui-petinfo .petInfoMain {position:relative;font-size:12px;width:432px;height:420px;color:#2a1608eb;box-sizing:border-box;border:1px solid #7fa6b8;border-radius:12px;background:linear-gradient(#ddf2fb,#f6fcff 45%,#e2f3fb);box-shadow:2px 3px 5px #0005}
+.ui-petinfo .petInfoMain {position:relative;font-size:12px;width:432px;height:420px;color:#2a1608eb;box-sizing:border-box}
 .ui-petinfo .headImg {position:absolute;left:25px;top:25px;height:160px;width:160px;background-image:url(/pet/info/16.svg);background-repeat:no-repeat;background-size:cover;border-radius:10px}
 .ui-petinfo .headImg .img {width:90%;height:90%;transform-origin:center bottom;pointer-events:none;position:absolute;left:5%;top:5%}
 .ui-petinfo .name {position:absolute;left:25px;top:208px;width:160px;text-align:center}
@@ -9,7 +9,7 @@
 .ui-petinfo .rightRow {position:absolute;left:190px;top:20px;width:210px;height:20px}
 .ui-petinfo .hostName {top:45px}
 .ui-petinfo .luckyFatigue {top:60px}
-.ui-petinfo .label {font-weight:600;color:#010b41}
+.ui-petinfo .label {font-weight:600;color:#5a2803}
 .ui-petinfo .input {width:100px;height:20px;color:#fff;border-radius:5px;background-color:#00000080;margin-right:5px}
 .ui-petinfo .but {height:25px;width:40px;background-image:url(/pet/info/55.svg);background-size:100% 100%;background-repeat:no-repeat;position:relative;top:-2px}
 .ui-petinfo .but:hover {background-image:url(/pet/info/57.svg)}
@@ -19,9 +19,6 @@
 .ui-petinfo .birthDay {left:270px}
 .ui-petinfo .level {top:85px}
 .ui-petinfo .yb {top:85px;left:270px}
-.ui-petinfo .close {width:20px;height:20px;background-image:url(/pet/info/9.svg);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:15px;top:5px}
-.ui-petinfo .close:hover {background-image:url(/pet/info/11.svg)}
-.ui-petinfo .close:active {background-image:url(/pet/info/13.svg)}
 .ui-petinfo .attributeValue,
 .ui-petinfo .educationValue,
 .ui-petinfo .statusValue {border-bottom:1px dotted #8aa}
