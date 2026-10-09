@@ -1,12 +1,9 @@
 import { describe, type Good, type GoodType } from '../pet/data/goods'
 import { listGoods, onGoodsChange, pageOf, type Page } from '../pet/goods'
-import { doctor, pay, useItem } from '../pet/items'
+import { doctor, useItem } from '../pet/items'
 import { describeStudy, describeWork, study, studyGoods, work, workGoods } from '../pet/jobs'
-import { speak } from '../pet/pet'
 import { info, onInfoChange, petSize, save } from '../pet/store'
-import { openPinkDiamond } from '../pet/vip'
 import './css/control.css'
-import { formatDate } from './date'
 import { button, div, img, touch } from './dom'
 import { openEmail } from './email'
 import { openFarm } from './farm'
@@ -21,7 +18,6 @@ import { openSignIn } from './signin'
 import { setBubbleLift } from './talk'
 import { openTask } from './task'
 import { openTravel } from './travel'
-import { windowView } from './window-view'
 
 const ICONS = 'pet/control/icons/'
 const BAR_HEIGHT = 180
@@ -76,23 +72,6 @@ const PANELS = {
   toy: inventory('toy', 28, 'mood'),
 }
 
-function pinkDiamond(): void {
-  const until = (): void => speak({ s: `[host],我们粉钻到${formatDate(info.PDiamondExpirationDate, 'YYYY-MM-DD HH:mm')}过期哦~`, now: true }, 'speak')
-  if (info.pinkDiamond) return until()
-  const first = info.PDgrowth === 0
-  const price = first ? 666 : info.PDiamondLevel * 888
-  windowView({
-    title: '开通粉钻',
-    msg: first ? '限时花费666（原价888）元宝，开通粉钻5天，机不可失！~~' : `开通粉钻需要${price}元宝，开通粉钻5天，助力宝宠成长玩耍~~`,
-    ok: (close) => {
-      if (!pay(price)) return
-      openPinkDiamond(5)
-      close()
-      until()
-    },
-  })
-}
-
 /** A menu group opens its children on hover, or runs `run` on click. */
 const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }[] = [
   {
@@ -105,7 +84,6 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       { name: '玩具', icon: 'wanshua.png', run: PANELS.toy },
     ],
   },
-  { name: '粉钻', icon: 'fenzhuan.png', run: pinkDiamond },
   {
     name: '交互',
     icon: 'chongwu.png',
