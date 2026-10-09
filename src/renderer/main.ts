@@ -1,4 +1,4 @@
-import { clipAsk } from './pet/ai'
+import { clipAsk, note } from './pet/ai'
 import { resumeTask } from './pet/jobs'
 import { speak, startPet } from './pet/pet'
 import { info, onInfoChange, petSize, save, setInfo } from './pet/store'
@@ -157,7 +157,9 @@ window.qqpet.onTrayClick((c) => {
 
 const CLIP_MAX = 60
 window.qqpet.onClipboard((text) => {
-  if (save.havePet) speak({ s: text.length > CLIP_MAX ? `${text.slice(0, CLIP_MAX)}…` : text, b: '当前复制的文字', now: true, ai: clipAsk(text) }, 'speak')
+  if (!save.havePet) return
+  note('主人刚复制了一段文字')
+  speak({ s: text.length > CLIP_MAX ? `${text.slice(0, CLIP_MAX)}…` : text, b: '当前复制的文字', now: true, ai: clipAsk(text) }, 'speak')
 })
 
 if (save.havePet) {

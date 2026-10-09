@@ -74,7 +74,10 @@ interface Say {
   b?: string
   /** Preempt the current animation instead of queueing. */
   now?: boolean
-  /** While AI is on, the bubble shows the line at once and then the AI's take on it: what to ask for, or false to keep it. */
+  /**
+   * While AI is on: a prompt to rewrite the line (shown first, then replaced),
+   * `IDLE` waits for the model (the stock line is only a hint), `false` keeps the text.
+   */
   ai?: string | false
 }
 
@@ -88,10 +91,14 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
     button = l?.submitText ?? '好的'
   }
   text = text.replace(/\[host]/g, info.host)
+  const onOk = hooks.ok ? [hooks.ok] : []
   const show = (): void => {
     if (!save.settings.quiet) {
-      const said = say(text, [button], hooks.ok ? [hooks.ok] : [])
-      if (t.ai !== false) void Promise.all([rephrase(text, t.ai), said]).then(([s]) => s && void retell(text, s))
+      if (t.ai === IDLE) void rephrase(text, t.ai).then((s) => void say(s ?? text, [button], onOk))
+      else {
+        const said = say(text, [button], onOk)
+        if (t.ai !== false) void Promise.all([rephrase(text, t.ai), said]).then(([s]) => s && void retell(text, s))
+      }
     }
     hooks.start?.()
   }
