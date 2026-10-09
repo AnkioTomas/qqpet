@@ -28,11 +28,7 @@ package com.MyFarm.view
       
       private var myIntro:IntroductionText;
       
-      public var _house:Sprite;
-      
       public var _user:Object;
-      
-      public var _fence:Sprite;
       
       public var _warehouse:MovieClip;
       
@@ -51,8 +47,6 @@ package com.MyFarm.view
       public var so:SharedObject = SharedObject.getLocal("test","/");
       
       private var control:Control;
-      
-      public var _kennel:Sprite;
       
       public var _tools:Sprite = new Sprite();
       
@@ -84,24 +78,6 @@ package com.MyFarm.view
             return instance = new InstallFace();
          }
          return instance;
-      }
-      
-      public function set kennel(param1:String) : void
-      {
-         var _loc2_:Sprite = null;
-         var _loc3_:Number = NaN;
-         var _loc4_:Number = NaN;
-         _loc2_ = createClip(param1);
-         if(_loc2_ != null)
-         {
-            _loc3_ = _kennel.x;
-            _loc4_ = _kennel.y;
-            _bg.removeChild(_kennel);
-            _kennel = _loc2_;
-            _bg.addChild(_kennel);
-            _kennel.x = _loc3_;
-            _kennel.y = _loc4_;
-         }
       }
       
       private function installToolsBar() : void
@@ -213,18 +189,6 @@ package com.MyFarm.view
          _beijing = createClip("beijing");
          _beijing.x = -15;
          _bg.addChild(_beijing);
-         _house = createClip(_user.house);
-         _house.x = 580;
-         _house.y = 250;
-         _bg.addChild(_house);
-         _fence = createClip(_user.fence);
-         _fence.x = 380;
-         _fence.y = 195;
-         _bg.addChild(_fence);
-         _kennel = createClip(_user.kennel);
-         _kennel.x = 460;
-         _kennel.y = 200;
-         _bg.addChild(_kennel);
          _myMouse = createClip("CursorArrow");
          _myMouse.name = "CursorArrow";
          _myMouse.mouseEnabled = false;
@@ -714,24 +678,6 @@ package com.MyFarm.view
          }
       }
       
-      public function set fence(param1:String) : void
-      {
-         var _loc2_:Sprite = null;
-         var _loc3_:Number = NaN;
-         var _loc4_:Number = NaN;
-         _loc2_ = createClip(param1);
-         if(_loc2_ != null)
-         {
-            _loc3_ = _fence.x;
-            _loc4_ = _fence.y;
-            _bg.removeChild(_fence);
-            _fence = _loc2_;
-            _bg.addChild(_fence);
-            _fence.x = _loc3_;
-            _fence.y = _loc4_;
-         }
-      }
-      
       public function changeMouse(param1:String) : void
       {
          var _loc2_:MovieClip = null;
@@ -770,24 +716,6 @@ package com.MyFarm.view
             _loc2_ = null;
          }
          return _loc2_;
-      }
-      
-      public function set house(param1:String) : void
-      {
-         var _loc2_:Sprite = null;
-         var _loc3_:Number = NaN;
-         var _loc4_:Number = NaN;
-         _loc2_ = createClip(param1);
-         if(_loc2_ != null)
-         {
-            _loc3_ = _house.x;
-            _loc4_ = _house.y;
-            _bg.removeChild(_house);
-            _house = _loc2_;
-            _bg.addChild(_house);
-            _house.x = _loc3_;
-            _house.y = _loc4_;
-         }
       }
       
       private function createButton(param1:String) : SimpleButton
