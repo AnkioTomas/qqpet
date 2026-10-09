@@ -39,6 +39,14 @@ export class SwfPlayer {
     this.el.style.width = '100%'
     this.el.style.height = '100%'
     parent.appendChild(this.el)
+    // Ruffle types into text fields from a hidden <input> it empties on every input event, which breaks IME
+    // composition (Chinese). Keep the composing keystrokes from it and hand it the committed text at once.
+    const keyboard = this.el.shadowRoot!.getElementById('virtual-keyboard')!
+    const composing = (e: Event): void => {
+      if ((e as InputEvent).isComposing) e.stopImmediatePropagation()
+    }
+    for (const type of ['input', 'keydown', 'keyup']) keyboard.addEventListener(type, composing, true)
+    keyboard.addEventListener('compositionend', () => keyboard.dispatchEvent(new Event('input')))
   }
 
   /** `base` (relative to the page) resolves the SWF's own relative URLs; `options` override Ruffle's config. */
