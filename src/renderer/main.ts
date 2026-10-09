@@ -71,7 +71,13 @@ let dragging = false
 window.qqpet.onCursor((p) => {
   cursor.x = p.x
   cursor.y = p.y
-  const hit = dragging || document.elementFromPoint(p.x, p.y)?.closest('[data-hit]') != null
+  // The pet box is the hit target. elementFromPoint misses Ruffle's shadow canvas,
+  // so the OS arrow shows until we also test the box itself.
+  const overPet = !petEl.hidden && p.x >= info.lastX && p.x < info.lastX + size && p.y >= info.lastY && p.y < info.lastY + size
+  const el = document.elementFromPoint(p.x, p.y)
+  const root = el?.getRootNode()
+  const host = root instanceof ShadowRoot ? root.host : el
+  const hit = dragging || overPet || host?.closest('[data-hit]') != null
   // The menu closes once the cursor rests on the desktop; it may still be on the tray, outside the window.
   const inside = p.x >= 0 && p.y >= 0 && p.x < innerWidth && p.y < innerHeight
   if (!hit && inside) closeMenu()
@@ -87,8 +93,8 @@ petEl.addEventListener('pointerdown', (e) => {
   closeMenu()
   showControl()
   dragging = true
-  const dx = pageX(e) - info.lastX
-  const dy = pageY(e) - info.lastY
+  let dx = pageX(e) - info.lastX
+  let dy = pageY(e) - info.lastY
   // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
   const hold = touch ? setTimeout(() => openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet), HOLD_MS) : 0
   let lifted = false
@@ -98,11 +104,16 @@ petEl.addEventListener('pointerdown', (e) => {
       if (!lifted) {
         lifted = true
         machine.play({ a: 'drag', opt: { url: 'pet/Action/drag.swf', opt: {} } })
+        // drag.swf draws the held head in the upper-right, not the box center.
+        // Anchor the scruff (measured hold point) under the cursor.
+        dx = size * 0.73
+        dy = size * 0.14
       }
     }
     setInfo('lastX', pageX(m) - dx)
     setInfo('lastY', pageY(m) - dy)
-    clampOnScreen()
+    // Once lifted the scruff is the cursor; clamping the box would pull it off.
+    if (!lifted) clampOnScreen()
   }
   petEl.setPointerCapture(e.pointerId)
   petEl.addEventListener('pointermove', move)

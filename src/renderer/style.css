@@ -11,11 +11,18 @@ body {
 
 #pet {
   position: absolute;
+  cursor: url(/pet/img_res/hand/focus/normal.cur), default;
+}
+
+#pet:active {
+  cursor: url(/pet/img_res/hand/focus/press.cur), default;
 }
 
 #pet > ruffle-player {
   position: absolute;
   inset: 0;
+  /* Ruffle :host { all: initial } resets cursor to auto and hides the custom pointer. */
+  cursor: inherit !important;
 }
 
 /* Taps must not flash a highlight or open the long-press callout; dragging the pet must not pan. */
