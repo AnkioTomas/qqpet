@@ -5,6 +5,7 @@ import { describeStudy, describeWork, study, studyGoods, work, workGoods } from 
 import { info, onInfoChange, petSize, save } from '../pet/store'
 import './css/control.css'
 import { button, div, img, touch } from './dom'
+import { openCommunity } from './community'
 import { openEmail } from './email'
 import { openFarm } from './farm'
 import { openFishing } from './fishing'
@@ -120,6 +121,7 @@ const MENU: { name: string; icon: string; children?: Entry[]; run?: () => void }
       { name: '农场', icon: 'nongchang01.png', run: openFarm },
       { name: '游戏', icon: 'game.svg', run: openGames },
       { name: '密室', icon: 'mstx.png', run: openMstx },
+      { name: '社区', icon: 'shequ.png', run: openCommunity },
     ],
   },
   { name: '档案', icon: 'dangan.png', run: openPetInfo },

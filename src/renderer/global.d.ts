@@ -18,6 +18,9 @@ declare global {
     close_game(n: number): void
     /** Called by mstx/main_qq_mstx.swf's close button. */
     closeFrame(): void
+    /** PetSoc world_1051.swf ↔ host. Missing names are logged stubs. */
+    PSW: Record<string, (...args: unknown[]) => unknown>
+    PET: Record<string, (...args: unknown[]) => unknown>
   }
 
   interface RuffleMetadata {
