@@ -103,5 +103,7 @@ export function openChat(): void {
     },
   )
   window.qqpet.setFocusable(true)
-  input.focus()
+  const into = (): void => input.focus()
+  window.addEventListener('focus', into, { once: true })
+  setTimeout(into, 50)
 }

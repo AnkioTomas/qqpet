@@ -87,7 +87,14 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.copyText, (_e, text: string) => clipboard.writeText(text))
   ipcMain.on(IPC.setClickThrough, (_e, on: boolean) => win.setIgnoreMouseEvents(on))
   ipcMain.on(IPC.setAlwaysOnTop, (_e, on: boolean) => win.setAlwaysOnTop(on, 'screen-saver'))
-  ipcMain.on(IPC.setFocusable, (_e, on: boolean) => win.setFocusable(on))
+  ipcMain.on(IPC.setFocusable, (_e, on: boolean) => {
+    win.setFocusable(on)
+    // The window is born unfocusable; setFocusable alone does not make it key, so IME stays on the previous app.
+    if (on) {
+      if (process.platform === 'darwin') app.focus({ steal: true })
+      win.focus()
+    }
+  })
   ipcMain.on(IPC.setAutoStart, (_e, on: boolean) => app.setLoginItemSettings({ openAtLogin: on }))
   ipcMain.on(IPC.setTrayState, (_e, state: TrayState) => tray.setState(getSave(), state))
 
