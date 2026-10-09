@@ -94,11 +94,12 @@ function hideOnFullscreen(win: BrowserWindow): void {
   win.on('closed', () => ps.kill())
 }
 
-/** A normal, resizable window playing one game; the SWF scales with it. */
-export function openGameWindow(swf: string): BrowserWindow {
+/** A normal, resizable window playing one game; the SWF scales with it. With `parent` it stacks above that window. */
+export function openGameWindow(swf: string, parent?: BrowserWindow): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize
   const scale = Math.min(1, (area.width * 0.9) / 1024, (area.height * 0.9) / 768)
   const win = new BrowserWindow({
+    parent,
     width: Math.round(1024 * scale),
     height: Math.round(768 * scale),
     useContentSize: true,

@@ -74,10 +74,12 @@ app.whenReady().then(() => {
   ipcMain.handle(IPC.aiModels, (_e, c) => aiModels(net.fetch, c))
   ipcMain.handle(IPC.aiChat, (_e, c, messages) => aiChat(net.fetch, c, messages))
   ipcMain.handle(IPC.weather, (_e, city: string) => weather(net.fetch, city))
+  // A focusable pet window holds a full panel (社区, 密室...) that would cover a normal game window.
+  let panel = false
   ipcMain.on(IPC.openGame, (_e, swf: string) => {
     const start = Date.now()
     // Quitting with a game open closes the pet window first.
-    openGameWindow(swf).on('closed', () => win.isDestroyed() || win.webContents.send(IPC.gamePlayed, (Date.now() - start) / 60000))
+    openGameWindow(swf, panel ? win : undefined).on('closed', () => win.isDestroyed() || win.webContents.send(IPC.gamePlayed, (Date.now() - start) / 60000))
   })
   ipcMain.on(IPC.quit, () => app.quit())
   ipcMain.handle(IPC.messageBox, async (_e, o: MessageBoxOptions) => {
@@ -88,6 +90,7 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.setClickThrough, (_e, on: boolean) => win.setIgnoreMouseEvents(on))
   ipcMain.on(IPC.setAlwaysOnTop, (_e, on: boolean) => win.setAlwaysOnTop(on, 'screen-saver'))
   ipcMain.on(IPC.setFocusable, (_e, on: boolean) => {
+    panel = on
     win.setFocusable(on)
     // The window is born unfocusable; setFocusable alone does not make it key, so IME stays on the previous app.
     if (on) {
