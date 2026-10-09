@@ -13,6 +13,8 @@ const PLAZA = { x: 800, y: 620 }
 const DEAD = { x: 1270, y: 1020 }
 /** SceneConfig_1065 folders. 1/2 exist only on the world map. */
 const SCENES = new Set([3, 5, 7, 8, 13, 15, 16, 18, 20, 21, 23, 26, 27, 29, 30, 31, 32])
+/** 夏帕海岸/粉钻雪山 were rebuilt as 24/25 (no tiles in the dump), yet 竞技场/粉钻雪山/度假村 exits already point there. */
+const ALIAS: Record<number, number> = { 24: 3, 25: 5 }
 const SPAWN: Record<number, { x: number; y: number }> = {
   3: PLAZA,
   5: { x: 1255, y: 1475 },
@@ -277,7 +279,8 @@ function zoneRows(region: unknown): Row[] {
 async function portal(scene: number, from: number): Promise<{ x: number; y: number } | null> {
   const text = await (await fetch(`${BASE}${file(RES.NPCConfigure, scene, 'NpcList.xml')}`)).text()
   for (const [, attrs, body] of text.matchAll(/<Npc\s([^>]*)>([\s\S]*?)<\/Npc>/g)) {
-    if (!new RegExp(`"enterScene">\\s*<Param name="id">${from}<`).test(body)) continue
+    const to = Number(body.match(/"enterScene">\s*<Param name="id">(\d+)</)?.[1])
+    if ((ALIAS[to] ?? to) !== from) continue
     const x = attrs.match(/\sx="(\d+)"/)
     const y = attrs.match(/\sy="(\d+)"/)
     if (x && y) return { x: Number(x[1]), y: Number(y[1]) }
@@ -390,10 +393,13 @@ export function openCommunity(): void {
     return 1
   }
   const goScene = (id: unknown): number => {
-    const scene = Number(id)
+    const scene = ALIAS[Number(id)] ?? Number(id)
     void (async () => {
       // Missing tiles (风语广场, 企鹅镇...): stay put; Failed closes the loading panel the request opened.
-      if (!SCENES.has(scene)) return void (await flash('PSW.RequestChangeSceneFailed', 1))
+      if (!SCENES.has(scene)) {
+        await flash('PSW.RequestChangeSceneFailed', 1)
+        return void (await flash('PSW.MPetSendChatMSG', 0, '', '前面的路还没修好，过不去呢~'))
+      }
       if (scene === spot.scene) return enter()
       await enter({ scene, ...((await portal(scene, spot.scene)) ?? spawn(scene)) })
     })()
