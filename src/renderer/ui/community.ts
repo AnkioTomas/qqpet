@@ -5,7 +5,7 @@ import { openBox } from './box'
 import './css/community.css'
 import { div } from './dom'
 import { openFishing } from './fishing'
-import { arrive, chatted, ISLAND, meet, played } from './island'
+import { arrive, chatted, ISLAND, meet, played, stage } from './island'
 import { openMstx } from './mstx'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
@@ -402,6 +402,11 @@ async function flash(name: string, ...args: unknown[]): Promise<boolean> {
   ;(el[name] as (...a: unknown[]) => unknown).call(player.el, ...args)
   return true
 }
+
+Object.assign(stage, {
+  play: (n: number) => void flash('PetCommunity_PlayAnimation', '', n, spot.x, spot.y - 70),
+  face: (n: number) => void flash('PSW.MainPetPlayEmotion', 0, n),
+})
 
 /** Flush the current GetRes burst in one turn. New GetRes from pumpNext wait for the next timeout. */
 function kick(): void {

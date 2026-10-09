@@ -1,12 +1,13 @@
-import { askAs } from '../pet/ai'
+import { aiOn, askAs } from '../pet/ai'
 import { dayText } from '../pet/calendar'
 import EXAM from '../pet/data/exam.json'
-import { allGoods, findGood, parseGood, type Good } from '../pet/data/goods'
-import { hasGood, takeGood } from '../pet/goods'
+import { allGoods, findGood, parseGood, type Good, type GoodType } from '../pet/data/goods'
+import { hasGood, listGoods, takeGood } from '../pet/goods'
 import { give } from '../pet/items'
 import { loot } from '../pet/loot'
 import { rand } from '../pet/rand'
 import { info, save, update } from '../pet/store'
+import { count, type Counter } from '../pet/tasks'
 import { dayStart } from '../pet/vip'
 import { openBox } from './box'
 import './css/island.css'
@@ -14,7 +15,7 @@ import { button, div, img } from './dom'
 import { openShop, SOLD } from './shop'
 import { openTask } from './task'
 
-const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)]
+const pick = <T>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)]
 const shuffle = <T>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
 
 const PLACES: Record<number, string> = {
@@ -222,33 +223,71 @@ const SPOTS: Record<string, { name: string; what: string; lines: string[] }> = {
     lines: ['搬完一筐苹果，果农塞给你一个最大最红的。'],
   },
 }
-/** The wilds' monsters by their old page's id: name and scene. Tougher as the id grows. */
-const MONSTERS: Record<string, [string, number]> = {
-  1: ['狗妖', 30],
-  2: ['树精', 30],
-  3: ['狗贼', 30],
-  4: ['枯藤精', 30],
-  5: ['野猪精', 30],
-  6: ['鬼灯笼', 30],
-  7: ['花妖', 30],
-  8: ['豹妖', 30],
-  9: ['虎头领', 30],
-  10: ['狗仔队', 30],
-  11: ['虎王', 30],
-  13: ['雪猿', 30],
-  14: ['云兽', 30],
-  15: ['香炉精', 30],
-  16: ['石狮精', 30],
-  17: ['雪妖', 32],
-  18: ['冰魂', 32],
-  19: ['玄猴', 31],
-  20: ['剑魂', 31],
-  29: ['幻境', 31],
-  30: ['玲珑塔', 30],
+/** The wilds' monsters by their old page's id: name, scene and what they are like. Tougher as the id grows. */
+const MONSTERS: Record<string, [string, number, string]> = {
+  1: ['狗妖', 30, '东郊荒地最弱的小妖，爱虚张声势，一吓就跑'],
+  2: ['树精', 30, '慢吞吞的老树成精，最烦别人踩它的根'],
+  3: ['狗贼', 30, '背着包袱的小毛贼，偷了东西就往荒地里藏'],
+  4: ['枯藤精', 30, '浑身枯藤，爱用藤条绊人'],
+  5: ['野猪精', 30, '横冲直撞的大块头，做梦都想吃唐僧肉'],
+  6: ['鬼灯笼', 30, '夜里飘来飘去的灯笼妖，爱装神弄鬼吓唬人'],
+  7: ['花妖', 30, '开得最艳的花成了精，自恋又小气，不许人摘花'],
+  8: ['豹妖', 30, '跑得飞快的豹子精，看不起慢吞吞的企鹅'],
+  9: ['虎头领', 30, '虎王手下的头领，嗓门大，爱摆架子'],
+  10: ['狗仔队', 30, '一群举着相机的狗妖，到处偷拍别人的糗事'],
+  11: ['虎王', 30, '东郊荒地的霸主，自称天下第一'],
+  13: ['雪猿', 30, '从雪山下来的白毛猿，力气大，脾气暴'],
+  14: ['云兽', 30, '腾云驾雾的怪兽，最爱遮住星星和太阳'],
+  15: ['香炉精', 30, '庙里的老香炉成了精，一生气就喷香灰'],
+  16: ['石狮精', 30, '守门的石狮子成了精，又硬又倔'],
+  17: ['雪妖', 32, '昆仑顶上的雪妖，一口气能把人冻成冰棍'],
+  18: ['冰魂', 32, '千年寒冰化成的魂魄，冷冰冰不爱说话'],
+  19: ['玄猴', 31, '天剑峰上的灵猴，身手敏捷，爱捉弄人'],
+  20: ['剑魂', 31, '古剑里的剑灵，只服比它更强的剑客'],
+  29: ['幻境', 31, '会变出幻象迷惑人的妖境，真真假假分不清'],
+  30: ['玲珑塔', 30, '一层比一层难闯的妖塔，塔顶住着最厉害的妖王'],
 }
-/** Chance to beat a monster: at least even for the weakest one, falling with the square of its id. */
-const odds = (id: string): number => (info.strong + 10) / (info.strong + 10 + 10 * Number(id) ** 2)
+/** Ways to take a monster on: the stat each leans on, said, and what the pet does with it when there is no AI. */
+const TACTICS = {
+  硬拼: { stat: 'strong', said: '武力', moves: ['使出企鹅旋风踢', '一记肚皮撞飞了过去', '抡起翅膀连拍三下'] },
+  智取: { stat: 'intel', said: '智力', moves: ['假装逃跑，绕到背后偷袭', '出了一道谜题把它绕晕了', '挖了个小坑等它掉进去'] },
+  说服: { stat: 'charm', said: '魅力', moves: ['递上一块小饼干套近乎', '眨着大眼睛讲道理', '唱了一首歌给它听'] },
+} as const
+type Tactic = keyof typeof TACTICS
+/** Chance to beat a monster with a tactic: at least even for the weakest one, falling with the square of its id. */
+const odds = (id: string, t: Tactic): number => (info[TACTICS[t].stat] + 10) / (info[TACTICS[t].stat] + 10 + 10 * Number(id) ** 2)
+const best = (id: string): number => Math.max(...(Object.keys(TACTICS) as Tactic[]).map((t) => odds(id, t)))
 const BEATABLE = 0.5
+/** Below these odds a win is an upset. */
+const UPSET = 0.35
+/** Data/Animation banners and the faces in Data/face/play. */
+const FX = { win: 5, upset: 6, hundred: 4, lose: 7, fireworks: 1 }
+const FACE = { happy: 2, cry: 3, sweat: 8 }
+/** The tower at the top of the wilds; beating it sets off fireworks. */
+const TOWER = '30'
+/** Set by the community while it is open: plays a banner over the pet, shows a face on it. */
+export const stage = { play: (_n: number): void => {}, face: (_n: number): void => {} }
+/** A fight told without AI: what the monster says and does, and how it ends. */
+const TAUNTS = ['哪来的小企鹅，敢闯我的地盘！', '嘿嘿，今天的点心自己送上门了~', '想过去？先问问我答不答应！', '本大王今天心情不好，你来得正好！', '又来一个不怕死的？']
+const STRIKES = ['张牙舞爪地扑了过来', '一声怪叫，掀起一阵沙土', '使出了看家本领', '绕着你转圈圈想把你转晕', '猛地一个回马枪']
+const WINS = ['抱着脑袋逃走了：“下次再也不敢了！”', '扑通一声坐在地上认输了', '心服口服，答应再也不捣乱了', '眼冒金星，晕乎乎地举起了白旗']
+const LOSSES = ['哈哈大笑，把你赶出了它的地盘', '轻轻一推，你就滚出去老远', '得意地拍拍手：“回去再练练吧！”', '一口气把你吹回了荒地口']
+/** Desktop things an islander may ask for, by the day's counter: said, and at most how many times. */
+const CHORES: Partial<Record<Counter, [string, number]>> = {
+  Work: ['去打工', 2],
+  Study: ['去上课学习', 2],
+  Travel1: ['出门旅游', 2],
+  Eat: ['吃东西', 3],
+  Clean: ['洗澡清洁', 3],
+  Toy: ['玩玩具', 3],
+  GameRound: ['玩小游戏', 3],
+}
+const chore = (to: string): [Counter, number] => {
+  const [obj, n] = to.split(':')
+  return [obj as Counter, Number(n)]
+}
+/** Any one of a kind of good will do. */
+const GIFTS: Record<string, string> = { food: '好吃的', toy: '好玩的玩具', clean: '清洁用品' }
 /** How the pet should come back: the stat at CARE of its max, as said and as named. */
 const CARES = {
   hunger: ['吃得饱饱的', '饱食', 'hungerMax'],
@@ -259,7 +298,7 @@ type Care = keyof typeof CARES
 const CARE = 0.8
 const hours = (to: string): number[] => to.split('-').map(Number)
 
-type Kind = 'talk' | 'bring' | 'visit' | 'chat' | 'quiz' | 'seek' | 'play' | 'care' | 'time' | 'spot' | 'fight'
+type Kind = 'talk' | 'bring' | 'visit' | 'chat' | 'quiz' | 'seek' | 'play' | 'care' | 'time' | 'spot' | 'fight' | 'tour' | 'chore' | 'gift'
 
 /**
  * What each errand kind asks. `roll` picks a random `to` for the islander giving it; kinds without one are written only.
@@ -285,8 +324,30 @@ const KINDS: Record<
   },
   fight: {
     what: (e) => `去${PLACES[MONSTERS[e.to][1]]}打败${MONSTERS[e.to][0]}`,
-    roll: () => pick(Object.keys(MONSTERS).filter((id) => odds(id) >= BEATABLE)),
-    can: (to) => odds(to) >= BEATABLE,
+    roll: () => pick(Object.keys(MONSTERS).filter((id) => best(id) >= BEATABLE)),
+    can: (to) => best(to) >= BEATABLE,
+  },
+  tour: {
+    what: (e) => `换${e.to}个地方逛一逛`,
+    roll: () => String(rand(2, 4)),
+  },
+  chore: {
+    what: (e) => {
+      const [obj, n] = chore(e.to)
+      return `今天${CHORES[obj]![0]}${n}次`
+    },
+    roll: () => {
+      const obj = pick(Object.keys(CHORES) as Counter[])
+      return `${obj}:${rand(1, CHORES[obj]![1])}`
+    },
+    ready: (to) => {
+      const [obj, n] = chore(to)
+      return count(obj) >= n
+    },
+  },
+  gift: {
+    what: (e) => `随便带一样${GIFTS[e.to]}来`,
+    roll: () => pick(Object.keys(GIFTS)),
   },
   visit: {
     what: (e) => `去${PLACES[Number(e.to)]}看一看`,
@@ -445,10 +506,29 @@ const ERRANDS: [string, Kind, string, string][] = [
   ['琪琪', 'seek', '20', '我偷偷溜去喝下午茶了，猜猜我在哪儿？'],
   ['蒙奇', 'visit', '16', '听说生日屋今天有派对，帮我去看看有没有人陪我抽乌龟。'],
   ['克鲁尼', 'visit', '22', '度假村想在风语广场贴招牌，帮我去看看哪儿人最多。'],
+  ['洛克大使', 'tour', '3', '洛克王国的活动传单印好啦，帮我换3个地方发一发！'],
+  ['游乐场管理员', 'tour', '4', '全岛设施大检查！帮我换4个地方转一圈，看看哪里需要修。'],
+  ['口袋精灵', 'tour', '3', '我要把欢乐送到每个角落，带我换3个地方逛逛吧！'],
+  ['探险家琼斯', 'tour', '4', '真正的探险家脚步不能停！今天换4个地方走走。'],
+  ['周大饼', 'chore', 'Work:1', '年轻人要勤快！今天去打一次工，回来我给你算工钱。'],
+  ['珍尼花', 'chore', 'Study:1', '光玩可不行，今天去上一次课再来找老师。'],
+  ['探险家琼斯', 'chore', 'Travel1:1', '岛外的世界更大！今天出门旅游一次，回来讲给我听。'],
+  ['翠花', 'chore', 'Eat:2', '看你瘦的！今天好好吃两顿饭再来。'],
+  ['管家苔丝', 'chore', 'Clean:2', '讲卫生的宝宝最可爱，今天洗两次澡吧。'],
+  ['精灵乐乐', 'chore', 'Toy:3', '玩具放着会伤心的，今天陪它们玩3次！'],
+  ['迪利', 'chore', 'GameRound:2', '小游戏达人就是我！你今天先玩两局小游戏练练手。'],
+  ['机器宝宝', 'chore', 'Study:2', '滴——检测到知识不足——请今天学习2次。'],
+  ['木木', 'gift', 'food', '肚子咕咕叫……随便给我一样好吃的吧，什么都行！'],
+  ['露西卡', 'gift', 'food', '做魔法点心缺材料了，带一样吃的来，我变个花样给你看。'],
+  ['阿梅', 'gift', 'toy', '托管的宝宝们闹着要玩具，随便带一个来哄哄他们吧。'],
+  ['蓉蓉', 'gift', 'toy', '寿星还缺一份礼物，随便带个玩具来就好~'],
+  ['克鲁尼', 'gift', 'clean', '度假村的洗浴间缺用品了，随便带一样清洁用品来救急。'],
+  ['伊苏', 'gift', 'clean', '雪山下的小宝宝们脏兮兮的，借我一样清洁用品吧。'],
 ]
-/** Errands a day: written ones of different kinds, then ones the AI makes up. */
+/** Errands a day: written ones of different kinds, then made-up ones, more of them when the AI words them. */
 const WRITTEN = 6
 const MADE_UP = 2
+const MADE_UP_AI = 4
 const PIECES = 8
 /** 天使坏坏 hands out a growth gift every this many levels. */
 const TIER = 4
@@ -465,7 +545,7 @@ const FACTS: News[] = [
   ['摩西邀你钓鱼', '夏帕海岸的摩西在码头摆好了鱼竿，钓上来的鱼能换元宝。'],
   ['教堂密室', '教堂里的密室藏着一道道谜题，听说解开的企鹅都有收获。'],
   ['小游戏天天玩', '竞技场的跆拳道、游乐场的搭积木、小学课堂的好好学习，随时等你来玩。'],
-  ['东郊荒地闹妖怪', '东郊荒地、天剑峰和昆仑顶出现了20多只妖怪，打败它们能拿元宝，武力越高胜算越大。'],
+  ['东郊荒地闹妖怪', '东郊荒地、天剑峰和昆仑顶出现了20多只妖怪，可以硬拼、智取或者说服它们，赢了能拿元宝。'],
   ['监狱猫又越狱了', '风语广场监狱长的监狱猫又跑了，有人在夏帕海岸和粉钻雪山见过它。'],
   ['观星台寻星', '占星师在风语广场的观星台寻找永恒之星，邀请大家一起玩满天星。'],
 ]
@@ -475,13 +555,13 @@ const GUIDE: News[] = [
   ['风语广场', '科洛的每日任务、布袋长老送信、图图宝藏图、天使坏坏成长奖励。'],
   [
     '岛民',
-    '岛上的居民都可以点一点：有的托你跑腿带东西，有的出题考你、躲起来等你找、拉你玩小游戏、约你某个时辰见面、派你去哪儿看看或者去打妖怪，每天早上6点换新的。',
+    '岛上的居民都可以点一点：有的托你跑腿带东西，有的出题考你、躲起来等你找、拉你玩小游戏、约你某个时辰见面、派你去哪儿看看或者去打妖怪，还有的会关心你今天有没有好好吃饭、打工、学习，每天早上6点换新的。',
   ],
   ['夏帕海岸', '小艾的爱心任务、摩西钓鱼、饭饭端盘子、冒险岛、嘉年华。'],
   ['竞技场 / 超级游乐场', '跆拳道、搭积木、武道会、蔬菜大作战、闯关夺宝。'],
   ['小学课堂 / 教堂', '好好学习、密室逃脱。'],
   ['更多小游戏', '风语广场观星台的满天星、找茬，百货店的煎饼摊、古堡森林的守护使和摘星星、粉钻雪山的泡泡。'],
-  ['东郊荒地 / 天剑峰 / 昆仑顶', '点妖怪就能交手，武力越高胜算越大，每只妖怪一天能挑战一次。'],
+  ['东郊荒地 / 天剑峰 / 昆仑顶', '点妖怪就能交手：硬拼看武力，智取看智力，说服看魅力，每只妖怪一天能挑战一次。'],
   ['右边的导航', '点推荐活动、休闲游戏里的名字，企鹅会自己走过去；区域导航能直接去各个地方。'],
 ]
 
@@ -490,7 +570,8 @@ type News = [string, string]
 
 /**
  * `to`: an islander (talk), a good id (bring), a scene (visit, seek), how many lines (chat), an exam topic (quiz),
- * a game SWF (play), a pet stat (care), hours "from-until" (time), a sight (spot) or a monster (fight).
+ * a game SWF (play), a pet stat (care), hours "from-until" (time), a sight (spot), a monster (fight), how many places (tour),
+ * a counter and times "obj:n" (chore) or a good type (gift).
  */
 interface Errand {
   from: string
@@ -501,7 +582,7 @@ interface Errand {
   took: boolean
 }
 
-const need = (e: Errand): number => (e.kind === 'chat' ? Number(e.to) : 1)
+const need = (e: Errand): number => (e.kind === 'chat' || e.kind === 'tour' ? Number(e.to) : 1)
 
 /** Kept in saveJsonData.island; the daily fields restart at 06:00. */
 interface State {
@@ -522,8 +603,9 @@ interface State {
   loved: boolean
   news: News[]
   errands: Errand[]
-  /** Monsters fought today, won or lost. */
+  /** Monsters fought today, won or lost, and fights ever won. */
   fought: string[]
+  wins: number
 }
 
 const state: State = {
@@ -541,6 +623,7 @@ const state: State = {
   news: [],
   errands: [],
   fought: [],
+  wins: 0,
   ...JSON.parse(save.saveJsonData.island || '{}'),
 }
 const store = (): void => update('saveJsonData', { island: JSON.stringify(state) })
@@ -563,20 +646,20 @@ function roll(): Errand[] {
     errands.push({ from, kind, to, ask, got: 0, took: false })
   }
   const made = shuffle(FOLKS.filter((n) => !errands.some((e) => e.from === n)))
-    .slice(0, MADE_UP)
+    .slice(0, aiOn() ? MADE_UP_AI : MADE_UP)
     .map((from): Errand => {
       const kind = pick(ROLLED)
       const e: Errand = { from, kind, to: KINDS[kind].roll!(from), ask: '', got: 0, took: false }
       e.ask = `能帮我${KINDS[kind].what(e)}吗？`
       return e
     })
-  for (const e of made) {
-    const what = KINDS[e.kind].what(e)
-    void voice(e.from, `你想请${info.name}帮你${what}。结合你自己和你住的地方，用一句话说出原因并请它帮忙。`, e.ask).then((ask) => {
+  const word = (e: Errand, prompt: string): void =>
+    void voice(e.from, `你想请${info.name}帮你${KINDS[e.kind].what(e)}。${prompt}`, e.ask).then((ask) => {
       e.ask = ask
       store()
     })
-  }
+  for (const e of errands) word(e, `平时你会这么说：「${e.ask}」今天换个说法、换个原因再说一遍，要做的事不能变。`)
+  for (const e of made) word(e, '结合你自己和你住的地方，编一个有趣的原因，用一句话请它帮忙。')
   return [...errands, ...made]
 }
 
@@ -679,6 +762,11 @@ function errand(e: Errand): void {
     if (!hasGood(g.type, g.id)) return talk(e.from, [e.ask, `（${what}，商店里能买到）`], [g], [['去商店', openShop]])
     return talk(e.from, [e.ask], [g], [[`交给${e.from}`, () => takeGood(g) && finish(e)]])
   }
+  if (e.kind === 'gift') {
+    const g = listGoods(e.to as GoodType, 1, 1).list[0]
+    if (!g) return talk(e.from, [e.ask, `（${what}，商店里能买到）`], [], [['去商店', openShop]])
+    return talk(e.from, [e.ask], [{ ...g, num: 1 }], [[`把${g.name}交给${e.from}`, () => takeGood(g) && finish(e)]])
+  }
   if (e.got < need(e) && !KINDS[e.kind].ready?.(e.to)) return talk(e.from, [e.ask, `（${what}${need(e) > 1 ? `，${e.got}/${need(e)}` : ''}）`])
   finish(e)
 }
@@ -719,7 +807,7 @@ export function meet(url: string): boolean {
   const monster = url.match(/shenqichuangshuo\.html\?id=(\d+)/)?.[1]
   if (name) islander(name)
   else if (spot) look(spot)
-  else if (monster && MONSTERS[monster]) duel(monster)
+  else if (monster && MONSTERS[monster]) void duel(monster)
   else return false
   return true
 }
@@ -734,33 +822,55 @@ function look(key: string): void {
   talk(SPOTS[key].name, [pick(SPOTS[key].lines), ...(e ? [`${e.from}交代的事办好了，回去告诉${e.from}吧！`] : [])])
 }
 
-/** A monster bars the way; one fight each a day. */
-function duel(id: string): void {
-  const [name] = MONSTERS[id]
+/** A monster bars the way and picks a fight; the pet chooses how to take it on. One fight each a day. */
+async function duel(id: string): Promise<void> {
+  const [name, , about] = MONSTERS[id]
   if (today().fought.includes(id)) return talk(name, [`今天已经和${name}交过手了，明天再来吧。`])
+  const taunt = await voice(name, `你是企鹅岛上的妖怪，${about}。小企鹅闯进了你的地盘，凶巴巴地挑衅它一句。`, pick(TAUNTS))
+  const pct = (t: Tactic): number => Math.max(1, Math.round(odds(id, t) * 100))
   talk(
     name,
-    [
-      `${name}拦住了去路：“哪来的小企鹅，敢闯我的地盘！”`,
-      `（${info.name}武力${info.strong}，胜算约${Math.max(1, Math.round(odds(id) * 100))}%，每只妖怪一天只能挑战一次）`,
-    ],
+    [taunt, `（${info.name}武力${info.strong}、智力${info.intel}、魅力${info.charm}，每只妖怪一天只能挑战一次）`],
     [],
-    [['出手', () => fight(id)]],
+    (Object.keys(TACTICS) as Tactic[]).map((t): [string, () => void] => [`${t} ${pct(t)}%`, () => void fight(id, t)]),
   )
 }
 
-function fight(id: string): void {
+/** The fight itself: the outcome is rolled first, then told blow by blow, then the banner. */
+async function fight(id: string, t: Tactic): Promise<void> {
   const s = today()
-  const [name] = MONSTERS[id]
-  const won = Math.random() < odds(id)
+  const [name, , about] = MONSTERS[id]
+  const chance = odds(id, t)
+  const won = Math.random() < chance
   const e = won && s.errands.find((e) => e.kind === 'fight' && e.to === id && !e.got)
   if (e) e.got = 1
+  if (won) s.wins++
   s.fought.push(id)
   store()
-  if (!won) return talk(name, [`${name}太厉害了，${info.name}被打得落荒而逃……练练武力，明天再来吧。`])
+
+  stage.face(FACE.sweat)
+  const log = div('i_log', `${info.name}决定${t}！`)
+  talk(name, [log])
+  const told = await askAs('你是QQ宠物企鹅岛的说书人，讲小企鹅和妖怪打架，童趣、不血腥。', [
+    { role: 'user', content: `小企鹅「${info.name}」靠${TACTICS[t].said}和妖怪「${name}」（${about}）交手，结果${info.name}${won ? '赢了' : '输了'}。用一句话讲这场打斗怎么分出胜负，只输出这句话。` },
+  ])
+  const story = [`${info.name}${pick(TACTICS[t].moves)}`, ...(told ? [told] : [`${name}${pick(STRIKES)}`, `${name}${pick(won ? WINS : LOSSES)}`])]
+  for (const line of story) {
+    await new Promise((r) => setTimeout(r, 700))
+    log.append(div('i_line', line))
+  }
+  await new Promise((r) => setTimeout(r, 700))
+
+  if (!won) {
+    stage.play(FX.lose)
+    stage.face(FACE.cry)
+    return talk(name, [...story, `${info.name}输了……练练${TACTICS[t].said}，明天再来吧。`])
+  }
+  stage.play(id === TOWER ? FX.fireworks : s.wins % 100 === 0 ? FX.hundred : chance < UPSET ? FX.upset : FX.win)
+  stage.face(FACE.happy)
   const goods = [parseGood(`_yb*${10 + 5 * Number(id)}`), ...(Math.random() < 0.1 ? loot(1) : [])]
   give(goods, `[host],我们打败了${name}！~~`)
-  talk(name, [`${info.name}打败了${name}！`, ...(e ? [`回去告诉${e.from}吧！`] : [])], goods)
+  talk(name, [...story, `${info.name}打败了${name}！`, ...(e ? [`回去告诉${e.from}吧！`] : [])], goods)
 }
 
 /** An islander: a letter, a message passed on, their errand, or small talk. */
@@ -785,10 +895,13 @@ function islander(name: string): void {
 
 /** The pet entered `scene`; what it says when that finishes an errand. */
 export function arrive(scene: number): string | null {
-  const e = today().errands.find((e) => (e.kind === 'visit' || e.kind === 'seek') && Number(e.to) === scene && !e.got)
-  if (!e) return null
-  e.got = 1
+  const s = today()
+  const tour = s.errands.find((e) => e.kind === 'tour' && e.got < need(e))
+  if (tour) tour.got++
+  const e = s.errands.find((e) => (e.kind === 'visit' || e.kind === 'seek') && Number(e.to) === scene && !e.got)
+  if (e) e.got = 1
   store()
+  if (!e) return tour && tour.got >= need(tour) ? `逛完${need(tour)}个地方啦，回去告诉${tour.from}吧！` : null
   if (e.kind === 'seek') return `找到${e.from}啦！${e.from}说先回${PLACES[FOLK[e.from].scene]}，等我去领奖~`
   return `${PLACES[scene]}看过啦，回去告诉${e.from}吧！`
 }
