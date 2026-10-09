@@ -81,6 +81,7 @@ function setCity(v: string): void {
 
 /** The AI tab's model list and last result; `redraw` repaints the open panel once a request finishes. */
 let models: string[] = []
+let draftModel = ''
 let aiStatus = ''
 let redraw = (): void => {}
 
@@ -91,16 +92,23 @@ async function loadModels(): Promise<void> {
   redraw()
   try {
     models = await window.qqpet.aiModels({ url: s.aiUrl, key: s.aiKey })
-    aiStatus = models.length ? '选择一个模型，选中后会自动测试，通过才会启用' : '接口没有返回任何模型'
+    aiStatus = models.length ? '选择一个模型，选中后会自动测试，通过才会启用' : '接口没有返回模型，请手动填写后点「测试并启用」'
   } catch (e) {
     models = []
-    aiStatus = `获取失败：${reason(e)}`
+    aiStatus = `获取失败：${reason(e)}。请手动填写模型名称后点「测试并启用」`
   }
   redraw()
 }
 
 /** A model is saved, and AI turned on, only if it answers. */
-async function testModel(model: string): Promise<void> {
+async function testModel(name: string): Promise<void> {
+  const model = name.trim()
+  if (!model) {
+    aiStatus = '请先填写模型名称'
+    redraw()
+    return
+  }
+  draftModel = model
   update('settings', { aiModel: '' })
   aiStatus = `正在测试 ${model}…`
   redraw()
@@ -114,20 +122,30 @@ async function testModel(model: string): Promise<void> {
   redraw()
 }
 
-/** Changing where to connect turns AI off until a model passes the test again. */
+/** Changing where to connect turns AI off until a model passes the test again. The typed name stays. */
 const setAi = (patch: { aiUrl?: string; aiKey?: string }): void => {
+  if (!draftModel) draftModel = s.aiModel
   update('settings', { ...patch, aiModel: '' })
   models = []
   aiStatus = ''
 }
 
+function closeAi(): void {
+  draftModel = ''
+  models = []
+  aiStatus = ''
+  update('settings', { aiModel: '' })
+}
+
 const aiOptions = (): Option[] => [
   { type: 'input', label: '接口地址（OpenAI 兼容，以 /v1 结尾）', value: () => s.aiUrl, set: (v) => setAi({ aiUrl: v.trim() }) },
   { type: 'input', label: 'API Key（本地服务可不填）', value: () => s.aiKey, set: (v) => setAi({ aiKey: v.trim() }) },
+  { type: 'input', label: '模型名称（不支持列表的接口请直接填写）', value: () => draftModel, set: (v) => { draftModel = v.trim() } },
   { type: 'button', label: '获取模型列表', run: () => void loadModels() },
+  { type: 'button', label: '测试并启用', run: () => void testModel(draftModel) },
   ...models.map((m): Option => ({ type: 'radio', label: m, on: () => s.aiModel === m, run: () => void testModel(m) })),
   { type: 'see', label: '状态', value: aiStatus || (s.aiModel ? `已启用：${s.aiModel}` : '未启用') },
-  ...(s.aiModel ? [{ type: 'button' as const, label: '关闭 AI', run: () => setAi({}) }] : []),
+  ...(s.aiModel ? [{ type: 'button' as const, label: '关闭 AI', run: closeAi }] : []),
 ]
 
 const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后（手机上点一下宠物），开启点位可进行点击~'
@@ -249,6 +267,7 @@ let close = (): void => {}
 
 export function openSetup(): void {
   close()
+  if (!draftModel) draftModel = s.aiModel
   let tab = 0
   const left = div('leftScroll fcC')
   const right = div('rightScroll')
