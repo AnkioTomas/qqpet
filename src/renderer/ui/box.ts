@@ -33,12 +33,12 @@ const scrolls = (el: HTMLElement): boolean =>
 /**
  * Shows a frame centered by `translate(-50%, -50%)` in the screen clear of system bars. Returns a function that removes it.
  *
- * With a mouse the frame is scaled down when the screen is too small for it, and
+ * The frame is scaled down when the screen is too small for it. With a mouse it is
  * dragged unless the press starts in an input or inside `keep` (content that needs
  * its own mouse input, e.g. a SWF). No pointer capture: it would retarget clicks on buttons inside the frame.
  *
- * On touch screens it opens over a backdrop and fills the screen, turned a quarter
- * when it must shrink and that shrinks it less (a wide panel on a portrait phone).
+ * On touch screens it opens over a backdrop, turned a quarter when that shrinks it
+ * less (a wide panel on a portrait phone).
  */
 function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   const root = touch ? div('modal', frame) : frame
@@ -58,12 +58,13 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     const h = frame.offsetHeight
     const [left, top, right, bottom] = ['left', 'top', 'right', 'bottom'].map(inset)
     const room = { w: innerWidth - left - right - MARGIN, h: innerHeight - top - bottom - MARGIN }
-    const flat = Math.min(room.w / w, room.h / h)
-    const turned = Math.min(room.w / h, room.h / w)
+    // Never above 1: the page's own scale sizes windows for the screen, and blowing one up breaks its proportions to the rest.
+    const flat = Math.min(1, room.w / w, room.h / h)
+    const turned = Math.min(1, room.w / h, room.h / w)
     cx = (left - right) / 2
     cy = (top - bottom) / 2
-    spin = touch && flat < 1 && turned > flat ? turned : 0
-    fit = !touch ? `scale(${Math.min(1, flat)})` : spin ? `rotate(90deg) scale(${spin})` : `scale(${flat})`
+    spin = touch && turned > flat ? turned : 0
+    fit = spin ? `rotate(90deg) scale(${spin})` : `scale(${flat})`
     frame.style.touchAction = spin ? 'none' : ''
     place()
   })

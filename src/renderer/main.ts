@@ -46,6 +46,9 @@ if (info.lastX === -1 && info.lastY === -1) {
   setInfo('lastX', (innerWidth - size) / 2)
   setInfo('lastY', (innerHeight - size) / 2)
 }
+// A save from another screen, or a phone turned, leaves the pet off this one.
+clampOnScreen()
+addEventListener('resize', clampOnScreen)
 layout()
 onInfoChange((key) => {
   if (key === 'lastX' || key === 'lastY' || key === 'growth') layout()

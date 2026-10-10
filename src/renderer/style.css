@@ -154,10 +154,11 @@ body {
 .box .content3 {
   width: 5px;
 }
+/* The middle slices are 580~600px images; their own width must not size the window. */
 .box .head2,
 .box .foot2 {
   flex: 1;
-  min-width: 0;
+  width: 0;
 }
 .box .content1 {
   background: url(/pet/windowTip/normal/beijing4.bmp) repeat-y;

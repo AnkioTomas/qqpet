@@ -8,3 +8,8 @@
 .styleBox .head2,
 .styleBox .content2,
 .styleBox .foot2 {contain:size;align-self:stretch}
+/* Slices meeting on a fractional device pixel each paint it half, letting the backdrop through as a hairline; overlap them instead. */
+.styleBox > .content {margin:-1px 0}
+.styleBox .head2,
+.styleBox .content2,
+.styleBox .foot2 {margin:0 -1px}
