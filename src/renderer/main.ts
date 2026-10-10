@@ -72,7 +72,9 @@ window.qqpet.onCursor((p) => {
   // The pet box is the hit target. elementFromPoint misses Ruffle's shadow canvas,
   // so the OS arrow shows until we also test the box itself.
   const overPet = !petEl.hidden && p.x >= info.lastX && p.x < info.lastX + size && p.y >= info.lastY && p.y < info.lastY + size
-  const el = document.elementFromPoint(p.x, p.y)
+  // The cursor is in page coordinates; a cropped page (HarmonyOS) is shifted by the crop.
+  const { cropX = 0, cropY = 0 } = document.documentElement.dataset
+  const el = document.elementFromPoint(p.x - Number(cropX), p.y - Number(cropY))
   const root = el?.getRootNode()
   const host = root instanceof ShadowRoot ? root.host : el
   const hit = dragging || overPet || host?.closest('[data-hit]') != null
