@@ -19,6 +19,7 @@ export const elapsed = (): number => task?.done ?? 0
 /** Starts a task; `value` is what activeOption shows (job id, city). */
 export function startTask(t: Task, value: string, done = 0): void {
   task = { ...t, done }
+  update('saveJsonData', { activity: String(done) })
   setActivity(t.key, value)
   refreshTray()
 }

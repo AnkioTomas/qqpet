@@ -195,7 +195,7 @@ export function speak(t: Say, action?: string, hooks: { start?: () => void; end?
     }
     hooks.start?.()
   }
-  if (!action || !info.health) return show()
+  if (!action || (!info.health && action !== 'bury')) return show()
   // Peek is a sliver SWF; speak/play would draw the full body and walk it off the edge.
   if ((action === 'speak' || action === 'play') && (machine.pose.a === 'hideleft' || machine.pose.a === 'hideright')) return show()
   const pose: Pose = { a: action, s: show, e: hooks.end }
@@ -353,7 +353,12 @@ function grow(): void {
 /** At start-up and at 06:00: the day's tasks, the holiday greeting and the day's mail. */
 const weatherTalk = (launch: boolean): Promise<void> => weatherNews(launch).then((s) => void (s && speak({ s }, 'speak')))
 
+/** Day daily() last ran for; a launch on a new day reaches it from both startPet and tick. */
+let dailyDay = 0
+
 async function daily(): Promise<void> {
+  if (dailyDay === dayStart()) return
+  dailyDay = dayStart()
   const today = await loadCalendar()
   rollDaily(today)
   const f = today && festival(today)

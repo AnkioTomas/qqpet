@@ -159,7 +159,7 @@ function buy(paytype: number, fryid: number, n = 1): Reply {
 function harvest(id: number): Reply {
   const i = pond.fishs.findIndex((f) => f.id === id)
   const f = pond.fishs[i]
-  const yb = f && (ripe(f) ? f.YB * f.quantity : f.costyb / 2)
+  const yb = f && (ripe(f) ? f.YB * f.quantity : Math.floor(f.costyb / 2))
   if (!yb) return ERROR
   pond.fishs.splice(i, 1)
   addInfo('yb', yb)

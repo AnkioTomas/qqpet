@@ -13,8 +13,12 @@ const shuffle = <T>(a: T[]): T[] => {
   return b
 }
 
+let open = false
+
 /** The promotion exam of study topic `topic`: three random questions of its bank, all must be right. */
 export function openExam(topic: string, pass: () => void): void {
+  if (open) return
+  open = true
   // The bank lists most answers first.
   const questions = shuffle(EXAM[topic as keyof typeof EXAM])
     .slice(0, 3)
@@ -22,7 +26,11 @@ export function openExam(topic: string, pass: () => void): void {
   const picked = questions.map(() => -1)
   let at = 0
   const box = div('answerQuestions fC por')
-  const close = openFrame(div('ui-exam', box))
+  const remove = openFrame(div('ui-exam', box))
+  const close = (): void => {
+    remove()
+    open = false
+  }
 
   const go = (d: number) => (): void => {
     if (d < 0 || picked[at] >= 0) at += d

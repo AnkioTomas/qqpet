@@ -41,7 +41,9 @@ function achievement(src: string, title: string, n: number): HTMLElement[] {
 function nameRow(cls: string, label: string, key: 'name' | 'host', saved: () => void): HTMLElement {
   const input = typeable(Object.assign(document.createElement('input'), { className: 'input', type: 'text', maxLength: 20, value: info[key] }))
   const commit = (): void => {
-    setInfo(key, input.value)
+    const v = input.value.trim()
+    if (!v) return void (input.value = info[key])
+    setInfo(key, v)
     saved()
   }
   const r = div(`${cls} rightRow fcb`, div('label', label), input, button('but focusPress', commit))

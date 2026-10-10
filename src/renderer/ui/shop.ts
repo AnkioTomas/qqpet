@@ -1,7 +1,7 @@
 import { describe, goodOf, TYPE_NAMES, type Good, type GoodType } from '../pet/data/goods'
 import SHOP from '../pet/data/shop.json'
 import { listGoods, onGoodsChange } from '../pet/goods'
-import { buy, price, useItem } from '../pet/items'
+import { buy, discount, price, useItem } from '../pet/items'
 import { speak } from '../pet/pet'
 import { avatar, info, onInfoChange, save } from '../pet/store'
 import { openFrame } from './box'
@@ -214,7 +214,7 @@ export function openShop(): void {
                         ` 元宝：${g.price}/`,
                         Object.assign(document.createElement('span'), {
                           className: 'dpPay',
-                          textContent: String(g.price! * 0.8),
+                          textContent: String(discount(g.price!)),
                         }),
                       ),
                       div('rG_payYb f1 mt8', '消耗不知名道具：0'),
@@ -336,6 +336,7 @@ export function openShop(): void {
         'scm_foot',
         button('qrzf', () => {
           if (
+            !cart.size ||
             !checkout(
               [...cart.values()].map((g) => [g, g.cartNum]),
               true,

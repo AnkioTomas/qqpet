@@ -23,7 +23,7 @@ type Option = { label: string; title?: string } & (
 )
 
 function setOpacity(v: number): void {
-  const o = Math.round(Math.min(Math.max(v, 0), 1) * 10) / 10
+  const o = Math.round(Math.min(Math.max(v, 0.1), 1) * 10) / 10
   update('settings', { opacity: o })
   document.body.style.setProperty('--opacity', String(o))
 }
@@ -52,7 +52,11 @@ function toggleAutoStart(): void {
 }
 
 async function exportSave(): Promise<void> {
-  if (await window.qqpet.exportSave()) speak({ s: '[host],存档导出成功啦~', now: true }, 'speak')
+  try {
+    if (await window.qqpet.exportSave()) speak({ s: '[host],存档导出成功啦~', now: true }, 'speak')
+  } catch (e) {
+    windowView({ title: '导出存档', msg: `导出失败：${(e as Error).message}` })
+  }
 }
 
 function importSave(): void {

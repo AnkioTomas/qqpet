@@ -58,7 +58,7 @@ export function addSweetHeart(days: number): void {
 /** 06:00 accounting: pink diamond growth for the days since it was last counted, and VIP expiry. */
 export function newDay(today: number): void {
   if (info.pinkDiamond) {
-    setInfo('PDgrowth', info.PDgrowth + (info.PDgrowthValue * (today - info.PDiamondBeginDate)) / DAY)
+    setInfo('PDgrowth', info.PDgrowth + (info.PDgrowthValue * (Math.min(today, info.PDiamondExpirationDate) - info.PDiamondBeginDate)) / DAY)
     setInfo('PDiamondBeginDate', today)
     settle(today)
   }

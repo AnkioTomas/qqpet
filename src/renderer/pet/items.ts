@@ -116,8 +116,11 @@ export function give(goods: Good[], text: string): void {
   speak({ s: text, now: true }, 'speak')
 }
 
+/** Pink diamond price of `yb` 元宝: 20% off, whole 元宝. */
+export const discount = (yb: number): number => Math.round(yb * 0.8)
+
 /** Unit price; pink diamond members get 20% off. */
-export const price = (g: Good): number => g.price! * (info.pinkDiamond ? 0.8 : 1)
+export const price = (g: Good): number => (info.pinkDiamond ? discount(g.price!) : g.price!)
 
 /** Buys n of a good; `quiet` skips the thank-you line (cart checkout). */
 export function buy(g: Good, n = 1, quiet = false): boolean {
@@ -138,8 +141,8 @@ export function buy(g: Good, n = 1, quiet = false): boolean {
 /** The doctor: a consultation by health, then the cure, from the inventory or bought on the spot (price +20%). */
 export function doctor(): void {
   const line = activity('ill')
-  if (!line) return speak({ s: '[host],我不需要看病的~', now: true }, 'speak')
   if (info.health === 0) return prescribe(goodOf('medicine', DEAD.cure.id), '您的宠物已经死亡，需要使用')
+  if (!line) return speak({ s: '[host],我不需要看病的~', now: true }, 'speak')
   const fee = (5 - info.health) * 10
   windowView({
     title: '看病',
@@ -154,7 +157,7 @@ export function doctor(): void {
 
 function prescribe(g: Good, diagnosis: string): void {
   const owned = hasGood('medicine', g.id)
-  const cost = (g.price || 50) * 1.2
+  const cost = Math.round((g.price || 50) * 1.2)
   windowView({
     title: '诊断结果',
     msg: diagnosis + g.name + (owned ? ',进行治疗，点击确认即可快速治疗~' : `,点击确认花费${cost}元宝进行治疗`),

@@ -29,7 +29,7 @@ function read(): Record<string, any> | null {
   return null
 }
 
-function write(data: SaveData): void {
+function write(data: Record<string, any>): void {
   const tmp = `${FILE}.tmp`
   writeFileSync(tmp, JSON.stringify(data))
   renameSync(tmp, FILE)
@@ -64,7 +64,7 @@ export function importSave(file: string): void {
   const pet = petOf(readJson(file))
   if (pet.havePet !== true) throw new Error('no pet in this file')
   copyFileSync(FILE, `${FILE}.bak`)
-  writeFileSync(FILE, JSON.stringify(pet))
+  write(pet)
 }
 
 /** Buries the pet: the next launch starts with egg selection, or with a newborn of `sex`. */
