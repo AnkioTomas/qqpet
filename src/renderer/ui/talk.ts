@@ -23,6 +23,18 @@ const hide = (): void => {
   el.style.visibility = 'hidden'
 }
 
+// From the cursor feed, not :hover: once the window turns click-through again it gets no mouseleave.
+let over = false
+window.qqpet.onCursor((p) => {
+  const r = el.getBoundingClientRect()
+  over = p.x >= r.left && p.x < r.right && p.y >= r.top && p.y < r.bottom
+})
+
+const expire = (): void => {
+  if (over) hideTimer = window.setTimeout(expire, 1000)
+  else hide()
+}
+
 /** Called by talk.swf; button i runs actions[i]. */
 window.BubbleAPI = {
   OnButtonClick: (i) => {
@@ -66,7 +78,7 @@ export async function say(text: string, buttons: string[], onButton: (() => void
   el.style.visibility = 'visible'
   speak(text, buttons)
   clearTimeout(hideTimer)
-  hideTimer = window.setTimeout(hide, SHOW_MS)
+  hideTimer = window.setTimeout(expire, SHOW_MS)
 }
 
 /** Swaps the text of a bubble still showing `from`, keeping its buttons; `say` must have finished. */
@@ -76,5 +88,5 @@ export async function retell(from: string, to: string): Promise<void> {
   const speak = await player.callback('speak')
   speak(to, labels)
   clearTimeout(hideTimer)
-  hideTimer = window.setTimeout(hide, SHOW_MS)
+  hideTimer = window.setTimeout(expire, SHOW_MS)
 }
