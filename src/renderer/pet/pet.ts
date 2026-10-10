@@ -8,7 +8,7 @@ import { advanceTask, stopTask } from './activity'
 import { IDLE, rephrase } from './ai'
 import { dateTalk, festival, greeting, loadCalendar } from './calendar'
 import { listGoods, tickTimed } from './goods'
-import { useItem } from './items'
+import { doctor, useItem } from './items'
 import { deliverMails } from './mail'
 import { Machine, type Pose } from './machine'
 import { rand } from './rand'
@@ -62,6 +62,9 @@ function cheer(): void {
 /** Official lead cooldown (`operatereffecttime="3600"`). Session-only; a restart may show it once. */
 const LEAD_CD = 3600
 let lastLead = 0
+/** Sickness is serious: the pet brings it up far more often than hunger, with the doctor one tap away. */
+const SICK_CD = 600
+let lastSick = 0
 let walkTick = 0
 
 const peeking = (): boolean => machine.pose.a === 'hideleft' || machine.pose.a === 'hideright'
@@ -78,6 +81,18 @@ function leadOf(): 'hungry' | 'dirty' | 'poor' | null {
 function leadClip(kind: 'hungry' | 'dirty' | 'poor'): string {
   if (kind !== 'poor' && stage() === 'Adult') return 'speak'
   return kind
+}
+
+/** A peeking pet only shows the bubble: the sick clip draws the full body and would walk it off the edge. */
+function complain(): void {
+  lastSick = Date.now() / 1000
+  speak({ s: illOf(activity('ill')! + info.health).tolk, b: '带你看病', now: true }, peeking() ? 'speak' : 'sick', { ok: doctor })
+}
+
+/** Checked every minute, so a peeking pet (no idle timer) still brings it up. */
+function nag(): void {
+  if (!info.health || info.health === 5 || busy() || Date.now() / 1000 - lastSick < SICK_CD) return
+  if (machine.pose.a === 'normal' || peeking()) complain()
 }
 
 /** Plays the official need animation (and the unused `state.eat` / `state.clean` lines). */
@@ -260,7 +275,7 @@ function healthChanged(prev: number): void {
     return setTray('dead')
   }
   if (!activity('ill')) setActivity('ill', `${rand(0, 2)}-`)
-  speak({ s: illOf(activity('ill')! + h).tolk, now: true }, 'sick')
+  complain()
   setTray('ill')
 }
 
@@ -347,6 +362,7 @@ function grow(): void {
   tick()
   refreshTray()
   healthRoll()
+  nag()
   void harvestNews().then((n) => n && speak({ s: n.s, b: '去看看' }, 'speak', { ok: n.ok }))
 }
 
