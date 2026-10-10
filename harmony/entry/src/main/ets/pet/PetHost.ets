@@ -246,8 +246,30 @@ export class PetHost {
     return prefs.getSync('autoStart', false) as boolean
   }
 
+  /**
+   * Starts one of our abilities. The main window is minimized, so startAbility and openLink are
+   * refused as background starts; a WantAgent is not, but it takes explicit wants only.
+   */
+  async start(want: Want): Promise<void> {
+    try {
+      const agent = await wantAgent.getWantAgent({
+        wants: [want],
+        operationType: wantAgent.OperationType.START_ABILITY,
+        requestCode: 2,
+        actionFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
+      })
+      wantAgent.trigger(agent, { code: 0 }, (err: BusinessError, _data: wantAgent.CompleteData) => {
+        if (err && err.code) {
+          hilog.error(DOMAIN, 'qqpet', 'start failed %{public}s', JSON.stringify(err))
+        }
+      })
+    } catch (e) {
+      hilog.error(DOMAIN, 'qqpet', 'start failed %{public}s', JSON.stringify(e))
+    }
+  }
+
   async openGame(swf: string): Promise<void> {
-    await this.context.startAbility({
+    await this.start({
       bundleName: this.context.abilityInfo.bundleName,
       abilityName: 'GameAbility',
       parameters: { swf: swf }

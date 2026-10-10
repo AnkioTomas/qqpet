@@ -2,6 +2,7 @@ import { fileIo as fs } from '@kit.CoreFileKit'
 import { http } from '@kit.NetworkKit'
 import { pasteboard } from '@kit.BasicServicesKit'
 import { picker } from '@kit.CoreFileKit'
+import { util } from '@kit.ArkTS'
 import { PetHost } from './PetHost'
 
 function host(): PetHost {
@@ -38,10 +39,6 @@ export class Native {
     const file = fs.openSync(tmp, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC)
     fs.writeSync(file.fd, text)
     fs.closeSync(file)
-    try {
-      fs.unlinkSync(`${dir}/${name}`)
-    } catch (_e) {
-    }
     fs.renameSync(tmp, `${dir}/${name}`)
   }
 
@@ -101,7 +98,12 @@ export class Native {
         host().resolve(hid, null)
         return
       }
-      host().resolve(hid, fs.readTextSync(uris[0]))
+      // readTextSync takes sandbox paths only; picker results are URIs.
+      const f = fs.openSync(uris[0], fs.OpenMode.READ_ONLY)
+      const buf = new ArrayBuffer(fs.statSync(f.fd).size)
+      fs.readSync(f.fd, buf)
+      fs.closeSync(f)
+      host().resolve(hid, util.TextDecoder.create('utf-8').decodeToString(new Uint8Array(buf)))
     }).catch((_e: Error) => {
       host().resolve(hid, null)
     })
@@ -121,7 +123,11 @@ export class Native {
   }
 
   openUrl(url: string): void {
-    host().context.startAbility({ action: 'ohos.want.action.viewData', entities: ['entity.system.browsable'], uri: url })
+    host().start({
+      bundleName: host().context.abilityInfo.bundleName,
+      abilityName: 'EntryAbility',
+      parameters: { kind: 'url', url: url }
+    })
   }
 
   setFocusable(on: boolean | string | number): void {

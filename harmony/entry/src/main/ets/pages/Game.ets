@@ -42,6 +42,9 @@ struct Game {
         attach(this.controller, PetHost.inst!.context, false)
         this.controller.registerJavaScriptProxy(new GameNative(getContext(this) as common.UIAbilityContext),
           'QQPetGame', ['close'])
+      })
+      // Loading the page resets window, so this cannot go in onControllerAttached.
+      .onPageEnd(() => {
         this.controller.runJavaScript('window.close = () => QQPetGame.close()')
       })
     }

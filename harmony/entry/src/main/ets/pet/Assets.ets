@@ -107,12 +107,49 @@ function indexHtml(ctx: common.UIAbilityContext): Asset {
   return fileOf('text/html', encode(out), out, 200)
 }
 
+const listings = new Map<string, string[]>()
+
+function listOf(ctx: common.UIAbilityContext, dir: string): string[] {
+  let names = listings.get(dir)
+  if (!names) {
+    try {
+      names = ctx.resourceManager.getRawFileListSync(dir)
+    } catch (_e) {
+      // A file, or a missing folder.
+      names = []
+    }
+    listings.set(dir, names)
+  }
+  return names
+}
+
+/**
+ * PetSoc is a Windows dump: its SWFs ask for `data/moduleconfig.xml` while the rawfile is
+ * `Data/moduleconfig.xml`. Maps a path under pet/petsoc/ to the rawfile's casing, like src/main/nocase.ts.
+ */
+function petsocPath(ctx: common.UIAbilityContext, path: string): string {
+  if (!path.startsWith('pet/petsoc/')) {
+    return path
+  }
+  let dir = ''
+  for (const part of path.split('/')) {
+    const names = listOf(ctx, dir)
+    const want = part.toLowerCase()
+    const hit = names.includes(part) ? part : names.find((n: string) => n.toLowerCase() === want)
+    if (!hit) {
+      return path
+    }
+    dir = dir.length > 0 ? `${dir}/${hit}` : hit
+  }
+  return dir
+}
+
 function load(ctx: common.UIAbilityContext, url: string, accept: string, hd: boolean): Asset | null {
   if (!url.startsWith(ORIGIN)) {
     return null
   }
-  const raw = url.substring(ORIGIN.length).split('?')[0]
-  const path = raw.split('/').filter((s: string) => s.length > 0).join('/')
+  const raw = decodeURIComponent(url.substring(ORIGIN.length).split('?')[0])
+  const path = petsocPath(ctx, raw.split('/').filter((s: string) => s.length > 0).join('/'))
   if (path === 'index.html' || path.length === 0) {
     hilog.info(0x4e50, 'qqpet', 'asset index.html')
     return indexHtml(ctx)
