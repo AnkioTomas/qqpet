@@ -102,6 +102,8 @@ export interface Settings {
   watchApp: boolean
   /** Randomly walk around the desktop. Off by default. */
   roam: boolean
+  /** Chat cheat 不要死: the pet revives on the spot whenever it dies. */
+  undying: boolean
   /** OpenAI-compatible endpoint; `aiModel` is set only once it passed the settings test, and AI is off while it is empty. */
   aiUrl: string
   aiKey: string

@@ -47,6 +47,10 @@ const CHEAT = /^(元宝|成长值?|心情|饥饿|饱食|清洁)\s*[+＋]\s*(\d{1
 const STATS = { 元宝: 'yb', 成长: 'growth', 成长值: 'growth', 心情: 'mood', 饥饿: 'hunger', 饱食: 'hunger', 清洁: 'clean' } as const
 
 function cheat(text: string): string | null {
+  if (text === '不要死') {
+    update('settings', { undying: true })
+    return `好的${info.host}，${info.name}以后再也不会死啦！`
+  }
   const m = text.match(CHEAT)
   if (!m) return null
   const key = STATS[m[1] as keyof typeof STATS]

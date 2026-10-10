@@ -271,6 +271,7 @@ function healthChanged(prev: number): void {
     return setTray('normal')
   }
   if (h === 0) {
+    if (save.settings.undying) return setInfo('health', 5)
     speak({ s: DEAD.tolk, now: true }, 'dying', { start: () => machine.add({ a: 'die' }) })
     return setTray('dead')
   }
