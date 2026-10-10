@@ -70,8 +70,21 @@ const WINDY = 39
 const HOT = 35
 const FREEZING = -5
 const CHILL = 8
+const COLD = 5
 
 const name = (code: number): string => CODES[code] ?? ''
+
+/** The last weather fetched (hourly); illness reads it in between. */
+let latest: Weather | null = null
+// Offline or unknown city: null, and the last known weather stays.
+const fetchWeather = (): Promise<Weather | null> => window.qqpet.weather(save.settings.weatherCity).then((w) => (latest = w), () => null)
+
+/** 0..3, one each for cold or heat, rain/snow/smog right now, and a sharp drop tomorrow. Unknown weather is mild. */
+export function weatherStrain(): number {
+  const w = latest
+  if (!w) return 0
+  return Number(w.min <= COLD || w.max >= HOT) + Number(/雨|雪|雾|霾|冰/.test(name(w.code))) + Number(w.max - w.tomorrowMax >= CHILL)
+}
 const when = (hour: number): string => (hour <= new Date().getHours() ? '现在' : `${hour}点左右`)
 
 function warning(w: Weather): string | null {
@@ -92,17 +105,16 @@ function forecast(w: Weather): string {
 
 /** At most one weather line a day: a warning once bad weather is due, otherwise sometimes a forecast at launch. */
 export async function weatherNews(launch: boolean): Promise<string | null> {
+  const w = await fetchWeather()
   const today = String(dayStart())
-  if (save.saveJsonData.weather === today) return null
-  // Offline or unknown city: stay quiet, the next check tries again.
-  const w = await window.qqpet.weather(save.settings.weatherCity).catch(() => null)
-  const s = w && (warning(w) ?? (launch && Math.random() < 0.5 ? forecast(w) : null))
+  if (!w || save.saveJsonData.weather === today) return null
+  const s = warning(w) ?? (launch && Math.random() < 0.5 ? forecast(w) : null)
   if (s) update('saveJsonData', { weather: today })
   return s
 }
 
 /** Asked for, e.g. right after the city is set; rejects when the weather cannot be fetched. */
 export async function weatherNow(): Promise<string> {
-  const w = await window.qqpet.weather(save.settings.weatherCity)
+  const w = (latest = await window.qqpet.weather(save.settings.weatherCity))
   return warning(w) ?? forecast(w)
 }

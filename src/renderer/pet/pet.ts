@@ -39,7 +39,7 @@ import { harvestNews } from './harvest'
 import { resetSignIn, tickGift } from './signin'
 import { resetTasks, rollDaily } from './tasks'
 import { dayStart, newDay } from './vip'
-import { weatherNews } from './weather'
+import { weatherNews, weatherStrain } from './weather'
 
 let idleTimer = 0
 
@@ -337,7 +337,13 @@ function selfCare(): void {
   if (g) useItem(g, false, `[host]，我可以自己${need.act}哦！~~使用了：${g.name}`)
 }
 
-/** Random illness for a tired pet, and further health loss once ill. */
+/**
+ * Per minute, by fatigue squared: a well-kept pet never falls ill, a badly neglected one (fatigue 7) in about a day and
+ * a half; each point of harsh weather adds the base chance once more. The original fell ill within about 2 hours at fatigue 1.
+ */
+const ILL_RATE = 1 / 100_000
+
+/** Illness for a run-down pet, and further health loss once ill. */
 function healthRoll(): void {
   const f = fatigue()
   if (!f) return
@@ -346,9 +352,10 @@ function healthRoll(): void {
     if (rand(0, (700 - f * 50) * 8) < 5) setInfo('health', info.health - 1)
     return
   }
-  const r = rand(0, 1300 - f * 100)
-  if (r < 10) {
-    setActivity('ill', `${r % 3}-`)
+  const harsh = weatherStrain()
+  if (Math.random() < f * f * (1 + harsh) * ILL_RATE) {
+    // Weather brings a cold; neglect any of the three.
+    setActivity('ill', `${harsh ? 1 : rand(0, 2)}-`)
     setInfo('health', 4)
   }
 }
