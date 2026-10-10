@@ -1,4 +1,3 @@
-import { aiOn } from '../pet/ai'
 import { bury, machine, speak } from '../pet/pet'
 import { info, save, setPaused, setTray, update } from '../pet/store'
 import { openChat } from './chat'
@@ -74,7 +73,7 @@ function items(adopt: () => void): Item[] {
   }
   if (info.health === 0) return [{ label: '打开商城', run: openShop }, help, { label: '埋葬宠物', run: () => bury() }, leave]
   return [
-    ...(aiOn() ? [{ label: '和我聊天', run: openChat }] : []),
+    { label: '和我聊天', run: openChat },
     { label: '打开商城', run: openShop },
     {
       label: '喂养宠物',

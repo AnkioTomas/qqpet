@@ -1,10 +1,10 @@
 import type { AiMessage } from '../../shared/ipc'
-import { ask, note } from '../pet/ai'
+import { aiOn, ask, note } from '../pet/ai'
 import { listGoods } from '../pet/goods'
 import { useItem } from '../pet/items'
 import { work, workGoods } from '../pet/jobs'
 import { speak } from '../pet/pet'
-import { info, save, update } from '../pet/store'
+import { addInfo, info, save, setInfo, update } from '../pet/store'
 import { openBox } from './box'
 import './css/chat.css'
 import { button, div } from './dom'
@@ -42,6 +42,36 @@ function doAct(act: string, say: string): void {
   speak({ s: say, now: true, ai: false }, 'speak')
 }
 
+/** Cheat codes typed into the chat, e.g. 元宝+100000. Stats with a bar stop at its max. */
+const CHEAT = /^(元宝|成长值?|心情|饥饿|饱食|清洁)\s*[+＋]\s*(\d{1,9})$/
+const STATS = { 元宝: 'yb', 成长: 'growth', 成长值: 'growth', 心情: 'mood', 饥饿: 'hunger', 饱食: 'hunger', 清洁: 'clean' } as const
+
+function cheat(text: string): string | null {
+  const m = text.match(CHEAT)
+  if (!m) return null
+  const key = STATS[m[1] as keyof typeof STATS]
+  const n = Number(m[2])
+  if (key === 'yb' || key === 'growth') addInfo(key, n)
+  else setInfo(key, Math.min(info[key] + n, save.petComputedlInfo[`${key}Max`]))
+  return `${info.host}，${m[1]}+${n}，${info.name}收到啦！`
+}
+
+/** Without AI the pet still answers, just without understanding a word. */
+const SILLY = [
+  (n: string) => `嗯，${n}看不懂呢~`,
+  (n: string, h: string) => `${h}说的话好深奥，${n}要想一想……`,
+  () => '诶？再说一遍嘛~',
+  (n: string) => `${n}歪了歪头，不太明白呢~`,
+  (_: string, h: string) => `嘿嘿，${h}说什么都对！`,
+  (n: string) => `这个……${n}还小，听不懂啦~`,
+  () => '唔……能换个简单点的说法吗？',
+  (n: string) => `${n}偷偷记下来了，等长大了再回答你~`,
+  (n: string, h: string) => `${h}是在考${n}吗？好难呀~`,
+  () => '嗯嗯！（其实没听懂）',
+  (n: string) => `${n}刚刚走神了，你说什么来着？`,
+  (n: string, h: string) => `听不懂，但是${n}最喜欢${h}啦~`,
+]
+
 /** The conversation, kept until the app quits; the latest turns go to the AI. */
 const history: AiMessage[] = []
 const TURNS = 12
@@ -66,14 +96,20 @@ export function openChat(): void {
     input.disabled = true
     const said: AiMessage = { role: 'user', content }
     show(said)
-    const reply = await ask([...history.slice(-TURNS), said], DO)
-    const { act, say } = parse(reply ?? '')
-    const line = reply ? say || '……' : '呜…我现在脑袋转不动，等会儿再聊吧~'
-    // The model keeps to the action protocol only while its own earlier replies show it.
-    if (reply) history.push(said, { role: 'assistant', content: `${act} ${line}` })
-    show({ role: 'assistant', content: line })
-    note('刚和主人聊过天')
-    if (reply) doAct(act, line)
+    const canned = cheat(content) ?? (aiOn() ? null : SILLY[Math.floor(Math.random() * SILLY.length)](info.name, info.host))
+    if (canned) {
+      show({ role: 'assistant', content: canned })
+      speak({ s: canned, now: true, ai: false }, 'speak')
+    } else {
+      const reply = await ask([...history.slice(-TURNS), said], DO)
+      const { act, say } = parse(reply ?? '')
+      const line = reply ? say || '……' : '呜…我现在脑袋转不动，等会儿再聊吧~'
+      // The model keeps to the action protocol only while its own earlier replies show it.
+      if (reply) history.push(said, { role: 'assistant', content: `${act} ${line}` })
+      show({ role: 'assistant', content: line })
+      note('刚和主人聊过天')
+      if (reply) doAct(act, line)
+    }
     input.disabled = false
     input.focus()
   }
