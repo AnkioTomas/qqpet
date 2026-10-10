@@ -153,8 +153,9 @@ export function openState(x: number, y: number): void {
 }
 
 let queued = 0
-onInfoChange(() => {
-  if (panel && !queued)
+// Position is not shown, and a walk moves it 12 times a second: redrawing then replaces a button between press and release, eating the click.
+onInfoChange((key) => {
+  if (panel && !queued && key !== 'lastX' && key !== 'lastY')
     queued = requestAnimationFrame(() => {
       queued = 0
       render()
