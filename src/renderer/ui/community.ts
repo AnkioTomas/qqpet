@@ -535,8 +535,10 @@ async function enter(next = spot): Promise<void> {
   await loadNav(spot.scene)
   if (nav) spot = { ...spot, ...snap(nav, spot.x, spot.y) }
   saveSpot(spot)
-  await flash('PSW.ResetLoadingInfo')
+  // Only the login panel needs clearing. A scene request opened the panel over a snapshot of the old scene;
+  // resetting it makes ChangeScene snapshot the half-cleared new one, a grey sheet with stray tiles.
   if (!placed) {
+    await flash('PSW.ResetLoadingInfo')
     placed = true
     const self = pet()
     await flash('PSW.MPetInit', String(self.petid), Number(self.sex), Number(self.grade), spot.x, spot.y)
