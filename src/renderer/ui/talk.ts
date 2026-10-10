@@ -24,11 +24,13 @@ const hide = (): void => {
 }
 
 // From the cursor feed, not :hover: once the window turns click-through again it gets no mouseleave.
+// Touch screens feed taps too, and a lifted finger never reports leaving, so they keep the timeout.
 let over = false
-window.qqpet.onCursor((p) => {
-  const r = el.getBoundingClientRect()
-  over = p.x >= r.left && p.x < r.right && p.y >= r.top && p.y < r.bottom
-})
+if (matchMedia('(hover: hover)').matches)
+  window.qqpet.onCursor((p) => {
+    const r = el.getBoundingClientRect()
+    over = p.x >= r.left && p.x < r.right && p.y >= r.top && p.y < r.bottom
+  })
 
 const expire = (): void => {
   if (over) hideTimer = window.setTimeout(expire, 1000)
