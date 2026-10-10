@@ -9,7 +9,8 @@
 .ui-email .close {width:20px;height:20px;background-image:url(/pet/email/close_normal.png);background-size:100% 100%;background-repeat:no-repeat;position:absolute;right:4px;top:4px}
 .ui-email .close:hover {background-image:url(/pet/email/close_click.png)}
 .ui-email .close:active {background-image:url(/pet/email/close_over.png)}
-.ui-email .emails {overflow:hidden auto}
+/* Three mails tall, so a short last page does not shrink the window. */
+.ui-email .emails {min-height:200px}
 .ui-email .leftType {width:37px;height:32px;margin:0 5px;background-size:100% 100%}
 .ui-email .uyjImg {background-image:url(/pet/email/uyj.png)}
 .ui-email .yjImg {background-image:url(/pet/email/yj.png)}
@@ -27,3 +28,12 @@
 .ui-email .e_time {font-size:9px;color:#9f9f9f}
 .ui-email .e_photo {width:60px;height:42px;padding:2px;background:#fff;box-shadow:1px 1px 3px #0003;cursor:pointer}
 .ui-email .e_photoImg {width:100%;height:100%;display:block}
+.ui-email .e_pager {margin-right:6px}
+.ui-email .e_at {min-width:32px}
+.ui-email .e_prev,
+.ui-email .e_next {width:16px;height:20px;background:url(/pet/email/24.svg) center/100% 100% no-repeat}
+.ui-email .e_prev:hover {background-image:url(/pet/email/26.svg)}
+.ui-email .e_next {background-image:url(/pet/email/31.svg)}
+.ui-email .e_next:hover {background-image:url(/pet/email/33.svg)}
+.ui-email .e_prev.off {background-image:url(/pet/email/22.svg);pointer-events:none}
+.ui-email .e_next.off {background-image:url(/pet/email/29.svg);pointer-events:none}

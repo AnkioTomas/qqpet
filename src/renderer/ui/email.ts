@@ -10,6 +10,8 @@ import { frame } from './frame'
 
 const BG = ['bg_01.png', 'bg_02.bmp', 'bg_03.png', 'bg_04.bmp', 'bg_05.bmp', 'bg_06.bmp', 'bg_8.png', 'bg_09.png', 'bg_10.png']
 
+const PAGE = 3
+
 let open = false
 
 /** Mail from the save: the original's, and the welcome, birthday and holiday mails. */
@@ -17,7 +19,8 @@ export function openEmail(): void {
   if (open) return
   open = true
   const mails = readMails()
-  const live = (): Live[] => Object.values(mails).filter((m): m is Live => !m.e)
+  // Newest first: keys are send times, and new mail must not land on the last page.
+  const live = (): Live[] => Object.values(mails).filter((m): m is Live => !m.e).reverse()
   const act = (list: Live[]): void => {
     for (const m of list) {
       if (m.r) mails[m.d] = { d: m.d, e: true, k: m.k }
@@ -30,10 +33,20 @@ export function openEmail(): void {
     render()
   }
 
-  const emails = div('emails f1 h0')
-  const render = (): void =>
+  let page = 0
+  const emails = div('emails f1')
+  const at = div('e_at tc')
+  const prev = button('e_prev', () => render(page - 1))
+  const next = button('e_next', () => render(page + 1))
+  const render = (to = page): void => {
+    const all = live()
+    const last = Math.max(0, Math.ceil(all.length / PAGE) - 1)
+    page = Math.min(Math.max(to, 0), last)
+    prev.classList.toggle('off', page === 0)
+    next.classList.toggle('off', page === last)
+    at.textContent = `${page + 1}/${last + 1}`
     emails.replaceChildren(
-      ...live().map((m) =>
+      ...all.slice(page * PAGE, (page + 1) * PAGE).map((m) =>
         div(
           'email fc',
           div(m.r ? 'leftType yjImg' : 'leftType uyjImg'),
@@ -52,6 +65,7 @@ export function openEmail(): void {
         ),
       ),
     )
+  }
   render()
 
   const close = (): void => {
@@ -64,6 +78,7 @@ export function openEmail(): void {
     emails,
     div(
       'e_foot fcc',
+      div('e_pager fcc', prev, at, next),
       button('fcc wsnw getEmail getEmails', () => act(live().filter((m) => !m.r)), ' 一键领取 '),
       button('fcc wsnw rgetEmail rgetEmails', () => act(live().filter((m) => m.r)), ' 一键删除 '),
     ),
