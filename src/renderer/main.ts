@@ -66,6 +66,8 @@ window.API = {
 // element (or a drag is in progress).
 let interactive = false
 let dragging = false
+/** A click stepped the pet out of its peek; it slips back once the cursor leaves it and its bar. */
+let out = false
 window.qqpet.onCursor((p) => {
   cursor.x = p.x
   cursor.y = p.y
@@ -81,6 +83,11 @@ window.qqpet.onCursor((p) => {
   // The menu closes once the cursor rests on the desktop; it may still be on the tray, outside the window.
   const inside = p.x >= 0 && p.y >= 0 && p.x < innerWidth && p.y < innerHeight
   if (!hit && inside) closeMenu()
+  if (out && !hit) {
+    out = false
+    const edge = snapEdge()
+    if (edge && machine.pose.a === 'normal') machine.play({ a: edge })
+  }
   if (hit === interactive) return
   interactive = hit
   window.qqpet.setClickThrough(!hit)
@@ -149,7 +156,10 @@ petEl.addEventListener('pointerdown', (e) => {
         return
       }
       const edge = snapEdge()
-      if (edge) machine.play({ a: edge })
+      if (edge && !lifted && machine.pose.a === edge) {
+        out = true
+        machine.play({ a: 'normal' })
+      } else if (edge) machine.play({ a: edge })
       else if (lifted || machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') machine.play({ a: 'normal' })
       scheduleHide()
     },
