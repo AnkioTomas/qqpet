@@ -242,14 +242,31 @@ class PetService : Service() {
     /** Moves the window onto CSS rectangle (x, y, w, h) of the page, keeping the page in place on screen. */
     private fun setBounds(x: Double, y: Double, w: Double, h: Double, viewport: Double) {
         val scale = web.layoutParams.width / viewport
-        params.x = floor(x * scale).toInt()
-        params.y = floor(y * scale).toInt()
+        val nx = floor(x * scale).toInt()
+        val ny = floor(y * scale).toInt()
+        // Until the app draws again the system shows the old frame at the new origin, i.e. the page
+        // jumps toward the screen corner; the window stays transparent until that frame is committed.
+        if (nx != params.x || ny != params.y) {
+            params.alpha = 0f
+            val move = ++moves
+            root.viewTreeObserver.registerFrameCommitCallback { reveal(move) }
+        }
+        params.x = nx
+        params.y = ny
         params.width = maxOf(ceil(w * scale).toInt(), 1)
         params.height = maxOf(ceil(h * scale).toInt(), 1)
         params.flags = if (w == 0.0 || h == 0.0) params.flags or LayoutParams.FLAG_NOT_TOUCHABLE else params.flags and LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         wm.updateViewLayout(root, params)
         // Chromium rasters only the visible rect; without this, static content uncovered by a bigger window stays blank.
         web.invalidate()
+    }
+
+    private var moves = 0
+
+    private fun reveal(move: Int) = web.post {
+        if (move != moves) return@post
+        params.alpha = 1f
+        wm.updateViewLayout(root, params)
     }
 
     private fun http(id: Int, method: String, url: String, headers: String, body: String?) = net.execute {
