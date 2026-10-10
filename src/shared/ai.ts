@@ -27,5 +27,6 @@ export async function aiModels(fetch: Fetch, c: Omit<AiConfig, 'model'>): Promis
 export async function aiChat(fetch: Fetch, c: AiConfig, messages: AiMessage[]): Promise<string> {
   // Qwen-style models write their reasoning into the reply unless thinking is off; other servers ignore the field.
   const r = await call<Completion>(fetch, c, '/chat/completions', { model: c.model, messages, max_tokens: 300, chat_template_kwargs: { enable_thinking: false } })
-  return r.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/, '').trim()
+  // Some templates emit only the closing tag, so everything up to the last one is reasoning.
+  return r.choices[0].message.content.replace(/^[\s\S]*<\/think>/, '').trim()
 }

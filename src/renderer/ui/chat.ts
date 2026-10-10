@@ -13,14 +13,12 @@ import { setHidden } from './menu'
 const DO =
   '回复写成：动作 台词。动作只能是 FEED、CLEAN、WORK、HIDE、QUIET 或 NONE。FEED=吃背包食物，CLEAN=用清洁用品，WORK=去打工，HIDE=隐身，QUIET=免打扰。不是办事就写 NONE。台词必须写在动作后面，不要只回动作词。'
 
-const ACT = /^(FEED|CLEAN|WORK|HIDE|QUIET|NONE)\b[:：]?\s*(.*)$/i
+// Small models also put the action word after the line instead of before it.
+const ACT = /\b(FEED|CLEAN|WORK|HIDE|QUIET|NONE)\b[:：]?/i
 
 function parse(text: string): { act: string; say: string } {
-  const lines = text.split(/\n+/).map((s) => s.trim()).filter(Boolean)
-  const head = lines[0] ?? ''
-  const m = head.match(ACT)
-  if (!m) return { act: 'NONE', say: text.replace(/\s+/g, ' ').trim() }
-  return { act: m[1].toUpperCase(), say: m[2].trim() || lines[1] || '' }
+  const m = text.match(ACT)
+  return { act: m ? m[1].toUpperCase() : 'NONE', say: text.replace(ACT, '').replace(/\s+/g, ' ').trim() }
 }
 
 function doAct(act: string, say: string): void {
@@ -32,7 +30,8 @@ function doAct(act: string, say: string): void {
     if (g) return useItem(g, false, say)
   } else if (act === 'WORK') {
     const g = workGoods()[0]
-    if (g && work(g)) return
+    // A refusal (ill, busy, level too low) is spoken by work itself; the AI's "off to work" would contradict it.
+    if (g) return void work(g)
   } else if (act === 'HIDE' && !save.settings.hidden) {
     speak({ s: say, now: true, ai: false }, 'hide', { end: () => setHidden(true) })
     return
@@ -57,7 +56,7 @@ export function openChat(): void {
     log.append(div(`chatLine ${m.role}`, m.content))
     log.scrollTop = log.scrollHeight
   }
-  history.forEach(show)
+  history.forEach((m) => show(m.role === 'assistant' ? { ...m, content: parse(m.content).say } : m))
   const input = Object.assign(document.createElement('input'), { className: 'chatInput f1', maxLength: 200, placeholder: `和${info.name}说点什么，回车发送` })
 
   async function send(): Promise<void> {
@@ -70,7 +69,8 @@ export function openChat(): void {
     const reply = await ask([...history.slice(-TURNS), said], DO)
     const { act, say } = parse(reply ?? '')
     const line = reply ? say || '……' : '呜…我现在脑袋转不动，等会儿再聊吧~'
-    if (reply) history.push(said, { role: 'assistant', content: line })
+    // The model keeps to the action protocol only while its own earlier replies show it.
+    if (reply) history.push(said, { role: 'assistant', content: `${act} ${line}` })
     show({ role: 'assistant', content: line })
     note('刚和主人聊过天')
     if (reply) doAct(act, line)
