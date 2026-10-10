@@ -8,6 +8,7 @@ import { frame } from './frame'
 import { openPetInfo } from './petinfo'
 import { openSetup } from './setup'
 import { openShop } from './shop'
+import { openState } from './state'
 import { windowView } from './window-view'
 
 const ditu = (n: number): string => `pet/Menu/ditu0${n}.png`
@@ -68,6 +69,8 @@ function items(adopt: () => void): Item[] {
     label: '设置帮助',
     children: [
       { label: '宠物资料', run: openPetInfo },
+      // The tray opens it on desktop; phones only have a notification few users find.
+      { label: '宠物状态', run: () => openState(innerWidth / 2, innerHeight / 2) },
       { label: '系统设置', run: openSetup },
     ],
   }
