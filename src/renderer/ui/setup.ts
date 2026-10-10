@@ -217,6 +217,11 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '随机获得 10 个药品', run: () => grant('medicine') },
       {
         type: 'button',
+        label: '复活吧，我的宠物！',
+        run: () => (info.health === 0 ? setInfo('health', 5) : speak({ s: '[host]，我还活得好好的呢~', now: true }, 'speak')),
+      },
+      {
+        type: 'button',
         label: '粉钻 30天',
         run: () => {
           openPinkDiamond(30)
