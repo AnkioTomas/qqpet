@@ -203,7 +203,7 @@ const begin = (): void => {
 }
 const adoptPet = (): void => adopt(begin)
 
-// Linux trays report no position; their menus live at the top of the screen.
+// Linux trays and icons hidden from the macOS menu bar report no position; open at the top right, under the menu bar.
 window.qqpet.onTrayClick((c) => {
   const x = c.x ?? innerWidth - 60
   const y = c.y ?? 0
