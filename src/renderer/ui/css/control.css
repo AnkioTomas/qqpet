@@ -14,11 +14,44 @@
   opacity: 1;
   display: unset !important;
 }
-.ui-control .showControl .menus {
-  transform: translateY(20px);
-}
 .ui-control .menus {
   height: 40px;
+}
+/* Above the pet the bar is the one below turned upside down: icons nearest the head, everything else stacking up. */
+.ui-control .up .menus {
+  transform: translateY(-100%);
+}
+.ui-control .up .menuItem {
+  margin: 3px 5px 16px;
+}
+.ui-control .up .menuTip {
+  top: 100%;
+  transform: translate(-50%, 0);
+  padding: 6px 5px 2px;
+  background: none;
+  isolation: isolate;
+}
+.ui-control .up .menuTip:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url(/pet/control/icons/bk/12.svg) 0 0 / 100% 100% no-repeat;
+  transform: scaleY(-1);
+}
+.ui-control .up .childrenMenu {
+  top: auto;
+  bottom: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+}
+.ui-control .up .childrenMenuItem:after {
+  top: auto;
+  bottom: -8px;
+}
+.ui-control .up .goodList {
+  top: auto;
+  bottom: 5px;
 }
 .ui-control .menuItem {
   margin: 16px 5px 3px;

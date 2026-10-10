@@ -27,6 +27,9 @@ const BAR_WIDTH = 314
 /** Pet size the bar was drawn for (level 1 on a 1920 px screen). */
 const DESKTOP_PET = 150
 const EDGE = 10
+/** Where the penguin's head and feet sit in the pet box; the swf leaves the rest transparent. */
+const HEAD = 0.4
+const FEET = 0.95
 /** A finger needs longer than a mouse to find the next button. */
 const HIDE_MS = touch ? 5000 : 1500
 const PAGE = 4
@@ -137,7 +140,7 @@ let introTimer = 0
 let open: (Panel & { page: number }) | null = null
 
 /**
- * Centered under the pet, above it when there is no room below, and kept on screen.
+ * Centered under the pet's feet; when there is no room below, mirrored above its head. Kept on screen.
  * On touch screens it grows with the pet, as far as the screen is wide.
  */
 function place(): void {
@@ -145,13 +148,13 @@ function place(): void {
   const scale = touch ? Math.min(size / DESKTOP_PET, (innerWidth - 2 * EDGE) / BAR_WIDTH) : 1
   const height = BAR_HEIGHT * scale
   const half = (BAR_WIDTH * scale) / 2 + EDGE
-  let top = info.lastY + size
-  const onTop = top > innerHeight - EDGE - height
-  if (onTop) top = info.lastY - height
+  const feet = info.lastY + size * FEET
+  const onTop = feet > innerHeight - EDGE - height
+  control.classList.toggle('up', onTop)
   control.style.left = `${Math.min(Math.max(info.lastX + size / 2, half), innerWidth - half)}px`
-  control.style.top = `${top}px`
+  control.style.top = `${onTop ? info.lastY + size * HEAD : feet}px`
   control.style.transform = `scale(${scale})`
-  setBubbleLift(shown && onTop ? height : 0)
+  setBubbleLift(shown && onTop ? Math.max(height - size * HEAD, 0) : 0)
 }
 
 /** A tap leaves its menu hovered, children shown: on touch the bar goes once a child is picked, unless it opened a goods panel. */
