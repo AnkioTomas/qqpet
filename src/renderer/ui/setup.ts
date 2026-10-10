@@ -319,14 +319,18 @@ export function openSetup(): void {
   if (!draftModel) draftModel = s.aiModel
   let tab = 0
   const left = div('leftScroll fcC')
-  const right = div('rightScroll')
+  const title = div('right_title ml16')
+  const list = div('children')
+  const right = div('rightScroll fC', title, list)
   const draw = (): void => {
     const pick = (i: number) => (): void => {
       tab = i
+      list.scrollTop = 0
       draw()
     }
     left.replaceChildren(...TABS.map((t, i) => button(i === tab ? 'lm_once focusPress fcc activeMenu' : 'lm_once focusPress fcc', pick(i), t.label)))
-    right.replaceChildren(div('right_title ml16', TABS[tab].label), div('children', ...TABS[tab].options.map((o) => option(o, draw))))
+    title.textContent = TABS[tab].label
+    list.replaceChildren(...TABS[tab].options.map((o) => option(o, draw)))
   }
   draw()
   redraw = draw

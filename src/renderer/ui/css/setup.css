@@ -3,7 +3,8 @@
 .ui-setup .leftScroll {position:absolute;left:13px;top:36px;width:93px;height:230px}
 .ui-setup .lm_once {width:85px;height:28px;background-image:url(/pet/sysSeting/yeqian00.png);background-size:100% 100%;background-repeat:no-repeat;margin-top:5px}
 .ui-setup .activeMenu {background-image:url(/pet/sysSeting/yeqian02.png)!important;color:#fff!important}
-.ui-setup .rightScroll {position:absolute;right:14px;top:36px;height:230px;width:225px;overflow:hidden auto}
+.ui-setup .rightScroll {position:absolute;right:14px;top:36px;height:230px;width:225px}
+.ui-setup .rightScroll > .children {flex:1;min-height:0;overflow:hidden auto}
 .ui-setup .childrenIn {width:225px;padding:10px 20px}
 .ui-setup .footBUts {position:absolute;left:12px;bottom:5px;width:325px;height:40px;padding:0 20px}
 .ui-setup .f_submit {width:84px;height:40px;background-image:url(/pet/sysSeting/yingyong00.png);background-size:100% 100%;background-repeat:no-repeat}
