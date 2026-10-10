@@ -9,6 +9,7 @@ import android.webkit.WebViewClient
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
 
 /** Pages load from here: Ruffle fetches SWFs, configs and wasm, which file:// does not allow. */
 const val ORIGIN = "https://appassets.androidplatform.net"
@@ -35,7 +36,7 @@ open class AssetClient(private val context: Context, private val hd: () -> Boole
         val url = request.url
         if ("${url.scheme}://${url.host}" != ORIGIN) return null
         // SWF configs write paths with backslashes (pet\\fishing\\…), which URLs turn into empty segments; assets.open wants none.
-        val path = url.path!!.split('/').filter { it.isNotEmpty() }.joinToString("/")
+        val path = petsocPath(url.path!!.split('/').filter { it.isNotEmpty() }.joinToString("/"))
         if (path == "index.html") return indexHtml()
         if (hdOn && path.startsWith("pet/") && request.requestHeaders["Accept"]?.contains("image/svg+xml") == true) hidpiSvg(path)?.let { return it }
         return try {
@@ -43,6 +44,24 @@ open class AssetClient(private val context: Context, private val hd: () -> Boole
         } catch (_: FileNotFoundException) {
             WebResourceResponse(null, null, 404, "Not Found", null, null)
         }
+    }
+
+    /** Asset folder listings; requests arrive on several threads. */
+    private val listings = ConcurrentHashMap<String, Array<String>>()
+
+    /**
+     * PetSoc is a Windows dump: its SWFs ask for `data/moduleconfig.xml` while the asset is
+     * `Data/moduleconfig.xml`. Maps a path under pet/petsoc/ to the asset's casing, like src/main/nocase.ts.
+     */
+    private fun petsocPath(path: String): String {
+        if (!path.startsWith("pet/petsoc/")) return path
+        var dir = ""
+        for (part in path.split('/')) {
+            val names = listings.getOrPut(dir) { context.assets.list(dir) ?: emptyArray() }
+            val hit = if (part in names) part else names.find { it.equals(part, ignoreCase = true) } ?: return path
+            dir = if (dir.isEmpty()) hit else "$dir/$hit"
+        }
+        return dir
     }
 
     /** The pet page, scaled so the screen's short side is [VIEWPORT] CSS pixels. */

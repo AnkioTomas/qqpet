@@ -248,6 +248,8 @@ class PetService : Service() {
         params.height = maxOf(ceil(h * scale).toInt(), 1)
         params.flags = if (w == 0.0 || h == 0.0) params.flags or LayoutParams.FLAG_NOT_TOUCHABLE else params.flags and LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         wm.updateViewLayout(root, params)
+        // Chromium rasters only the visible rect; without this, static content uncovered by a bigger window stays blank.
+        web.invalidate()
     }
 
     private fun http(id: Int, method: String, url: String, headers: String, body: String?) = net.execute {
@@ -264,7 +266,8 @@ class PetService : Service() {
             }
             val text = (if (c.responseCode < 400) c.inputStream else c.errorStream)?.bufferedReader()?.use { it.readText() } ?: ""
             resolve(id, JSONObject().put("status", c.responseCode).put("body", text).toString())
-        } catch (e: IOException) {
+        } catch (e: Exception) {
+            // Runs on a pool thread: anything uncaught here kills the app.
             resolve(id, null, e.toString())
         }
     }
@@ -313,15 +316,25 @@ class PetService : Service() {
         fun exportSave(id: Int, name: String, text: String) {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("application/json").putExtra(Intent.EXTRA_TITLE, name)
             pickFile(intent) { uri ->
-                if (uri != null) contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray()) }
-                resolve(id, uri?.let { "true" })
+                try {
+                    if (uri != null) contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray()) }
+                    resolve(id, uri?.let { "true" })
+                } catch (e: Exception) {
+                    resolve(id, null, e.toString())
+                }
             }
         }
 
         @JavascriptInterface
         fun importSave(id: Int) {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
-            pickFile(intent) { uri -> resolve(id, uri?.let { u -> contentResolver.openInputStream(u)!!.bufferedReader().use { it.readText() } }) }
+            pickFile(intent) { uri ->
+                try {
+                    resolve(id, uri?.let { u -> contentResolver.openInputStream(u)!!.bufferedReader().use { it.readText() } })
+                } catch (e: Exception) {
+                    resolve(id, null, e.toString())
+                }
+            }
         }
 
         @JavascriptInterface
