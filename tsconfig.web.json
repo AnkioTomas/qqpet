@@ -13,5 +13,5 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*", "src/android/**/*"]
+  "include": ["src/renderer/**/*", "src/shared/**/*", "src/mobile/**/*", "src/android/**/*"]
 }

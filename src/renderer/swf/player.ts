@@ -52,6 +52,8 @@ export class SwfPlayer {
   /** `base` (relative to the page) resolves the SWF's own relative URLs; `options` override Ruffle's config. */
   async load(url: string, base = BASE, options: Record<string, unknown> = {}): Promise<RuffleMetadata> {
     this.meta = null
+    // The mobile overlay window learns per movie which part of the box it draws.
+    this.el.dataset.swf = url
     // Ruffle leaves the previous movie's callbacks on the element; calling one before the new movie registers it does nothing.
     for (const name of this.callbacks) delete (this.el as unknown as Record<string, unknown>)[name]
     this.callbacks.clear()

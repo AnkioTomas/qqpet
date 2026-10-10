@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.web.json",
-  "include": ["src/renderer/**/*", "src/shared/**/*", "src/harmony/**/*"]
+  "include": ["src/renderer/**/*", "src/shared/**/*", "src/mobile/**/*", "src/harmony/**/*"]
 }

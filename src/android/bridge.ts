@@ -4,6 +4,7 @@
 // reaches the apps below.
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
+import { cover } from '../mobile/overlay'
 import type { Fetch, Point, QQPetApi, TrayClick, TrayState } from '../shared/ipc'
 import type { SaveData } from '../shared/save'
 import { applyPatch, buried, petOf, startSave } from '../shared/save-logic'
@@ -164,9 +165,8 @@ function track(): void {
   if (dragging) [x, y, r, b] = [0, 0, innerWidth, innerHeight]
   else
     for (const el of document.body.querySelectorAll('*')) {
-      const box = el.getBoundingClientRect()
-      // A hidden pet (opacity 0) or speech bubble (visibility hidden) must not keep a window that swallows touches.
-      if (!box.width || !box.height || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue
+      const box = cover(el)
+      if (!box) continue
       x = Math.min(x, box.left)
       y = Math.min(y, box.top)
       r = Math.max(r, box.right)

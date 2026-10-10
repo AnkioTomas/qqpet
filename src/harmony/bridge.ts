@@ -3,6 +3,7 @@
 // the system cannot pass touches through transparent pixels.
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
+import { cover } from '../mobile/overlay'
 import type { Fetch, Point, QQPetApi, TrayClick, TrayState } from '../shared/ipc'
 import type { SaveData } from '../shared/save'
 import { applyPatch, buried, petOf, startSave } from '../shared/save-logic'
@@ -168,8 +169,8 @@ function track(): void {
   let r = 0
   let b = 0
   for (const el of document.body.querySelectorAll('*')) {
-    const box = el.getBoundingClientRect()
-    if (!box.width || !box.height || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue
+    const box = cover(el)
+    if (!box) continue
     x = Math.min(x, box.left)
     y = Math.min(y, box.top)
     r = Math.max(r, box.right)
