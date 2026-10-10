@@ -1,5 +1,5 @@
 import type { CalendarDay } from '../../shared/ipc'
-import { GREET } from './data/greet'
+import { FESTIVAL, GREET, HOLIDAY } from './data/greet'
 import type { Line } from './data/talk'
 import { rand } from './rand'
 
@@ -30,11 +30,17 @@ export function greeting(): Line {
   return pick(GREET.findLast(([from]) => h >= from)![1])
 }
 
-/** What the pet says about a holiday, make-up working day or solar term. */
-export function festival(d: CalendarDay): string | null {
-  if (d.holiday?.off) return `[host]，今天是${d.holiday.name}，放假啦！祝你${d.holiday.name}快乐，今天要好好玩哦~`
-  if (d.holiday) return `[host]，今天${d.holiday.name}调休要上班，辛苦啦，我给你加油！`
-  if (d.term) return `[host]，今天是${d.term}，换季了要注意身体哦~`
+/** What the pet says about today's holiday, festival, make-up working day or solar term; only solar festivals while offline. */
+export function festival(): string | null {
+  const [d, tomorrow] = days
+  const now = new Date()
+  const solar = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const holiday = tomorrow?.lunar === '正月初一' ? '除夕' : d?.holiday?.off ? d.holiday.name : null
+  const lines = (holiday && HOLIDAY[holiday]) || FESTIVAL[solar] || (d && FESTIVAL[d.lunar])
+  if (lines) return pick(lines)
+  if (holiday) return `[host]，今天是${holiday}，放假啦！祝你${holiday}快乐，今天要好好玩哦~`
+  if (d?.holiday) return `[host]，今天${d.holiday.name}调休要上班，辛苦啦，我给你加油！`
+  if (d?.term) return `[host]，今天是${d.term}，换季了要注意身体哦~`
   return null
 }
 
@@ -47,7 +53,7 @@ export function dateTalk(): string | null {
   const i = days.findIndex((d, i) => i > 0 && d.holiday?.off && d.holiday.name !== today.holiday?.name)
   if (i > 0) lines.push(`[host]，再过${i}天就是${days[i].holiday!.name}啦，放假有什么计划吗？`)
   if ((now.getDay() === 0 || now.getDay() === 6) && !today.holiday) lines.push('周末啦，[host]今天好好休息一下吧~')
-  const f = festival(today)
+  const f = festival()
   if (f) lines.push(f)
   return pick(lines)
 }
