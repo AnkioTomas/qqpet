@@ -54,8 +54,8 @@ export async function ask(messages: AiMessage[], extra = ''): Promise<string | n
   return (await chat(`${persona()}\n${extra}`, messages))?.slice(0, 200) || null
 }
 
-/** Small models get stuck now and then: 糖糖糖糖…, or the same phrase twice in a row. */
-const LOOP = /(.{3,})\1|(.)\2{4}/
+/** Small models get stuck now and then: 糖糖糖糖…, or the same phrase twice in a row. Short words doubled (辛苦啦辛苦啦) are just how the pet talks. */
+const LOOP = /(.{4,})\1|(.{2,3})\2\2|(.)\3{4}/
 
 /** A line from someone other than the pet: `who` stands in for the pet's persona. */
 export async function askAs(who: string, messages: AiMessage[]): Promise<string | null> {
