@@ -21,6 +21,9 @@ export function createPetWindow(): BrowserWindow {
     focusable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
+    // Chromium apps (browsers, 抖音...) treat a work-area-sized window as covering them and stop painting
+    // once it stops being click-through; a tool window is never counted.
+    ...(process.platform === 'win32' && { type: 'toolbar' }),
     webPreferences: {
       preload: join(import.meta.dirname, '../preload/index.cjs'),
       sandbox: true,
