@@ -4,7 +4,7 @@ declare global {
   interface Window {
     qqpet: QQPetApi
     RufflePlayer: { newest(): { createPlayer(): RufflePlayerElement } }
-    /** Called by pet action SWFs (Stand eyes follow the cursor). Values are "x,y,0" / "x,y,w,h". The community reads its ini through it. */
+    /** Called by pet action SWFs (Stand and edge-peek eyes follow the cursor; scripts/swf-eyes.py). Values are "x,y,0" / "x,y,w,h". The community reads its ini through it. */
     API: { GetCursorPosition(): string; GetWindowRect(): string; GetPrivateProfileString(section: string, key: string, fallback: string, file: string): string }
     /** Called by talk.swf when a bubble button is clicked. */
     BubbleAPI: { OnButtonClick(i: number): void }
