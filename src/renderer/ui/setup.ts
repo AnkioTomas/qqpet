@@ -224,7 +224,13 @@ const TABS: { label: string; options: Option[] }[] = [
         label: '复活吧，我的宠物！',
         run: () => (info.health === 0 ? setInfo('health', 5) : speak({ s: '[host]，我还活得好好的呢~', now: true }, 'speak')),
       },
-      { type: 'radio', label: '不要死', title: '宠物死亡后原地复活，聊天里输入「不要死」也能开启', on: () => s.undying, run: () => update('settings', { undying: !s.undying }) },
+      {
+        type: 'radio',
+        label: '聊天框金手指',
+        title: '在聊天里输入「元宝+100000」「不要死」等口令生效；关闭时「不要死」一并失效',
+        on: () => s.chatCheat,
+        run: () => update('settings', { chatCheat: !s.chatCheat, undying: false }),
+      },
       {
         type: 'button',
         label: '粉钻 30天',

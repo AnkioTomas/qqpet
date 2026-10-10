@@ -100,7 +100,7 @@ export function openChat(): void {
     input.disabled = true
     const said: AiMessage = { role: 'user', content }
     show(said)
-    const canned = cheat(content) ?? (aiOn() ? null : SILLY[Math.floor(Math.random() * SILLY.length)](info.name, info.host))
+    const canned = (save.settings.chatCheat ? cheat(content) : null) ?? (aiOn() ? null : SILLY[Math.floor(Math.random() * SILLY.length)](info.name, info.host))
     if (canned) {
       show({ role: 'assistant', content: canned })
       speak({ s: canned, now: true, ai: false }, 'speak')
