@@ -175,7 +175,7 @@ function visit(name: string): boolean {
 
 /** An encounter brings a random good back: from the better pool for a new province. */
 function souvenir(isNew: boolean): void {
-  const [g] = loot(1, isNew ? 2 : 1)
+  const [g] = loot(1, isNew ? 1 : 2)
   addGood(g.type, g.id, 1)
   windowView({ title: '旅游奇遇~~', msg: '带回物品~~', goods: [g] })
 }
