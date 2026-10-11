@@ -104,6 +104,8 @@ export interface Settings {
   watchApp: boolean
   /** Randomly walk around the desktop. Off by default. */
   roam: boolean
+  /** Pressing the pet shows the action bar. On by default. */
+  petBar: boolean
   /** Chat cheats (元宝+N, 不要死, ...) are recognised. On by default. */
   chatCheat: boolean
   /** Chat cheat 不要死: the pet revives on the spot whenever it dies. */

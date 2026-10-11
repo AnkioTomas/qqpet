@@ -98,7 +98,7 @@ petEl.addEventListener('contextmenu', (e) => openMenu({ x: e.clientX, y: e.clien
 petEl.addEventListener('pointerdown', (e) => {
   if (e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
   closeMenu()
-  showControl()
+  if (save.settings.petBar) showControl()
   dragging = true
   catchDiudiule()
   let dx = pageX(e) - info.lastX
