@@ -164,7 +164,7 @@ const aiOptions = (): Option[] => [
   ...(s.aiModel ? [{ type: 'button' as const, label: '关闭 AI', run: closeAi }] : []),
 ]
 
-const FACE_TIP = '使用互动动作：鼠标放入宠物范围1s后（手机上点一下宠物），开启点位可进行点击~'
+const FACE_TIP = '使用互动动作：鼠标放入宠物范围0.3s后（手机上点一下宠物），开启点位可进行点击~'
 const s = save.settings
 
 const TABS: { label: string; options: Option[] }[] = [
@@ -175,7 +175,7 @@ const TABS: { label: string; options: Option[] }[] = [
       { type: 'button', label: '重生为另一个性别~~~（注意数据丢失）', run: rebornAsOther },
       { type: 'button', label: '宠物不见了？点我试试', run: homing },
       { type: 'slider', label: '透明度', value: () => s.opacity, step: (d) => setOpacity(s.opacity + d) },
-      { type: 'radio', label: '开机自启', on: () => s.autoStart, run: toggleAutoStart },
+      { type: 'radio', label: '开机自启', title: '仅 Windows、macOS 和 Android 有效', on: () => s.autoStart, run: toggleAutoStart },
       { type: 'input', label: '天气城市（留空按网络位置自动定位）', value: () => s.weatherCity, set: setCity },
       {
         type: 'radio',
