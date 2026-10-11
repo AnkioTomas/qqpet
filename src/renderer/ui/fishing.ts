@@ -84,6 +84,7 @@ export function openFishing(): void {
     cleanMax: save.petComputedlInfo.cleanMax,
     qqsign: '',
     viplevel: info.PDiamondLevel,
+    isvipyear: info.PDiamondYear ? 1 : 0,
   })
   window.alert = (msg) => {
     if (msg === HARVEST_ALL) window.PETSendData(JSON.stringify({ data: {}, head: { ...HEAD, cmd: 8 } }))

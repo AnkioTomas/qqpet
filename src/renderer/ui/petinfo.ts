@@ -29,7 +29,7 @@ function fillStats(stats: HTMLElement): void {
     cell('成长速度：', `${Math.round(growthPerMinute() * 60)}/小时`),
     cell('状态：', ...status()),
     cell('在线时间：', `${info.onlineDataTime | 0}分钟`),
-    cell('粉钻：', info.pinkDiamond ? `${formatDate(info.PDiamondExpirationDate)}到期` : '未开通'),
+    cell('粉钻：', info.pinkDiamond ? `${info.PDiamondYear ? '年费，' : ''}${formatDate(info.PDiamondExpirationDate)}到期` : '未开通'),
     cell('贴心宝贝：', info.sweetHeartOverTime ? `${formatDate(info.sweetHeartOverTime)}到期` : '未开通'),
   )
 }

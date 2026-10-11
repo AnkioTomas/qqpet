@@ -34,6 +34,8 @@ export interface PetInfo {
   PDiamondLevel: number
   PDiamondBeginDate: number
   PDiamondExpirationDate: number
+  /** The running membership includes a yearly purchase. */
+  PDiamondYear: boolean
   sweetHeart: boolean
   sweetHeartOverTime: number
 }

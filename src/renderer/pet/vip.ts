@@ -20,6 +20,7 @@ function settle(today: number): void {
   if (!active) {
     setInfo('PDiamondBeginDate', 0)
     setInfo('PDiamondExpirationDate', 0)
+    setInfo('PDiamondYear', false)
   }
   const level = Math.max(LEVELS.filter((g) => info.PDgrowth >= g).length, 1)
   setInfo('PDiamondLevel', level)
@@ -43,6 +44,7 @@ export function openPinkDiamond(days: number): void {
     setInfo('PDiamondExpirationDate', today + days * DAY)
     setInfo('PDiamondBeginDate', today)
   }
+  if (days >= 365) setInfo('PDiamondYear', true)
   setInfo('PDgrowthValue', 20)
   settle(today)
   // Opening grants today's pond speed-ups; extending does not refill them.

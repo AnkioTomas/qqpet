@@ -301,7 +301,7 @@ function pet(): Record<string, unknown> {
     petname: info.name,
     vip: info.pinkDiamond ? 1 : 0,
     viplevel: info.PDiamondLevel,
-    vipyearflag: 0,
+    vipyearflag: info.PDiamondYear ? 1 : 0,
     grade: level,
     nGrade: level,
     sex: info.sex === 'GG' ? 1 : 0,
