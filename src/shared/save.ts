@@ -89,6 +89,11 @@ export interface Settings {
   opacity: number
   /** 企鹅岛社区 music volume, 0..1. The desktop itself plays no BGM, like the original. */
   music: number
+  /**
+   * Pet voices: the edge-peek 嘿嘿嘿 and the face-poke lines. Only the pet is muted;
+   * 企鹅岛社区 keeps its own `music`, and the game windows keep their own sound.
+   */
+  sound: boolean
   /** Face spots: 0 off, 1 on, 2 on and marked. */
   faceClick: 0 | 1 | 2
   /** Do-not-disturb: no speech bubbles. */

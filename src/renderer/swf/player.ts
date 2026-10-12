@@ -32,6 +32,7 @@ export class SwfPlayer {
   private startedAt = 0
   private stoppedAt: number | null = null
   private callbacks = new Set<string>()
+  private muted = false
 
   /** The SWF's ExternalInterface calls go to the globals of the window that owns `parent`. */
   constructor(parent: HTMLElement) {
@@ -49,6 +50,16 @@ export class SwfPlayer {
     keyboard.addEventListener('compositionend', () => keyboard.dispatchEvent(new Event('input')))
   }
 
+  /**
+   * Mutes or unmutes the movie's audio. Ruffle seeds every new player instance from its own
+   * element-wide volume, which is not reachable from here, so load() re-applies this after
+   * each load — setting it once would be undone by the next one.
+   */
+  setMuted(muted: boolean): void {
+    this.muted = muted
+    this.el.volume = muted ? 0 : 1
+  }
+
   /** `base` (relative to the page) resolves the SWF's own relative URLs; `options` override Ruffle's config. */
   async load(url: string, base = BASE, options: Record<string, unknown> = {}): Promise<RuffleMetadata> {
     this.meta = null
@@ -59,6 +70,9 @@ export class SwfPlayer {
     this.callbacks.clear()
     const ready = new Promise<void>((resolve) => this.el.addEventListener('loadedmetadata', () => resolve(), { once: true }))
     await this.el.ruffle().load({ ...CONFIG, ...options, base: new URL(base, BASE).href, url: new URL(url, BASE).href })
+    // The rebuilt instance is live and already at Ruffle's own volume; restore ours before the
+    // movie's one-shot audio (the edge-peek 嘿嘿嘿) can be heard.
+    this.el.volume = this.muted ? 0 : 1
     await ready
     this.meta = this.el.ruffle().metadata!
     this.startedAt = performance.now()

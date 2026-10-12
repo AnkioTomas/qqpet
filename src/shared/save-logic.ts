@@ -86,6 +86,8 @@ const RULES: Record<string, Record<string, Rule>> = {
   settings: {
     opacity: num(0, 1, 1),
     music: num(0, 1, 1),
+    // On for saves written before the field existed, so an upgrade does not silence the pet.
+    sound: (v) => (typeof v === 'boolean' ? v : true),
     faceClick: (v) => (v === 0 || v === 1 || v === 2 ? v : 2),
     quiet: bool,
     autoStart: bool,
@@ -165,6 +167,7 @@ function fresh(): SaveData {
     settings: {
       opacity: 1,
       music: 1,
+      sound: true,
       faceClick: 2,
       quiet: false,
       autoStart: false,

@@ -43,7 +43,12 @@ import { weatherNews, weatherStrain } from './weather'
 
 let idleTimer = 0
 
-export const machine = new Machine(new PetSwf(document.getElementById('pet')!), (over, next) => {
+const petSwf = new PetSwf(document.getElementById('pet')!)
+
+/** Applies the 宠物音效 setting to the players already on screen; every load re-applies it too. */
+export const applyPetSound = (): void => petSwf.applySound()
+
+export const machine = new Machine(petSwf, (over, next) => {
   clearTimeout(idleTimer)
   if (next.a === 'normal' || next.a === 'hideleft' || next.a === 'hideright') {
     idleTimer = window.setTimeout(idle, Math.trunc(Math.random() * 40000 + 20000))

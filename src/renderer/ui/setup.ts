@@ -1,7 +1,7 @@
 import { description, version } from '../../../package.json'
 import { allGoods, type GoodType } from '../pet/data/goods'
 import { give } from '../pet/items'
-import { speak } from '../pet/pet'
+import { applyPetSound, speak } from '../pet/pet'
 import { rand } from '../pet/rand'
 import { addInfo, info, save, setInfo, update } from '../pet/store'
 import { clearPinkDiamond, openPinkDiamond } from '../pet/vip'
@@ -194,6 +194,16 @@ const TABS: { label: string; options: Option[] }[] = [
         run: () => update('settings', { petBar: !s.petBar }),
       },
       { type: 'radio', label: '随机走动（默认关，贴边不走）', title: '站立闲着时，走动、问候、动画三者随机抽。贴边探头不走。', on: () => s.roam, run: () => update('settings', { roam: !s.roam }) },
+      {
+        type: 'radio',
+        label: '开启宠物音效（贴边探头、点脸逗它）',
+        title: '关掉只是宠物不出声：贴边探头的「嘿嘿嘿」、点脸逗它的语音等。企鹅岛社区的背景音乐不受影响，游戏窗口自己的音效也不受影响。',
+        on: () => s.sound,
+        run: () => {
+          update('settings', { sound: !s.sound })
+          applyPetSound()
+        },
+      },
       { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效；高清界面素材重启后生效', on: () => s.hd, run: () => setHd(!s.hd) },
     ],
   },

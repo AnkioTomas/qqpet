@@ -1,3 +1,4 @@
+import { save } from '../pet/store'
 import { SwfPlayer } from './player'
 
 const nextPaint = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
@@ -31,7 +32,15 @@ export class PetSwf {
     pinCursor(this.back.el)
   }
 
+  /** Both stacked players, so a toggle also cuts off a laugh that is already playing. */
+  applySound(): void {
+    const muted = !save.settings.sound
+    this.front.setMuted(muted)
+    this.back.setMuted(muted)
+  }
+
   async load(url: string): Promise<void> {
+    this.applySound()
     const next = this.back
     await next.load(url)
     pinCursor(next.el)

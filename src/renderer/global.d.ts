@@ -44,5 +44,10 @@ declare global {
 
   interface RufflePlayerElement extends HTMLElement {
     ruffle(): RuffleApi
+    /**
+     * Ruffle's master volume, 0..1. Each load() rebuilds the player instance from Ruffle's own
+     * element-wide volume (which is a private field), so a write only covers the current movie.
+     */
+    volume: number
   }
 }
