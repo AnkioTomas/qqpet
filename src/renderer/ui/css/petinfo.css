@@ -33,8 +33,8 @@
 .ui-petinfo .cjImg {width:100%;height:100%;position:relative}
 .ui-petinfo .cjImg:hover {width:200%;height:200%;z-index:10}
 .ui-petinfo .luckyFatigue {position:absolute;left:25px;top:246px;width:160px;color:#000}
-.ui-petinfo .statusValue {left:25px;top:272px;width:382px}
-.ui-petinfo .stats {position:absolute;left:25px;top:298px;width:382px;display:grid;grid-template-columns:1fr 1fr;gap:3px 16px}
-.ui-petinfo .statCell {height:16px;white-space:nowrap}
+.ui-petinfo .statusValue {left:17px;top:272px;width:398px}
+.ui-petinfo .stats {position:absolute;left:17px;top:298px;width:398px;display:grid;grid-template-columns:minmax(0,203fr) minmax(0,190fr);gap:3px 5px}
+.ui-petinfo .statCell {height:16px;min-width:0;white-space:nowrap}
 .ui-petinfo .statCell:first-child {grid-column:span 2}
-.ui-petinfo .statBar {height:14px;margin-left:4px}
+.ui-petinfo .statBar {height:14px;min-width:0;margin-left:4px}

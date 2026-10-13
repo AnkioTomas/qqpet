@@ -81,11 +81,12 @@ function drawn(player: RufflePlayerElement, box: DOMRect): Box | null {
   return { left: left + p.left * w, top: top + p.top * h, right: left + p.right * w, bottom: top + p.bottom * h }
 }
 
-/** What of `el` the window must cover; null for nothing. Inside the pet only its drawn pixels and face spots count. */
+/** What of `el` the window must cover; null for nothing. An equipped background covers the whole pet box. */
 export function cover(el: Element): Box | null {
   const box = el.getBoundingClientRect()
   // A hidden pet (opacity 0) or speech bubble (visibility hidden) must not keep a window that swallows touches.
   if (!box.width || !box.height || !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return null
+  if (el.id === 'pet' && (el as HTMLElement).style.backgroundImage) return box
   if (!el.closest('#pet') || el.matches('.point')) return box
   return el.tagName === 'RUFFLE-PLAYER' ? drawn(el as RufflePlayerElement, box) : null
 }
