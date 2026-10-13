@@ -133,7 +133,8 @@ export function openMenu(at: { x: number; y: number; pet: boolean }, adopt: () =
   menu.style.width = `${WIDTH}px`
   menu.style.left = `${left}px`
   if (y < innerHeight / 2) menu.style.top = `${Math.max(y, 0)}px`
-  else menu.style.bottom = `${Math.max(innerHeight - y, 0)}px`
+  // Reach one row past y so a cursor at (x, y) is on the menu, or the hover check closes it at once.
+  else menu.style.bottom = `${Math.max(innerHeight - y - 1, 0)}px`
   current = div('ui-menu', menu)
   document.body.appendChild(current)
 }

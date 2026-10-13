@@ -4,7 +4,7 @@ import { avatar, fatigue, growthPerMinute, info, luck, save, setInfo } from '../
 import { openBox } from './box'
 import './css/petinfo.css'
 import { formatDate } from './date'
-import { button, div, img, touch, typeable } from './dom'
+import { button, div, img, typeable } from './dom'
 import { progress } from './progress'
 import { age, status } from './state'
 
@@ -46,9 +46,7 @@ function nameRow(cls: string, label: string, key: 'name' | 'host', saved: () => 
     setInfo(key, v)
     saved()
   }
-  const r = div(`${cls} rightRow fcb`, div('label', label), input, button('but focusPress', commit))
-  if (!touch) r.title = '保持鼠标在输入框内 才可进行输入'
-  return r
+  return div(`${cls} rightRow fcb`, div('label', label), input, button('but focusPress', commit))
 }
 
 export function openPetInfo(): void {
@@ -123,4 +121,7 @@ export function openPetInfo(): void {
       close = () => {}
     },
   })
+  // While the panel is open the window must be a key target, or the IME stays on the previous app
+  // and Chinese input lands elsewhere ("goes to both sides").
+  window.qqpet.setFocusable(true)
 }

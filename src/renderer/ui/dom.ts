@@ -27,20 +27,13 @@ export function button(cls: string, onClick: () => void, ...children: (Node | st
   return d
 }
 
-/** The pet window is not focusable: `input` takes keyboard focus only while hovered, like the original. */
+/** Activate the pet window when editing; the containing panel releases focus when it closes. */
 export function typeable(input: HTMLInputElement): HTMLInputElement {
-  let on = false
-  input.addEventListener('mouseenter', () => {
-    on = true
-    window.qqpet.setFocusable(true)
-  })
-  const leave = (): void => {
-    if (!on) return
-    on = false
-    window.qqpet.setFocusable(false)
-    input.blur()
-  }
-  input.addEventListener('mouseout', leave)
-  input.addEventListener('blur', leave)
+  const activate = (): void => window.qqpet.setFocusable(true)
+  // Pointer activation also restores native focus if another panel disabled it.
+  input.addEventListener('pointerdown', activate)
+  input.addEventListener('focus', activate)
+  // Leaving the input (including to pick an IME candidate) must not blur it or
+  // disable the whole window. Switching inputs must not do that either.
   return input
 }

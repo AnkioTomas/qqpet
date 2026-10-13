@@ -86,6 +86,8 @@ app.whenReady().then(() => {
   ipcMain.on(IPC.setFocusable, (_e, on: boolean) => {
     panel = on
     win.setFocusable(on)
+    // macOS draws IME candidates below screen-saver level; drop under them while a panel takes typing.
+    if (process.platform === 'darwin') win.setAlwaysOnTop(true, on ? 'floating' : 'screen-saver')
     // The window is born unfocusable; setFocusable alone does not make it key, so IME stays on the previous app.
     if (on) {
       if (process.platform === 'darwin') app.focus({ steal: true })

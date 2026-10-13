@@ -52,8 +52,7 @@ function common(o: { enter?: Range; eat?: Range; exit?: Range; clean?: Range; si
 function moodActions(play: number, speak: Range = { notNum: true }): Table {
   return {
     normal: { name: 'Stand' },
-    // The shared drag.swf has a fixed adult appearance and a different origin.
-    // Hold the current stage's standing pose until stage-specific drag clips exist.
+    // The shared drag.swf is adult-only; younger pets hold their standing pose while dragged.
     drag: { name: 'Stand' },
     play: { name: 'play/P', start: 1, end: play },
     speak: { name: 'Speak', start: 1, end: speak.end ?? 1, notNum: speak.notNum },

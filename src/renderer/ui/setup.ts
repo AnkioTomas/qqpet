@@ -370,7 +370,11 @@ export function openSetup(): void {
     ),
     'pet/sysSeting/ditu.png',
   )
+  // The AI tab re-draws its option list (and its live input) while requests run; keep the
+  // window a keyboard target for the whole panel so typing survives those re-draws.
+  window.qqpet.setFocusable(true)
   close = (): void => {
+    window.qqpet.setFocusable(false)
     remove()
     close = () => {}
   }

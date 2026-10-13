@@ -1,4 +1,4 @@
-import { app, Menu, nativeImage, screen, Tray, type NativeImage, type Rectangle } from 'electron'
+import { app, Menu, nativeImage, screen, Tray, type NativeImage } from 'electron'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { TrayClick, TrayState } from '../shared/ipc'
@@ -28,11 +28,11 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
       ]),
     )
   } else {
-    // An icon hidden by the menu bar (Bartender, or no room left) reports an off-screen position; drop it so the panel opens at the default spot.
-    const at = (kind: TrayClick['kind'], b: Rectangle): TrayClick =>
-      screen.getAllDisplays().some(({ bounds: d }) => b.x >= d.x && b.y >= d.y && b.x < d.x + d.width && b.y < d.y + d.height) ? { kind, x: b.x, y: b.y } : { kind }
-    tray.on('click', (_e, b) => onClick(at('state', b)))
-    tray.on('right-click', (_e, b) => onClick(at('menu', b)))
+    // Open at the cursor, not the icon: an icon in the Windows overflow flyout or hidden by the macOS menu bar
+    // (Bartender) reports a position the cursor is not on, and the menu closes once the cursor is off it.
+    const at = (kind: TrayClick['kind']): TrayClick => ({ kind, ...screen.getCursorScreenPoint() })
+    tray.on('click', () => onClick(at('state')))
+    tray.on('right-click', () => onClick(at('menu')))
   }
 
   let timer: NodeJS.Timeout | undefined

@@ -33,7 +33,7 @@ export const TALK: Record<string, Line[] | Record<string, Line[]>> = {
       submitText: '不减了',
     },
     {
-      tolk: '肚子抱抱，心情好好！[host]，你对我越来越好啦~',
+      tolk: '肚子饱饱，心情好好！[host]，你对我越来越好啦~',
       submitText: '好的',
     },
     {

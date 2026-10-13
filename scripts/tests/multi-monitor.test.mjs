@@ -72,7 +72,7 @@ test('disconnecting the active screen relocates the overlay to a visible screen'
   assert.deepEqual(p.desktop.offset, { x: 0, y: 0 })
 })
 
-test('renderer drag keeps the grab point when displays have different work areas and widths', async () => {
+for (const stage of ['Egg', 'Kid', 'Adult']) test(`${stage} drag keeps its hold point across different display widths`, async () => {
   const d = desktop()
   const position = desktopCursor(d.win, d.screen, 1)
   let following = false
@@ -81,7 +81,9 @@ test('renderer drag keeps the grab point when displays have different work areas
     following = on
     return p
   }
-  const app = renderer(144, { x: 0, y: 0 }, native)
+  const app = renderer(144, { x: 0, y: 0 }, native, stage)
+  const anchorX = stage === 'Adult' ? 0.73 : 50 / 144
+  const anchorY = stage === 'Adult' ? 0.14 : 40 / 144
   await setImmediate()
   app.pointer('pointerdown', 550, 340)
   await setImmediate()
@@ -89,15 +91,16 @@ test('renderer drag keeps the grab point when displays have different work areas
   const p = position(true)
   app.cursor(p)
   const smallSize = 144 * 1280 / 1920
-  assert.ok(Math.abs(app.info.lastX - (p.x - 50 / 144 * smallSize)) < 1e-8)
-  assert.ok(Math.abs(app.info.lastY - (p.y - 40 / 144 * smallSize)) < 1e-8)
+  assert.ok(Math.abs(app.info.lastX - (p.x - anchorX * smallSize)) < 1e-8)
+  assert.ok(Math.abs(app.info.lastY - (p.y - anchorY * smallSize)) < 1e-8)
+  assert.equal(app.poses[0].opt?.url, stage === 'Adult' ? 'pet/Action/drag.swf' : undefined)
   assert.equal(app.save.settings.petDisplayId, 2)
   d.move({ x: 600, y: -600 })
   const top = position(true)
   app.cursor(top)
   const largeSize = 144 * 2560 / 1920
-  assert.ok(Math.abs(app.info.lastX - (top.x - 50 / 144 * largeSize)) < 1e-8)
-  assert.ok(Math.abs(app.info.lastY - (top.y - 40 / 144 * largeSize)) < 1e-8)
+  assert.ok(Math.abs(app.info.lastX - (top.x - anchorX * largeSize)) < 1e-8)
+  assert.ok(Math.abs(app.info.lastY - (top.y - anchorY * largeSize)) < 1e-8)
   app.cursor(p) // An old IPC frame must not move the pet back.
   assert.equal(app.save.settings.petDisplayId, 3)
   app.pointer('pointerup', top.x, top.y)
