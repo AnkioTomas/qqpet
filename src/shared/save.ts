@@ -125,6 +125,8 @@ export interface Settings {
   autoUpdate: boolean
   /** Unix seconds of the last automatic release check. */
   updateCheckedAt: number
+  /** Desktop display holding the pet. Null starts on the primary display. */
+  petDisplayId: number | null
 }
 
 export interface SaveData {

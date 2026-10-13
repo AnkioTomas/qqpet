@@ -1,7 +1,9 @@
 import { clipAsk, IDLE, note } from './pet/ai'
 import { resumeTask } from './pet/jobs'
 import { machine, speak, startPet } from './pet/pet'
-import { applyEdge, info, onInfoChange, petSize, save, setInfo } from './pet/store'
+import { applyEdge, info, onInfoChange, petSize, save, setInfo, update } from './pet/store'
+import type { DesktopCursor } from '../shared/ipc'
+import { setDesktopSize, viewportSize } from './ui/viewport'
 import { adopt } from './ui/adopt'
 import { catchDiudiule, releaseDiudiule } from './ui/diudiule'
 import { scheduleHide, showControl } from './ui/control'
@@ -13,11 +15,16 @@ import { startAutoUpdate } from './ui/update'
 
 const petEl = document.getElementById('pet')!
 const HOLD_MS = 500
+let dragging = false
+let desktopOffset = { x: 0, y: 0 }
+let desktopSequence = 0
+let dragMove: ((point: DesktopCursor) => void) | null = null
 
 function clampOnScreen(): void {
   const s = petSize()
-  setInfo('lastX', Math.min(Math.max(info.lastX, 0), innerWidth - s))
-  setInfo('lastY', Math.min(Math.max(info.lastY, 0), innerHeight - s))
+  const area = viewportSize()
+  setInfo('lastX', Math.min(Math.max(info.lastX, 0), Math.max(0, area.width - s)))
+  setInfo('lastY', Math.min(Math.max(info.lastY, 0), Math.max(0, area.height - s)))
 }
 
 /** Left/right: keep the box on-screen. Hide_left/right already peek from the sprite edge. */
@@ -30,9 +37,9 @@ function snapEdge(): 'hideleft' | 'hideright' | null {
 let size = petSize()
 function layout(): void {
   // A pet that grows keeps its center.
-  const shift = (petSize() - size) / 2
+  const shift = dragging ? 0 : (petSize() - size) / 2
+  size = petSize()
   if (shift) {
-    size = petSize()
     setInfo('lastX', info.lastX - shift)
     setInfo('lastY', info.lastY - shift)
     clampOnScreen()
@@ -48,7 +55,7 @@ if (info.lastX === -1 && info.lastY === -1) {
 }
 // A save from another screen, or a phone turned, leaves the pet off this one.
 clampOnScreen()
-addEventListener('resize', clampOnScreen)
+addEventListener('resize', () => { if (!dragging) clampOnScreen() })
 layout()
 onInfoChange((key) => {
   if (key === 'lastX' || key === 'lastY' || key === 'growth') layout()
@@ -65,10 +72,27 @@ window.API = {
 // The window is click-through except while the cursor is over a [data-hit]
 // element (or a drag is in progress).
 let interactive = false
-let dragging = false
 /** A click stepped the pet out of its peek; it slips back once the cursor leaves it and its bar. */
 let out = false
+const syncDesktop = (p: DesktopCursor): boolean => {
+  const area = p.desktop
+  if (!area) return true
+  if (area.sequence <= desktopSequence) return false
+  desktopSequence = area.sequence
+  const dx = area.offset.x - desktopOffset.x
+  const dy = area.offset.y - desktopOffset.y
+  desktopOffset = area.offset
+  setDesktopSize(area)
+  setInfo('lastX', info.lastX + dx)
+  setInfo('lastY', info.lastY + dy)
+  if (save.settings.petDisplayId !== area.id) update('settings', { petDisplayId: area.id })
+  if (!dragging) clampOnScreen()
+  layout()
+  return true
+}
 window.qqpet.onCursor((p) => {
+  if (!syncDesktop(p)) return
+  dragMove?.(p)
   cursor.x = p.x
   cursor.y = p.y
   // The pet box is the hit target. elementFromPoint misses Ruffle's shadow canvas,
@@ -92,17 +116,23 @@ window.qqpet.onCursor((p) => {
   interactive = hit
   window.qqpet.setClickThrough(!hit)
 })
+// The store's asynchronous load may finish after the initial cursor broadcast.
+if (window.qqpet.setDragging) void window.qqpet.setDragging(false).then(syncDesktop)
 
 petEl.addEventListener('contextmenu', (e) => openMenu({ x: e.clientX, y: e.clientY, pet: true }, adoptPet))
 
 petEl.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
+  if (dragging || e.button !== 0 || (e.target as HTMLElement).classList.contains('point')) return
   closeMenu()
   if (save.settings.petBar) showControl()
   dragging = true
   catchDiudiule()
   const dx = pageX(e) - info.lastX
   const dy = pageY(e) - info.lastY
+  const grabX = dx / size
+  const grabY = dy / size
+  const startX = pageX(e) - desktopOffset.x
+  const startY = pageY(e) - desktopOffset.y
   let px = pageX(e)
   let py = pageY(e)
   let pt = performance.now()
@@ -111,56 +141,80 @@ petEl.addEventListener('pointerdown', (e) => {
   // Touch has no right button, and Ruffle keeps the browser from turning a long press into one.
   const hold = touch ? setTimeout(() => openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet), HOLD_MS) : 0
   let lifted = false
-  const move = (m: PointerEvent): void => {
-    const x = pageX(m)
-    const y = pageY(m)
+  const movePoint = (point: DesktopCursor, desktop: boolean): void => {
+    const { x, y } = point
     const t = performance.now()
     const dt = (t - pt) / 1000
-    if (dt > 0) {
-      vx = (x - px) / dt
-      vy = (y - py) / dt
+    const globalX = desktop ? x - desktopOffset.x : x
+    const globalY = desktop ? y - desktopOffset.y : y
+    if (dt > 0 && (globalX !== px || globalY !== py)) {
+      vx = (globalX - px) / dt
+      vy = (globalY - py) / dt
+      pt = t
     }
-    px = x
-    py = y
-    pt = t
-    if (Math.hypot(m.clientX - e.clientX, m.clientY - e.clientY) > 8) {
+    px = globalX
+    py = globalY
+    if (Math.hypot(x - desktopOffset.x - startX, y - desktopOffset.y - startY) > 8) {
       clearTimeout(hold)
       if (!lifted) {
         lifted = true
         machine.play({ a: 'drag' })
       }
     }
-    setInfo('lastX', x - dx)
-    setInfo('lastY', y - dy)
+    setInfo('lastX', x - (desktop ? petSize() * grabX : dx))
+    setInfo('lastY', y - (desktop ? petSize() * grabY : dy))
     // Keep the original grab point under the cursor, even when part of the box goes off-screen.
     if (!lifted) clampOnScreen()
   }
+  const nativeDrag = window.qqpet.setDragging
+  const move = (m: PointerEvent): void => {
+    if (nativeDrag) return
+    movePoint({ x: pageX(m), y: pageY(m) }, false)
+  }
+  if (nativeDrag) {
+    px = startX
+    py = startY
+    dragMove = (p): void => movePoint(p, true)
+    // Native cursor updates survive losing pointer capture when the overlay changes display/DPI.
+    void nativeDrag(true).then((p) => { if (dragMove && syncDesktop(p)) dragMove(p) })
+  }
   petEl.setPointerCapture(e.pointerId)
   petEl.addEventListener('pointermove', move)
-  petEl.addEventListener(
-    'pointerup',
-    () => {
-      clearTimeout(hold)
-      dragging = false
-      petEl.removeEventListener('pointermove', move)
-      if (performance.now() - pt > 80) {
-        vx = 0
-        vy = 0
-      }
-      if (releaseDiudiule(lifted, vx, vy)) {
-        scheduleHide()
-        return
-      }
-      const edge = snapEdge()
-      if (edge && !lifted && machine.pose.a === edge) {
-        out = true
-        machine.play({ a: 'normal' })
-      } else if (edge) machine.play({ a: edge })
-      else if (lifted || machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') machine.play({ a: 'normal' })
+  const events = new AbortController()
+  const end = async (): Promise<void> => {
+    if (events.signal.aborted) return
+    events.abort()
+    clearTimeout(hold)
+    if (nativeDrag) {
+      const p = await nativeDrag(false)
+      if (syncDesktop(p)) dragMove?.(p)
+      dragMove = null
+    }
+    dragging = false
+    petEl.removeEventListener('pointermove', move)
+    if (performance.now() - pt > 80) {
+      vx = 0
+      vy = 0
+    }
+    if (releaseDiudiule(lifted, vx, vy)) {
       scheduleHide()
-    },
-    { once: true },
-  )
+      return
+    }
+    const edge = snapEdge()
+    if (edge && !lifted && machine.pose.a === edge) {
+      out = true
+      machine.play({ a: 'normal' })
+    } else if (edge) machine.play({ a: edge })
+    else if (lifted || machine.pose.a === 'hideleft' || machine.pose.a === 'hideright') machine.play({ a: 'normal' })
+    scheduleHide()
+  }
+  petEl.addEventListener('pointerup', () => void end(), { signal: events.signal })
+  petEl.addEventListener('pointercancel', () => void end(), { signal: events.signal })
+  if (nativeDrag) {
+    // A display/DPI change can release capture; the release still bubbles to the window.
+    addEventListener('pointerup', () => void end(), { signal: events.signal })
+    addEventListener('pointercancel', () => void end(), { signal: events.signal })
+  }
 })
 
 // Touch has no hover to show a tooltip by: a long press shows it, and the lift is not a tap.

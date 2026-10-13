@@ -20,15 +20,18 @@ test('drag keeps the stage, sex and adult mood, using an available standing clip
 
 // Execute the renderer entry with inert app services and real EventTargets, so
 // the pointer tests exercise the actual handlers without starting Electron.
-function renderer(size, crop = { x: 0, y: 0 }) {
+export function renderer(size, crop = { x: 0, y: 0 }, native = null) {
   const pet = new EventTarget()
   pet.style = {}
   pet.setPointerCapture = () => {}
   const info = { lastX: 500, lastY: 300 }
   const listeners = []
   const poses = []
+  const releases = []
   let clock = 0
   const noop = () => {}
+  let area = { width: 1920, height: 1080 }
+  let cursorListener
   const services = {
     info,
     save: { settings: { petBar: false }, havePet: false },
@@ -38,22 +41,30 @@ function renderer(size, crop = { x: 0, y: 0 }) {
       listeners.forEach(listener => listener(key))
     },
     onInfoChange: listener => listeners.push(listener),
-    petSize: () => size,
+    petSize: () => size * (native ? area.width / 1920 : 1),
+    viewportSize: () => area,
+    setDesktopSize: value => { area = value },
+    update: (key, value) => Object.assign(services.save[key], value),
     applyEdge: () => null,
     pageX: event => event.clientX + crop.x,
     pageY: event => event.clientY + crop.y,
     touch: false,
     document: {
       getElementById: () => pet,
+      elementFromPoint: () => null,
       documentElement: { dataset: { cropX: String(crop.x), cropY: String(crop.y) } },
     },
     window: {
       qqpet: {
-        onCursor: noop, onTrayClick: noop, onClipboard: noop,
+        onCursor: listener => { cursorListener = listener }, onTrayClick: noop, onClipboard: noop,
         onPresence: noop, onFront: noop,
+        setClickThrough: noop,
+        ...(native ? { setDragging: native } : {}),
       },
     },
     performance: { now: () => clock },
+    AbortController,
+    ShadowRoot: class {},
     innerWidth: 1920,
     innerHeight: 1080,
     addEventListener: noop,
@@ -64,7 +75,7 @@ function renderer(size, crop = { x: 0, y: 0 }) {
     closeMenu: noop,
     showControl: noop,
     catchDiudiule: noop,
-    releaseDiudiule: () => false,
+    releaseDiudiule: (...args) => { releases.push(args); return false },
     scheduleHide: noop,
     openMenu: noop,
     startAutoUpdate: noop,
@@ -80,7 +91,7 @@ function renderer(size, crop = { x: 0, y: 0 }) {
     pet.classList = { contains: () => false }
     pet.dispatchEvent(event)
   }
-  return { info, poses, pointer }
+  return { info, poses, releases, pointer, save: services.save, cursor: point => { clock += 16; cursorListener(point) } }
 }
 
 test('crossing the drag threshold keeps the original grab point at different sizes and offsets', () => {

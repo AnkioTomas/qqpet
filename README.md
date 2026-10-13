@@ -37,6 +37,8 @@ QQ 宠物跨平台复刻（Windows / macOS / Linux / Android / HarmonyOS），�
 
 存档位于 `userData/save.json`，导入时旧存档备份为 `save.json.bak`。
 
+桌面版支持将宠物拖到其他显示器（包括主屏左侧或上方、不同缩放比例的屏幕），重启后回到上次所在的显示器；该显示器断开时回到主屏幕。
+
 ### Android
 
 宠物以悬浮窗形式显示在桌面和其他应用上方，功能与桌面版一致，另有以下适配：

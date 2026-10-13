@@ -25,12 +25,18 @@ export const IPC = {
   setAutoStart: 'app:set-auto-start',
   setTrayState: 'tray:set-state',
   cursor: 'win:cursor',
+  setDragging: 'win:set-dragging',
   trayClick: 'tray:click',
 } as const
 
 export interface Point {
   x: number
   y: number
+}
+
+export interface DesktopCursor extends Point {
+  /** Desktop only. Offset is relative to the window origin at launch, in Electron DIP coordinates. */
+  desktop?: { id: number; width: number; height: number; offset: Point; sequence: number }
 }
 
 export type TrayState =
@@ -131,8 +137,10 @@ export interface QQPetApi {
   setFocusable(enabled: boolean): void
   setAutoStart(enabled: boolean): void
   setTrayState(state: TrayState): void
+  /** Desktop drag follows the native cursor across displays; absent in mobile bridges. */
+  setDragging?(enabled: boolean): Promise<DesktopCursor>
   /** Cursor position in window coordinates, pushed ~30 times per second. */
-  onCursor(listener: (p: Point) => void): void
+  onCursor(listener: (p: DesktopCursor) => void): void
   onTrayClick(listener: (e: TrayClick) => void): void
   /** A game window closed after `minutes` of play. */
   onGamePlayed(listener: (minutes: number) => void): void

@@ -4,6 +4,7 @@ import { goodOf, type TimedType } from './data/goods'
 import { levelOf, stageOf, type Stage } from './level'
 import type { Mood } from './router'
 import { touch } from '../ui/dom'
+import { viewportSize } from '../ui/viewport'
 
 export const save: SaveData = await window.qqpet.load()
 export const info: PetInfo = save.petInfo
@@ -64,7 +65,7 @@ export const avatar = (): string => `pet/avatar/${info.sex}${stage()}.png`
  * Touch screens are small and fingers big: there it is 40% of the short side at level 1.
  */
 export const petSize = (): number =>
-  (144 + 2 * Math.min(save.petComputedlInfo.level, 10)) * (touch ? Math.min(innerWidth, innerHeight) / 360 : innerWidth / 1920)
+  (144 + 2 * Math.min(save.petComputedlInfo.level, 10)) * (touch ? Math.min(innerWidth, innerHeight) / 360 : viewportSize().width / 1920)
 
 /** How close to a side counts as peeking. Hide_left/right SWFs assume the box sits on that edge. */
 export const EDGE_NEAR = 36
@@ -72,7 +73,7 @@ export const EDGE_NEAR = 36
 export function edgeSide(): 'hideleft' | 'hideright' | null {
   const s = petSize()
   if (info.lastX <= EDGE_NEAR) return 'hideleft'
-  if (info.lastX + s >= innerWidth - EDGE_NEAR) return 'hideright'
+  if (info.lastX + s >= viewportSize().width - EDGE_NEAR) return 'hideright'
   return null
 }
 
@@ -80,7 +81,7 @@ export function edgeSide(): 'hideleft' | 'hideright' | null {
 export function applyEdge(): 'hideleft' | 'hideright' | null {
   const edge = edgeSide()
   if (edge === 'hideleft') setInfo('lastX', 0)
-  else if (edge === 'hideright') setInfo('lastX', innerWidth - petSize())
+  else if (edge === 'hideright') setInfo('lastX', viewportSize().width - petSize())
   return edge
 }
 

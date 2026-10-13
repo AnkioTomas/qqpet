@@ -1,17 +1,20 @@
-import { BrowserWindow, screen } from 'electron'
+import { BrowserWindow, ipcMain, screen } from 'electron'
 import { spawn } from 'node:child_process'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
-import { IPC, type Point } from '../shared/ipc'
+import { IPC } from '../shared/ipc'
 import { APP_ORIGIN } from './protocol'
+import { desktopCursor, petDisplay } from './desktop'
+import { getSave } from './save'
 
 const CURSOR_INTERVAL_MS = 33
 const PAGES = process.env.ELECTRON_RENDERER_URL ?? APP_ORIGIN
 
-/** Transparent, click-through overlay covering the primary display's work area. */
+/** Transparent, click-through overlay following the pet's active display. */
 export function createPetWindow(): BrowserWindow {
+  const initialDisplay = petDisplay(screen, getSave().settings.petDisplayId)
   const win = new BrowserWindow({
-    ...screen.getPrimaryDisplay().workArea,
+    ...initialDisplay.workArea,
     show: false,
     frame: false,
     transparent: true,
@@ -48,16 +51,27 @@ export function createPetWindow(): BrowserWindow {
   // Click-through windows receive no mouse events on Linux, so the renderer
   // cannot hit-test on hover. Pushing the cursor position from here works the
   // same on every platform.
-  let last: Point = { x: NaN, y: NaN }
+  const position = desktopCursor(win, screen, initialDisplay.id)
+  let dragging = false
+  ipcMain.handle(IPC.setDragging, (event, on: boolean) => {
+    if (event.sender !== win.webContents) throw new Error('Unknown drag sender')
+    // Resolve the final point on the display under the cursor before ending the drag.
+    const point = position(dragging || on)
+    dragging = on
+    return point
+  })
+  let last = ''
   const timer = setInterval(() => {
-    const c = screen.getCursorScreenPoint()
-    const b = win.getBounds()
-    const p = { x: c.x - b.x, y: c.y - b.y }
-    if (p.x === last.x && p.y === last.y) return
-    last = p
+    const p = position(dragging)
+    const key = JSON.stringify({ ...p, desktop: { ...p.desktop, sequence: 0 } })
+    if (key === last) return
+    last = key
     win.webContents.send(IPC.cursor, p)
   }, CURSOR_INTERVAL_MS)
-  win.on('closed', () => clearInterval(timer))
+  win.on('closed', () => {
+    clearInterval(timer)
+    ipcMain.removeHandler(IPC.setDragging)
+  })
 
   void win.loadURL(`${PAGES}/index.html`)
   if (process.env.ELECTRON_RENDERER_URL) win.webContents.openDevTools({ mode: 'detach' })

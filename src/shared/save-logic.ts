@@ -106,6 +106,7 @@ const RULES: Record<string, Record<string, Rule>> = {
     weatherCity: str(''),
     autoUpdate: (v) => (typeof v === 'boolean' ? v : true),
     updateCheckedAt: num(0, ANY, 0),
+    petDisplayId: (v) => (typeof v === 'number' && Number.isSafeInteger(v) ? v : null),
   },
 }
 
@@ -186,6 +187,7 @@ function fresh(): SaveData {
       weatherCity: '',
       autoUpdate: true,
       updateCheckedAt: 0,
+      petDisplayId: null,
     },
   }
 }
