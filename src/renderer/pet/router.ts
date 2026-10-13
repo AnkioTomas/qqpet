@@ -52,6 +52,9 @@ function common(o: { enter?: Range; eat?: Range; exit?: Range; clean?: Range; si
 function moodActions(play: number, speak: Range = { notNum: true }): Table {
   return {
     normal: { name: 'Stand' },
+    // The shared drag.swf has a fixed adult appearance and a different origin.
+    // Hold the current stage's standing pose until stage-specific drag clips exist.
+    drag: { name: 'Stand' },
     play: { name: 'play/P', start: 1, end: play },
     speak: { name: 'Speak', start: 1, end: speak.end ?? 1, notNum: speak.notNum },
     hide: { name: 'Hide' },
@@ -76,7 +79,7 @@ const TABLES: Record<Sex, Tables> = { GG: tables(76), MM: tables(142) }
 const ADULT_MOODS = Object.fromEntries(Object.entries(MOOD_PLAY).map(([m, play]) => [m, moodActions(play)])) as Record<Mood, Table>
 
 /** Adult animations for these live in a per-mood directory. */
-const BY_MOOD = ['normal', 'play', 'speak', 'appear', 'hide']
+const BY_MOOD = ['normal', 'drag', 'play', 'speak', 'appear', 'hide']
 
 export function route(sex: Sex, stage: Stage, action: string, mood: Mood): Target {
   let dir = `pet/Action/${sex}/${stage}/`

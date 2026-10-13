@@ -101,8 +101,8 @@ petEl.addEventListener('pointerdown', (e) => {
   if (save.settings.petBar) showControl()
   dragging = true
   catchDiudiule()
-  let dx = pageX(e) - info.lastX
-  let dy = pageY(e) - info.lastY
+  const dx = pageX(e) - info.lastX
+  const dy = pageY(e) - info.lastY
   let px = pageX(e)
   let py = pageY(e)
   let pt = performance.now()
@@ -127,16 +127,12 @@ petEl.addEventListener('pointerdown', (e) => {
       clearTimeout(hold)
       if (!lifted) {
         lifted = true
-        machine.play({ a: 'drag', opt: { url: 'pet/Action/drag.swf', opt: {} } })
-        // drag.swf draws the held head in the upper-right, not the box center.
-        // Anchor the scruff (measured hold point) under the cursor.
-        dx = size * 0.73
-        dy = size * 0.14
+        machine.play({ a: 'drag' })
       }
     }
     setInfo('lastX', x - dx)
     setInfo('lastY', y - dy)
-    // Once lifted the scruff is the cursor; clamping the box would pull it off.
+    // Keep the original grab point under the cursor, even when part of the box goes off-screen.
     if (!lifted) clampOnScreen()
   }
   petEl.setPointerCapture(e.pointerId)
