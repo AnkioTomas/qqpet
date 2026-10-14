@@ -12,7 +12,7 @@ import { div, pageX, pageY, touch } from './ui/dom'
 import './ui/background'
 import './ui/face'
 import { closeMenu, openMenu } from './ui/menu'
-import { openState } from './ui/state'
+import { closeState, openState } from './ui/state'
 import { startAutoUpdate } from './ui/update'
 import { windowView } from './ui/window-view'
 import { resizePetPosition } from '../shared/layout'
@@ -366,9 +366,13 @@ const adoptPet = (): void => adopt(begin)
 window.qqpet.onTrayClick((c) => {
   const x = c.x ?? innerWidth - 60
   const y = c.y ?? 0
-  if (c.kind === 'menu') openMenu({ x, y, pet: false }, adoptPet)
-  else if (save.havePet) openState(x, y)
-  else adoptPet()
+  if (c.kind === 'menu') {
+    closeState()
+    openMenu({ x, y, pet: false }, adoptPet)
+  } else if (save.havePet) {
+    closeMenu()
+    openState(x, y)
+  } else adoptPet()
 })
 
 const CLIP_MAX = 60

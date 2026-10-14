@@ -1,7 +1,7 @@
-import { app, Menu, nativeImage, screen, Tray, type NativeImage } from 'electron'
+import { app, Menu, nativeImage, screen, Tray, type MenuItemConstructorOptions, type NativeImage } from 'electron'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { TrayClick, TrayState } from '../shared/ipc'
+import type { TrayClick, TrayMenuItem, TrayState } from '../shared/ipc'
 import type { PetInfo, SaveData } from '../shared/save'
 import { TRAY_STATES, trayTip } from '../shared/tray'
 import { resourcesRoot } from './protocol'
@@ -16,6 +16,7 @@ function icon(sex: string, file: string, hd: boolean): NativeImage {
 
 export function createPetTray(onClick: (e: TrayClick) => void) {
   const tray = new Tray(icon('GG', 'leave.png', false))
+  let poppingMenu = false
   tray.setToolTip('QQ宠物')
   // AppIndicator trays on Linux emit no click events; expose the same actions as a menu.
   if (process.platform === 'linux') {
@@ -28,11 +29,9 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
       ]),
     )
   } else {
-    // Open at the cursor, not the icon: an icon in the Windows overflow flyout or hidden by the macOS menu bar
-    // (Bartender) reports a position the cursor is not on, and the menu closes once the cursor is off it.
-    const at = (kind: TrayClick['kind']): TrayClick => ({ kind, ...screen.getCursorScreenPoint() })
-    tray.on('click', () => onClick(at('state')))
-    tray.on('right-click', () => onClick(at('menu')))
+    tray.on('click', () => { if (!poppingMenu) onClick({ kind: 'state', ...screen.getCursorScreenPoint() }) })
+    // macOS uses a native popup. Windows keeps the HTML menu at the cursor, including in the overflow flyout.
+    tray.on('right-click', () => onClick({ kind: 'menu', ...(process.platform !== 'darwin' && screen.getCursorScreenPoint()) }))
   }
 
   let timer: NodeJS.Timeout | undefined
@@ -42,6 +41,24 @@ export function createPetTray(onClick: (e: TrayClick) => void) {
     if (tip) tray.setToolTip(tip)
   }
   return {
+    popupMenu(entries: TrayMenuItem[], select: (action: number) => void): void {
+      if (process.platform !== 'darwin') return
+      const template = (items: TrayMenuItem[]): MenuItemConstructorOptions[] => items.map((item) => ({
+        label: item.label,
+        toolTip: item.toolTip,
+        type: item.children ? 'submenu' : item.checked === undefined ? 'normal' : 'checkbox',
+        checked: item.checked,
+        submenu: item.children && template(item.children),
+        click: () => { if (item.action !== undefined) select(item.action) },
+      }))
+      // macOS opens the native popup with a synthetic left click on the status item.
+      poppingMenu = true
+      try {
+        tray.popUpContextMenu(Menu.buildFromTemplate(template(entries)))
+      } finally {
+        poppingMenu = false
+      }
+    },
     /** Re-renders the tooltip, e.g. after a rename. */
     retip,
     /** Without a state: redraws the current one, e.g. after the hd setting changed. */

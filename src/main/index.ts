@@ -1,5 +1,5 @@
 import { app, clipboard, dialog, ipcMain, net, powerMonitor, session, shell } from 'electron'
-import { IPC, type TrayState } from '../shared/ipc'
+import { IPC, type TrayMenuItem, type TrayState } from '../shared/ipc'
 import type { SavePatch, Sex } from '../shared/save'
 import { aiChat, aiModels } from '../shared/ai'
 import { calendar } from '../shared/calendar'
@@ -31,6 +31,12 @@ app.whenReady().then(() => {
     win.webContents.send(IPC.trayClick, click.x === undefined ? click : { ...click, x: (click.x - b.x) / z, y: (click.y! - b.y) / z })
   })
   app.on('before-quit', () => tray.destroy())
+  ipcMain.on(IPC.trayMenu, (event, items: TrayMenuItem[]) => {
+    if (event.sender !== win.webContents) return
+    tray.popupMenu(items, (action) => {
+      if (!win.isDestroyed()) win.webContents.send(IPC.trayMenuAction, action)
+    })
+  })
 
   let copied = ''
   void clipboard.readText().then((t) => (copied = t))

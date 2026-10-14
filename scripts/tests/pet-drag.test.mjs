@@ -53,6 +53,7 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
   let hitAt = null
   let area = initial.area ?? { width: 1920, height: 1080 }
   let cursorListener
+  let trayListener
   const services = {
     createPetInput,
     resizePetPosition,
@@ -82,7 +83,7 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     window: {
       addEventListener: windowEvents.addEventListener.bind(windowEvents),
       qqpet: {
-        onCursor: listener => { cursorListener = listener }, onTrayClick: noop, onClipboard: noop,
+        onCursor: listener => { cursorListener = listener }, onTrayClick: listener => { trayListener = listener }, onClipboard: noop,
         onPresence: noop, onFront: noop,
         setClickThrough: noop,
         ...(native ? { setDragging: native } : {}),
@@ -112,7 +113,10 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     releaseDiudiule: (...args) => { releases.push(args); return false },
     scheduleHide: noop,
     openMenu: noop,
+    closeState: noop,
+    openState: noop,
     startAutoUpdate: noop,
+    ...initial.ui,
   }
   const source = readFileSync(new URL('../../src/renderer/main.ts', import.meta.url), 'utf8')
   runInNewContext(stripTypeScriptTypes(source).replace(/^import .*$/gm, ''), services)
@@ -130,6 +134,7 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     windowPointer: (type, x, y) => pointer(type, x, y, windowEvents),
     pause: () => { services.window.__qqpetHostPaused = true; services.window.__qqpetInput({ phase: 'cancel', id: -1, x: 0, y: 0 }) },
     cursor: point => { clock += 16; cursorListener(point) },
+    trayClick: click => trayListener(click),
     menuCloses: () => menuCloses,
     /** Which page points elementFromPoint reports on a [data-hit] element, such as an open menu. */
     hitAt: test => { hitAt = test },

@@ -26,6 +26,10 @@ const api: QQPetApi = {
   setFocusable: send(IPC.setFocusable),
   setAutoStart: send(IPC.setAutoStart),
   setTrayState: send(IPC.setTrayState),
+  ...(process.platform === 'darwin' && {
+    popupTrayMenu: send(IPC.trayMenu),
+    onTrayMenuAction: (listener: (action: number) => void) => ipcRenderer.on(IPC.trayMenuAction, (_e, action) => listener(action)),
+  }),
   setDragging: (on) => ipcRenderer.invoke(IPC.setDragging, on),
   onCursor: (listener) => ipcRenderer.on(IPC.cursor, (_e, p) => listener(p)),
   onTrayClick: (listener) => ipcRenderer.on(IPC.trayClick, (_e, c) => listener(c)),
