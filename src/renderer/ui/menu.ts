@@ -1,4 +1,5 @@
 import { bury, machine, speak } from '../pet/pet'
+import type { TrayMenuItem } from '../../shared/ipc'
 import { info, save, setPaused, setTray, update } from '../pet/store'
 import { openChat } from './chat'
 import { openGoods } from './control'
@@ -25,6 +26,12 @@ interface Item {
 }
 
 let current: HTMLElement | null = null
+let trayActions: (() => void)[] = []
+window.qqpet.onTrayMenuAction?.((action) => {
+  const run = trayActions[action]
+  trayActions = []
+  run?.()
+})
 
 export function closeMenu(): void {
   current?.remove()
@@ -126,9 +133,21 @@ const child = (it: Item): HTMLElement => button('menuC fc', pick(it), div('choos
  */
 export function openMenu(at: { x: number; y: number; pet: boolean }, adopt: () => void): void {
   closeMenu()
+  const entries = items(adopt)
+  if (!at.pet && window.qqpet.popupTrayMenu) {
+    trayActions = []
+    const nativeItems = (list: Item[]): TrayMenuItem[] => list.map((item) => ({
+      label: item.label,
+      checked: item.on,
+      toolTip: item.title,
+      ...(item.children ? { children: nativeItems(item.children) } : { action: trayActions.push(pick(item)) - 1 }),
+    }))
+    window.qqpet.popupTrayMenu(nativeItems(entries))
+    return
+  }
   const { x, y } = at
   const left = Math.min(Math.max(at.pet ? x : x - WIDTH / 2, 0), innerWidth - WIDTH)
-  const menu = div('rightMenu focusPress', frame(list(items(adopt), left + 2 * WIDTH > innerWidth), ditu, [12, 21]))
+  const menu = div('rightMenu focusPress', frame(list(entries, left + 2 * WIDTH > innerWidth), ditu, [12, 21]))
   menu.dataset.hit = ''
   menu.style.width = `${WIDTH}px`
   menu.style.left = `${left}px`

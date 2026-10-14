@@ -27,6 +27,8 @@ export const IPC = {
   cursor: 'win:cursor',
   setDragging: 'win:set-dragging',
   trayClick: 'tray:click',
+  trayMenu: 'tray:menu',
+  trayMenuAction: 'tray:menu-action',
 } as const
 
 export interface Point {
@@ -60,6 +62,15 @@ export interface TrayClick {
   kind: 'state' | 'menu'
   x?: number
   y?: number
+}
+
+/** Data only; menu actions stay in the renderer. */
+export interface TrayMenuItem {
+  label: string
+  action?: number
+  children?: TrayMenuItem[]
+  checked?: boolean
+  toolTip?: string
 }
 
 /** One local date from the calendar API. */
@@ -148,6 +159,9 @@ export interface QQPetApi {
   setFocusable(enabled: boolean): void
   setAutoStart(enabled: boolean): void
   setTrayState(state: TrayState): void
+  /** Native tray popup on macOS; other hosts use the pet's HTML menu. */
+  popupTrayMenu?(items: TrayMenuItem[]): void
+  onTrayMenuAction?(listener: (action: number) => void): void
   /** Desktop drag follows the native cursor across displays; absent in mobile bridges. */
   setDragging?(enabled: boolean): Promise<DesktopCursor>
   /** Cursor position in window coordinates, pushed ~30 times per second. */

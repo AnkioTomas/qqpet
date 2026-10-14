@@ -127,7 +127,10 @@ function render(): void {
 
   const content = div(
     '',
-    div('head fcb', button('openPetInfo', openPetInfo), div('pinkDiamondMain f1', diamond), button('close', closeState)),
+    div('head fcb', button('openPetInfo', () => {
+      closeState()
+      openPetInfo()
+    }), div('pinkDiamondMain f1', diamond), button('close', closeState)),
     div(
       'infos px8',
       row('昵称：', div('value wsnw', info.name)),
@@ -152,9 +155,13 @@ function render(): void {
 }
 
 export function closeState(): void {
-  panel?.parentElement!.remove()
+  if (!panel) return
+  panel.parentElement!.remove()
   panel = null
+  window.qqpet.setFocusable(false)
 }
+
+window.addEventListener('blur', closeState)
 
 /** Opens the status panel from tray point (x, y), toward the screen's middle. */
 export function openState(x: number, y: number): void {
@@ -167,6 +174,7 @@ export function openState(x: number, y: number): void {
   else panel.style.bottom = `${Math.max(innerHeight - y, 0)}px`
   document.body.appendChild(div('ui-state', panel))
   render()
+  window.qqpet.setFocusable(true)
 }
 
 let queued = 0
