@@ -15,6 +15,8 @@ import { weather } from '../shared/weather'
 
 /** The `QQPetNative` JavaScript interface of PetService. Async calls answer through `__qqpet.resolve(id, value, error)`. */
 interface Native {
+  /** Both screen orientations are supported; absent on older shells. */
+  rotatableScreen?(): boolean
   /** A file in the app's private storage. Missing is undefined: the WebView bridge turns Kotlin's null into undefined. */
   read(name: string): string | undefined
   write(name: string, text: string): void
@@ -208,6 +210,7 @@ listeners.outside.push(() => {
 })
 
 const api: QQPetApi = {
+  capabilities: { rotatableScreen: native.rotatableScreen?.() ?? false },
   load: async () => cloneJson(save),
   save(patch) {
     if (leaving) return

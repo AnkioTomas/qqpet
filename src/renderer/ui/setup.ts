@@ -13,7 +13,7 @@ import './css/setup.css'
 import { button, div, typeable } from './dom'
 import { setFaceClick } from './face'
 import { readopt, setHidden } from './menu'
-import { pageZoom } from './viewport'
+import { pageZoom, windowDirectionAvailable } from './viewport'
 import { checkUpdate, ipcError, packReady } from './update'
 import { windowView } from './window-view'
 
@@ -238,7 +238,7 @@ const TABS: { label: string; options: Option[] }[] = [
         ...(pageZoom() === null
           ? []
           : [{ type: 'slider', label: '界面缩放（宠物和所有窗口一起放大）', value: () => s.zoom - 1, step: (d) => setZoom(s.zoom + d) } satisfies Option]),
-        ...(window.qqpet.deviceKind === 'phone' ? [
+        ...(windowDirectionAvailable() ? [
           { type: 'radio', label: '窗口方向：跟随屏幕', title: '保持窗口朝向与屏幕一致，空间不足时缩小', on: () => s.windowDirection === 'screen', run: () => update('settings', { windowDirection: 'screen' }) },
           { type: 'radio', label: '窗口方向：自动选择最大显示方向', title: '选择窗口能显示得更大的方向（默认）', on: () => s.windowDirection === 'auto', run: () => update('settings', { windowDirection: 'auto' }) },
         ] satisfies Option[] : []),
@@ -457,6 +457,19 @@ export function openSetup(): void {
   }
   draw()
   redraw = draw
+  let directionChoice = windowDirectionAvailable()
+  const refreshDirection = (): void => {
+    const next = windowDirectionAvailable()
+    if (next === directionChoice) return
+    directionChoice = next
+    if (tab !== TABS[0].label) return
+    const scroll = list.scrollTop
+    draw()
+    list.scrollTop = scroll
+  }
+  addEventListener('resize', refreshDirection)
+  const orientation = window.screen.orientation
+  orientation?.addEventListener('change', refreshDirection)
   const remove = openFrame(
     div(
       'ui-setup',
@@ -473,6 +486,8 @@ export function openSetup(): void {
   // window a keyboard target for the whole panel so typing survives those re-draws.
   window.qqpet.setFocusable(true)
   close = (): void => {
+    removeEventListener('resize', refreshDirection)
+    orientation?.removeEventListener('change', refreshDirection)
     window.qqpet.setFocusable(false)
     remove()
     close = () => {}
