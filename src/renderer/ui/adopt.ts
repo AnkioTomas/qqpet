@@ -14,6 +14,7 @@ export function adopt(done: () => void): void {
   const host = div('adopt', button('but_small import', () => void window.qqpet.importSave().catch(() => windowView({ title: '导入存档', msg: '这不是有效的QQ宠物存档~' })), '导入存档'))
   const close = openBox(host, { onClose: () => (open = false) })
   void new SwfPlayer(host).load('pet/reset/Adopt.swf')
+  // Keep this per-window latch set after a choice, even after close; reopening creates a fresh one.
   let choosing = false
   window.ChooseAPI = {
     ChooseSex: (n) => {
