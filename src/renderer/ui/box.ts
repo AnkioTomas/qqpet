@@ -51,15 +51,27 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   let fit = ''
   /** The scale of a frame turned a quarter, 0 when it is not turned. */
   let spin = 0
+  let flat = 1
+  let resizeFrame = 0
+  let cancelPan: (() => void) | undefined
+  let clickTimer: ReturnType<typeof setTimeout> | undefined
+  // A pan is not a tap on the button it ends on.
+  const eat = (c: MouseEvent): void => c.stopPropagation()
+  const clearClick = (): void => {
+    document.removeEventListener('click', eat, true)
+    if (clickTimer !== undefined) clearTimeout(clickTimer)
+    clickTimer = undefined
+  }
   const place = (): void => void (frame.style.transform = `translate(calc(-50% + ${cx + dx}px), calc(-50% + ${cy + dy}px)) ${fit}`)
-  const refit = new ResizeObserver(() => {
-    if (!frame.isConnected) return refit.disconnect()
+  const refit = (): void => {
+    if (!frame.isConnected) return
     const w = frame.offsetWidth
     const h = frame.offsetHeight
     const [left, top, right, bottom] = ['left', 'top', 'right', 'bottom'].map(inset)
-    const room = { w: innerWidth - left - right - MARGIN, h: innerHeight - top - bottom - MARGIN }
+    const viewport = document.documentElement
+    const room = { w: viewport.clientWidth - left - right - MARGIN, h: viewport.clientHeight - top - bottom - MARGIN }
     // Never above 1: the page's own scale sizes windows for the screen, and blowing one up breaks its proportions to the rest.
-    const flat = Math.min(1, room.w / w, room.h / h)
+    flat = Math.min(1, room.w / w, room.h / h)
     const turned = Math.min(1, room.w / h, room.h / w)
     cx = (left - right) / 2
     cy = (top - bottom) / 2
@@ -67,35 +79,60 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     fit = spin ? `rotate(90deg) scale(${spin})` : `scale(${flat})`
     frame.style.touchAction = spin ? 'none' : ''
     place()
-  })
+  }
+  const scheduleRefit = (): void => {
+    if (resizeFrame) return
+    resizeFrame = requestAnimationFrame(() => { resizeFrame = 0; refit() })
+  }
+  const viewportObserver = new ResizeObserver(scheduleRefit)
+  // Native safe-area replies can arrive after resize without changing layout size.
+  const insetObserver = new MutationObserver(scheduleRefit)
+  insetObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
   // Browsers don't pan a scroller turned by a transform: pan it by hand, turning the finger's path back.
   frame.addEventListener('pointerdown', (e) => {
-    let el = spin ? (e.target as HTMLElement | null) : null
+    if (!touch || cancelPan) return
+    let el = e.target as HTMLElement | null
     while (el && el !== frame && !scrolls(el)) el = el.parentElement
     if (!el || el === frame) return
+    // For pointercancel/missing-click issues, see src/ios/panels.css: other hosts
+    // can opt flat lists into this path with touch-action:none on the scroller.
+    if (!spin && getComputedStyle(el).touchAction !== 'none') return
     const box = el
+    const rotated = Boolean(spin), scale = spin || flat
+    if (scale <= 0) return
+    clearClick()
     let { clientX: x, clientY: y } = e
     let moved = 0
     const move = (m: PointerEvent): void => {
-      box.scrollTop += (m.clientX - x) / spin
-      box.scrollLeft -= (m.clientY - y) / spin
+      if (m.pointerId !== e.pointerId) return
+      box.scrollTop += (rotated ? m.clientX - x : y - m.clientY) / scale
+      box.scrollLeft -= (rotated ? m.clientY - y : m.clientX - x) / scale
       moved += Math.abs(m.clientX - x) + Math.abs(m.clientY - y)
       x = m.clientX
       y = m.clientY
     }
-    // A pan is not a tap on the button it ends on.
-    const eat = (c: MouseEvent): void => c.stopPropagation()
-    document.addEventListener('pointermove', move)
-    document.addEventListener('pointerup', () => {
-      document.removeEventListener('pointermove', move)
-      if (moved < 10) return
+    const end = (event: PointerEvent): void => {
+      if (event.pointerId !== e.pointerId) return
+      cancelPan?.()
+      if (event.type === 'pointercancel' || moved < 10) return
       document.addEventListener('click', eat, true)
-      setTimeout(() => document.removeEventListener('click', eat, true))
-    }, { once: true })
+      clickTimer = setTimeout(clearClick)
+    }
+    cancelPan = () => {
+      document.removeEventListener('pointermove', move)
+      document.removeEventListener('pointerup', end)
+      document.removeEventListener('pointercancel', end)
+      cancelPan = undefined
+    }
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', end)
+    document.addEventListener('pointercancel', end)
   })
-  // The page itself resizes when a phone rotates.
-  refit.observe(frame)
-  refit.observe(document.documentElement)
+  // Refit layout and visual viewport changes as WebKit settles rotation.
+  viewportObserver.observe(frame)
+  viewportObserver.observe(document.documentElement)
+  addEventListener('resize', scheduleRefit)
+  window.visualViewport?.addEventListener('resize', scheduleRefit)
   frame.addEventListener('pointerdown', (e) => {
     if (touch || e.button !== 0 || keep?.contains(e.target as Node) || e.target instanceof HTMLInputElement) return
     const sx = e.clientX - dx
@@ -108,7 +145,16 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     document.addEventListener('pointermove', move)
     document.addEventListener('pointerup', () => document.removeEventListener('pointermove', move), { once: true })
   })
-  return () => root.remove()
+  return () => {
+    viewportObserver.disconnect()
+    insetObserver.disconnect()
+    removeEventListener('resize', scheduleRefit)
+    window.visualViewport?.removeEventListener('resize', scheduleRefit)
+    if (resizeFrame) cancelAnimationFrame(resizeFrame)
+    cancelPan?.()
+    clearClick()
+    root.remove()
+  }
 }
 
 /**

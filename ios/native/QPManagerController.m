@@ -41,6 +41,7 @@
 @property(nonatomic,copy) NSString *lastUI;
 @property(nonatomic,copy) NSString *message;
 @property(nonatomic,copy) NSString *exportDirectory;
+@property(nonatomic,strong) NSDictionary *lastSafeArea;
 @end
 @implementation QPManagerController
 - (instancetype)initWithState:(QPState *)state { if ((self=[super initWithStyle:UITableViewStyleInsetGrouped])) _state=state; return self; }
@@ -114,9 +115,16 @@
 - (void)poll {
     NSDictionary *status=[self.state readJSON:@"hud.json"];
     if (![status isEqual:self.status]) { self.status=status; [self.tableView reloadData]; }
-    // Keep the HUD supplied with actual foreground full-screen safe-area measurements.
-    UIEdgeInsets inset=self.view.window.safeAreaInsets;
-    [self.state writeJSON:@{@"left":@(inset.left),@"top":@(inset.top),@"right":@(inset.right),@"bottom":@(inset.bottom)} name:@"safe-area.json" error:NULL];
+    // Orientation/resize can reach the HUD before UIKit settles these measurements.
+    // Publish again when they change, so the page does not retain the previous direction's insets.
+    if (UIApplication.sharedApplication.applicationState==UIApplicationStateActive && self.view.window) {
+        UIEdgeInsets inset=self.view.window.safeAreaInsets;
+        NSDictionary *safe=@{@"left":@(inset.left),@"top":@(inset.top),@"right":@(inset.right),@"bottom":@(inset.bottom)};
+        if (![safe isEqual:self.lastSafeArea] && [self.state writeJSON:safe name:@"safe-area.json" error:NULL]) {
+            self.lastSafeArea=safe;
+            if (QPProcessAlive(status)) [self.state enqueueCommand:@{@"op":@"safeArea"} instance:status[@"instance"] error:NULL];
+        }
+    }
     if (UIApplication.sharedApplication.applicationState==UIApplicationStateActive) {
         CGRect nav=[self.navigationController.navigationBar convertRect:self.navigationController.navigationBar.bounds toCoordinateSpace:UIScreen.mainScreen.fixedCoordinateSpace];
         if (nav.size.width>nav.size.height) { nav.size.height=CGRectGetMaxY(nav); nav.origin.y=0; }

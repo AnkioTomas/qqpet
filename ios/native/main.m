@@ -172,6 +172,7 @@ static QPAppDelegate *QPDelegate;
         if ([op isEqual:@"quit"]) [self.host requestFlushThen:^{ [self stop:@"manager-quit"]; }];
         else if ([op isEqual:@"trayClick"]) { self.managerOverride=YES; [self updateVisibility]; [self.host emit:@"trayClick" value:args]; }
         else if ([op isEqual:@"managerHide"]) { self.managerOverride=NO; [self updateVisibility]; }
+        else if ([op isEqual:@"safeArea"]) [self.host emit:@"safeArea" value:nil];
         else if ([op isEqual:@"clipboard"]) [self.host emit:@"clipboard" value:args[@"text"]];
         else if ([op isEqual:@"gamePlayed"]) [self.host emit:@"gamePlayed" value:args];
         else if ([op isEqual:@"importSave"] || [op isEqual:@"exportSave"]) {

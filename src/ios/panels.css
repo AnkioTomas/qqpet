@@ -1,0 +1,6 @@
+/* iOS native panning can cancel pointer input and suppress control clicks in either orientation.
+   The panel's manual panner owns this list; touch-action arbitration stops at the
+   scroll container, so the frame's rule alone is insufficient. Loaded only by iOS. */
+.boxFrame .ui-setup .rightScroll > .children {
+  touch-action: none;
+}

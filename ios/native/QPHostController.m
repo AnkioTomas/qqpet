@@ -13,6 +13,15 @@
 - (BOOL)_isBackground;
 @end
 
+// Safari 610 keeps the old layer tree until the resized WebContent frame commits.
+// https://github.com/WebKit/WebKit/blob/Safari-610.1.28.1.9/Source/WebKit/UIProcess/API/ios/WKWebViewIOS.mm
+@interface WKWebView (QPViewportTransition)
+- (void)_resizeWhileHidingContentWithUpdates:(void (^)(void))updates;
+- (void)_setInterfaceOrientationOverride:(UIInterfaceOrientation)orientation;
+- (void)_doAfterNextPresentationUpdate:(void (^)(void))completion;
+- (void)_cancelAnimatedResize;
+@end
+
 // Feature keys come from WebKit's UnifiedWebPreferences.yaml. Enumerate the
 // running WebKit rather than relying on private properties in a newer SDK.
 @interface WKPreferences (QPRenderingFeatures)
@@ -117,6 +126,8 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 @property(nonatomic, copy) NSDictionary *firstRufflePanic;
 @property(nonatomic) NSInteger flushID;
 @property(nonatomic) BOOL paused;
+@property(nonatomic) BOOL resizing;
+@property(nonatomic) NSUInteger resizeGeneration;
 @property(nonatomic, copy) NSString *flushError;
 @property(nonatomic, copy) void (^flushCompletion)(void);
 @property(nonatomic, strong) NSMutableArray *flushWaiters;
@@ -284,7 +295,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     // The global HUD sits above SpringBoard's system input alert. Hide its
     // display context while editing so both the alert and keyboard are visible.
     self.view.window.hidden=self.paused||self.textInputRequest!=nil;
-    self.view.window.userInteractionEnabled=!self.paused&&!self.invalidated&&!self.textInputRequest;
+    self.view.window.userInteractionEnabled=!self.paused&&!self.invalidated&&!self.textInputRequest&&!self.resizing;
     self.cropView.hidden=CGRectIsEmpty(crop);
     self.cropView.frame=crop;
     self.viewport.transform=CGAffineTransformIdentity;
@@ -304,10 +315,40 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     self.cssSize=size;
     self.crop=CGRectMake(0,0,self.cssSize.width,self.cssSize.height);
     self.dragPlane.dragRegions=@[]; self.dragPlane.interactiveRegions=@[];
-    [self applyGeometry];
+    NSUInteger generation=++self.resizeGeneration;
+    WKWebView *webView=self.webView;
+    BOOL coordinated=webView.URL && [webView respondsToSelector:@selector(_resizeWhileHidingContentWithUpdates:)] && [webView respondsToSelector:@selector(_setInterfaceOrientationOverride:)] && [webView respondsToSelector:@selector(_doAfterNextPresentationUpdate:)] && [webView respondsToSelector:@selector(_cancelAnimatedResize)];
+    self.resizing=coordinated;
+    if (coordinated) {
+        // New native bounds must not display the previous direction's fixed/CSS-
+        // rotated panels. WK waits for its matching viewport commit, without
+        // pausing JavaScript or requiring a client-side endAnimatedResize call.
+        [webView _resizeWhileHidingContentWithUpdates:^{
+            [webView _setInterfaceOrientationOverride:orientation];
+            [self applyGeometry];
+        }];
+        __weak QPHostController *weakSelf=self;
+        void (^finish)(void)=^{
+            QPHostController *host=weakSelf;
+            if (!host || host.invalidated || generation!=host.resizeGeneration) return;
+            host.resizing=NO; [host applyGeometry];
+        };
+        [webView _doAfterNextPresentationUpdate:finish];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,3*NSEC_PER_SEC),dispatch_get_main_queue(),^{
+            QPHostController *host=weakSelf;
+            if (!host || host.invalidated || generation!=host.resizeGeneration || !host.resizing) return;
+            // A suspended/terminated page must not leave input or WK's resize
+            // container stuck. A later rotation's completion owns its own state.
+            [host.webView _cancelAnimatedResize]; finish();
+        });
+    } else [self applyGeometry];
     [self emit:@"safeArea" value:nil];
 }
-- (void)setManagerReservedRect:(CGRect)rect { _managerReservedRect=rect; [self applyGeometry]; }
+- (void)setManagerReservedRect:(CGRect)rect {
+    if (CGRectEqualToRect(rect,_managerReservedRect)) return;
+    _managerReservedRect=rect; [self applyGeometry];
+    [self emit:@"safeArea" value:nil];
+}
 - (void)viewDidLayoutSubviews { [super viewDidLayoutSubviews]; if ([self.role isEqual:@"game"]) { self.cropView.frame=self.view.bounds; self.viewport.frame=self.cropView.bounds; self.webView.frame=self.viewport.bounds; } }
 - (void)requestFlushThen:(void (^)(void))completion {
     if (self.flushCompletion) { [self.flushWaiters addObject:[completion copy]]; return; }
@@ -466,6 +507,18 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
         } else {
             NSDictionary *safe=[self.state readJSON:@"safe-area.json"];
             inset=UIEdgeInsetsMake([safe[@"top"] doubleValue],[safe[@"left"] doubleValue],[safe[@"bottom"] doubleValue],[safe[@"right"] doubleValue]);
+            // The HUD clips out the manager's navigation bar. Fit panels into
+            // that same available area instead of clipping their controls.
+            CGRect reserved=CGRectIntersection(self.viewport.bounds,[self.viewport convertRect:self.managerReservedRect fromView:self.view.window]);
+            if (!CGRectIsEmpty(self.managerReservedRect) && !CGRectIsNull(reserved)) {
+                if (reserved.size.width>=self.cssSize.width-1) {
+                    if (CGRectGetMinY(reserved)<=1) inset.top=MAX(inset.top,CGRectGetMaxY(reserved));
+                    if (CGRectGetMaxY(reserved)>=self.cssSize.height-1) inset.bottom=MAX(inset.bottom,self.cssSize.height-CGRectGetMinY(reserved));
+                } else if (reserved.size.height>=self.cssSize.height-1) {
+                    if (CGRectGetMinX(reserved)<=1) inset.left=MAX(inset.left,CGRectGetMaxX(reserved));
+                    if (CGRectGetMaxX(reserved)>=self.cssSize.width-1) inset.right=MAX(inset.right,self.cssSize.width-CGRectGetMinX(reserved));
+                }
+            }
         }
         reply(@{@"left":@(inset.left*scale),@"top":@(inset.top*scale),@"right":@(inset.right*scale),@"bottom":@(inset.bottom*scale)},nil);
     } else if ([op isEqual:@"setFocusable"]) { if (![args[@"enabled"] boolValue]) [self.webView endEditing:YES]; else [self.view.window makeKeyAndVisible]; reply(nil,nil); }
@@ -574,6 +627,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 }
 - (void)webContentTerminated:(WKWebView *)webView reason:(NSInteger)reason {
     if (self.invalidated||self.rendererFailed) return;
+    self.resizeGeneration++; self.resizing=NO;
     NSTimeInterval at=NSDate.date.timeIntervalSince1970;
     self.audioGeneration++; [self.audioOutput reset];
     [self cancelTextInput:nil page:self.currentPage];

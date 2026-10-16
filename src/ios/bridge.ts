@@ -14,6 +14,7 @@ import { startGeometry, type PetPointer } from './geometry'
 import { IOSRPC } from './rpc'
 import { IOSSaveWriter } from './save-writer'
 import { installTextInput } from './text-input'
+import './panels.css'
 
 interface Bootstrap {
   save: string | null
