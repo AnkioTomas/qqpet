@@ -1,4 +1,4 @@
-import { info, save } from '../pet/store'
+import { info, onSettingsChange, save } from '../pet/store'
 import { div, touch } from './dom'
 
 const SKINS = {
@@ -38,7 +38,7 @@ const scrolls = (el: HTMLElement): boolean =>
  * its own mouse input, e.g. a SWF). No pointer capture: it would retarget clicks on buttons inside the frame.
  *
  * On touch screens it opens over a backdrop, turned a quarter when that shrinks it
- * less (a wide panel on a portrait phone).
+ * less, unless a phone's window preference keeps it facing the screen direction.
  */
 function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   const root = touch ? div('modal', frame) : frame
@@ -75,7 +75,12 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     const turned = Math.min(1, room.w / h, room.h / w)
     cx = (left - right) / 2
     cy = (top - bottom) / 2
-    spin = touch && turned > flat ? turned : 0
+    // Only hosts with a native phone classification opt into this preference.
+    // Tablets and unknown device kinds keep their existing window layout.
+    const followScreen = window.qqpet.deviceKind === 'phone' && save.settings.windowDirection === 'screen'
+    const nextSpin = touch && !followScreen && turned > flat ? turned : 0
+    if (Boolean(nextSpin) !== Boolean(spin)) cancelPan?.()
+    spin = nextSpin
     fit = spin ? `rotate(90deg) scale(${spin})` : `scale(${flat})`
     frame.style.touchAction = spin ? 'none' : ''
     place()
@@ -84,6 +89,9 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     if (resizeFrame) return
     resizeFrame = requestAnimationFrame(() => { resizeFrame = 0; refit() })
   }
+  const stopSettings = onSettingsChange((change) => {
+    if ('windowDirection' in change) scheduleRefit()
+  })
   const viewportObserver = new ResizeObserver(scheduleRefit)
   // Native safe-area replies can arrive after resize without changing layout size.
   const insetObserver = new MutationObserver(scheduleRefit)
@@ -146,6 +154,7 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     document.addEventListener('pointerup', () => document.removeEventListener('pointermove', move), { once: true })
   })
   return () => {
+    stopSettings()
     viewportObserver.disconnect()
     insetObserver.disconnect()
     removeEventListener('resize', scheduleRefit)

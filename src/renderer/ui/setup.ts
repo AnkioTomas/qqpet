@@ -238,6 +238,10 @@ const TABS: { label: string; options: Option[] }[] = [
         ...(pageZoom() === null
           ? []
           : [{ type: 'slider', label: '界面缩放（宠物和所有窗口一起放大）', value: () => s.zoom - 1, step: (d) => setZoom(s.zoom + d) } satisfies Option]),
+        ...(window.qqpet.deviceKind === 'phone' ? [
+          { type: 'radio', label: '窗口方向：跟随屏幕', title: '保持窗口朝向与屏幕一致，空间不足时缩小', on: () => s.windowDirection === 'screen', run: () => update('settings', { windowDirection: 'screen' }) },
+          { type: 'radio', label: '窗口方向：自动选择最大显示方向', title: '选择窗口能显示得更大的方向（默认）', on: () => s.windowDirection === 'auto', run: () => update('settings', { windowDirection: 'auto' }) },
+        ] satisfies Option[] : []),
         { type: 'radio', label: '开机自启', title: '仅 Windows、macOS 和 Android 有效', on: () => s.autoStart, run: toggleAutoStart },
         { type: 'input', label: '天气城市（留空按网络位置自动定位）', value: () => s.weatherCity, set: setCity },
         {

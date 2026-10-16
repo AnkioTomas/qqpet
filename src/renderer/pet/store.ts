@@ -1,5 +1,5 @@
 import type { TrayState } from '../../shared/ipc'
-import type { PetInfo, SaveData, SavePatch } from '../../shared/save'
+import type { PetInfo, SaveData, SavePatch, Settings } from '../../shared/save'
 import { petSizeFor } from '../../shared/layout'
 import { goodOf, type TimedType } from './data/goods'
 import { levelOf, stageOf, type Stage } from './level'
@@ -14,6 +14,13 @@ export const info: PetInfo = save.petInfo
 let patch: Record<string, unknown> = {}
 let flushTimer = 0
 const settlers = new Set<() => void>()
+const settingsListeners = new Set<(change: Partial<Settings>) => void>()
+
+/** Settings-dependent views can refit without waiting for a viewport resize. */
+export function onSettingsChange(listener: (change: Partial<Settings>) => void): () => void {
+  settingsListeners.add(listener)
+  return () => { settingsListeners.delete(listener) }
+}
 
 /** Farm and other embedded state can settle immediately before the renderer/file barrier. */
 export function onSaveFlush(settle: () => void): () => void {
@@ -49,6 +56,9 @@ export function update<K extends keyof SaveData>(key: K, value: SavePatch[K]): v
     patch[key] = value
   }
   flushTimer ||= window.setTimeout(flushPatch, 200)
+  if (key === 'settings' && isGroup) {
+    for (const listener of settingsListeners) listener(value as Partial<Settings>)
+  }
 }
 
 type NumKey = { [K in keyof PetInfo]: PetInfo[K] extends number ? K : never }[keyof PetInfo]

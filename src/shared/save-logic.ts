@@ -18,6 +18,7 @@ const str =
 const nullable: Rule = (v) => (v === undefined ? null : v)
 const ANY = Infinity
 const AI_URL = 'http://127.0.0.1:8000/v1'
+const windowDirection = (v: unknown): 'auto' | 'screen' => (v === 'auto' || v === 'screen' ? v : 'auto')
 
 // Field repairs ported from the original main process: an invalid value is
 // replaced by the same fallback the original used.
@@ -95,6 +96,7 @@ const RULES: Record<string, Record<string, Rule>> = {
     hidden: bool,
     hd: bool,
     zoom: num(1, 2, 1),
+    windowDirection,
     clip: bool,
     watchApp: bool,
     roam: bool,
@@ -180,6 +182,7 @@ function fresh(): SaveData {
       hidden: false,
       hd: false,
       zoom: 1,
+      windowDirection: 'auto',
       clip: false,
       watchApp: false,
       roam: false,
@@ -234,6 +237,7 @@ export function startSave(stored: Record<string, any> | null): SaveData {
   // A new pet keeps the owner's preferences, but not the old pet's pause or hiding.
   const save = fresh()
   if (stored?.settings) Object.assign(save.settings, stored.settings, { paused: false, hidden: false })
+  save.settings.windowDirection = windowDirection(save.settings.windowDirection)
   return save
 }
 
@@ -251,6 +255,7 @@ export function applyPatch(save: SaveData, patch: SavePatch): void {
 export function buried(save: SaveData, sex?: Sex): SaveData {
   save.havePet = false
   save.isBury = false
+  save.settings.windowDirection = windowDirection(save.settings.windowDirection)
   if (!sex) return save
   const born = startSave(save)
   born.petInfo.sex = sex
