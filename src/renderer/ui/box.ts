@@ -136,6 +136,9 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     document.addEventListener('pointerup', end)
     document.addEventListener('pointercancel', end)
   })
+  // Fit the connected frame before its first paint; the observer's initial
+  // notification can otherwise leave one unscaled frame on small screens.
+  refit()
   // Refit layout and visual viewport changes as WebKit settles rotation.
   viewportObserver.observe(frame)
   viewportObserver.observe(document.documentElement)

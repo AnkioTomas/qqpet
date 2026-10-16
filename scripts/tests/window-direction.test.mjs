@@ -38,7 +38,7 @@ class Element extends Events {
   }
 }
 
-function fixture(deviceKind = 'phone', touch = true) {
+function fixture(deviceKind = 'phone', touch = true, direction = 'auto') {
   const frames = new Map(), timers = new Map(), observers = new Set()
   let nextFrame = 0, nextTimer = 0
   const window = new Events(), document = new Events()
@@ -46,8 +46,10 @@ function fixture(deviceKind = 'phone', touch = true) {
   body.connect(true)
   Object.assign(viewport, { clientWidth: 375, clientHeight: 812 })
   Object.assign(document, { body, documentElement: viewport })
+  const initialSave = startSave(null)
+  initialSave.settings.windowDirection = direction
   Object.assign(window, {
-    __qqpetInitialSave: startSave(null), visualViewport: new Events(),
+    __qqpetInitialSave: initialSave, visualViewport: new Events(),
     qqpet: { deviceKind, save() {} },
     setTimeout: callback => { timers.set(++nextTimer, callback); return nextTimer },
     clearTimeout: id => timers.delete(id),
@@ -89,6 +91,19 @@ function fixture(deviceKind = 'phone', touch = true) {
   const down = () => frame.emit('pointerdown', { target: list, pointerId: 7, clientX: 10, clientY: 10 })
   return { ...store, frame, list, document, window, frames, observers, close, tick, down }
 }
+
+test('a newly opened window is fitted before the first observer animation frame', () => {
+  for (const direction of ['auto', 'screen']) {
+    const f = fixture('phone', true, direction)
+    const initial = f.frame.style.transform
+    assert.equal(initial.includes('rotate(90deg)'), direction === 'auto')
+    const scale = Number(initial.match(/scale\(([^)]+)\)/)[1])
+    assert.ok(scale > 0 && (direction === 'auto' ? 390 : 440) * scale <= 375 - 16)
+    f.tick()
+    assert.equal(f.frame.style.transform, initial, 'the observer does not correct an initially unscaled frame')
+    f.close()
+  }
+})
 
 test('phone direction changes refit an open window without a viewport resize', () => {
   const f = fixture()
