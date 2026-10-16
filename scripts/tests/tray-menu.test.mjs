@@ -123,3 +123,44 @@ test('Linux and mobile retain their HTML menus and Linux retains its AppIndicato
     }
   }
 })
+
+test('a pending outside-touch dismissal cannot close a newly requested tray menu', () => {
+  const f = fixture('mobile')
+  const timers = new Map()
+  let nextTimer = 0, onCursor, onTrayClick
+  const source = stripTypeScriptTypes(readFileSync(new URL('../../src/renderer/main.ts', import.meta.url), 'utf8'))
+  const cursorSource = source.slice(source.indexOf('function updateCursor('), source.indexOf('// Linux:'))
+  const traySource = source.slice(source.indexOf('// Linux trays report no position;'), source.indexOf('\nconst CLIP_MAX'))
+  const services = {
+    window: { qqpet: {
+      onCursor: fn => { onCursor = fn }, onTrayClick: fn => { onTrayClick = fn }, setClickThrough() {},
+    } },
+    document: { documentElement: { dataset: {} }, elementFromPoint: () => null },
+    ShadowRoot: class {}, innerWidth: 375, innerHeight: 812,
+    petEl: { hidden: true }, save: f.save, info: {}, size: 100,
+    dragging: false, out: false, interactive: false, dragMove: null, cursor: {}, menuLeave: 0, MENU_LEAVE_MS: 300,
+    syncDesktop: () => true,
+    setTimeout: fn => { const id = ++nextTimer; timers.set(id, fn); return id },
+    clearTimeout: id => timers.delete(id),
+    closeMenu: () => { f.appended.at(-1)?.remove() }, closeState() {},
+    openMenu: f.open, openState() {}, adoptPet() {},
+  }
+  // Keep the fixture's actual menu creation/removal visible to the delayed callback.
+  const append = f.appended.push.bind(f.appended)
+  f.appended.push = menu => {
+    menu.closed = false
+    menu.remove = () => { menu.closed = true }
+    return append(menu)
+  }
+  runInNewContext(cursorSource + '\n' + traySource, services)
+  onCursor({ x: 0, y: 0 })
+  assert.equal(timers.size, 1, 'an earlier outside sample schedules a dismissal')
+  onTrayClick({ kind: 'menu', x: 180, y: 400 })
+  assert.equal(f.appended.length, 1)
+  for (const callback of timers.values()) callback()
+  assert.equal(f.appended[0].closed, false, 'the old leave must not dismiss the new menu')
+  onCursor({ x: 0, y: 0 })
+  assert.equal(timers.size, 1, 'a later outside touch still dismisses it')
+  for (const callback of timers.values()) callback()
+  assert.equal(f.appended[0].closed, true)
+})

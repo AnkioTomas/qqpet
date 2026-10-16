@@ -417,6 +417,9 @@ const adoptPet = (): void => adopt(begin)
 
 // Linux trays report no position; open at the top right, under the menu bar.
 window.qqpet.onTrayClick((c) => {
+  // A manager/tray press may have scheduled a leave before opening this panel.
+  // That older pointer event must not dismiss the newly requested menu.
+  if (menuLeave) { clearTimeout(menuLeave); menuLeave = 0 }
   const x = c.x ?? innerWidth - 60
   const y = c.y ?? 0
   if (c.kind === 'menu') {
