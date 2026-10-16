@@ -55,6 +55,7 @@ void QPEventBridgeDiagnostic(NSString *message) { fprintf(stderr,"[QQPet] %s\n",
 @property(nonatomic,strong) dispatch_source_t termination;
 @property(nonatomic) int lockNotify;
 @property(nonatomic) int bootNotify;
+@property(nonatomic) int layoutNotify;
 @property(nonatomic) BOOL locked;
 @property(nonatomic) BOOL managerActive;
 @property(nonatomic) BOOL managerOverride;
@@ -73,7 +74,7 @@ static QPAppDelegate *QPDelegate;
 
 @implementation QPAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)options {
-    QPDelegate=self; self.lockNotify=-1; self.bootNotify=-1;
+    QPDelegate=self; self.lockNotify=-1; self.bootNotify=-1; self.layoutNotify=-1;
     if (!QPHUD) {
         self.manager=[[QPManagerController alloc] initWithState:QPStorage];
         self.window=[[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
@@ -145,6 +146,7 @@ static QPAppDelegate *QPDelegate;
         [self.host updateOrientation:(UIInterfaceOrientation)self.orientation.activeInterfaceOrientation];
     }
     notify_register_dispatch("com.apple.springboard.lockstate",&_lockNotify,dispatch_get_main_queue(),^(int token){ [weakSelf updateLock]; });
+    notify_register_dispatch("net.ankio.qqpet.manager-layout",&_layoutNotify,dispatch_get_main_queue(),^(int token){ [weakSelf poll]; });
     notify_register_dispatch("SBSpringBoardDidLaunchNotification",&_bootNotify,dispatch_get_main_queue(),^(int token){
         // Re-register the existing context; no daemon or duplicate renderer is spawned.
         QPAppDelegate *delegate=weakSelf;
@@ -165,8 +167,7 @@ static QPAppDelegate *QPDelegate;
     NSDictionary *manager=[QPStorage readJSON:@"manager.json"];
     BOOL active=[manager[@"active"] boolValue]&&NSDate.date.timeIntervalSince1970-[manager[@"updatedAt"] doubleValue]<5;
     if (active!=self.managerActive) { self.managerActive=active; self.managerOverride=NO; [self updateVisibility]; }
-    NSDictionary *reserved=active?manager[@"reserved"]:nil;
-    self.host.managerReservedRect=reserved?CGRectMake([reserved[@"x"] doubleValue],[reserved[@"y"] doubleValue],[reserved[@"width"] doubleValue],[reserved[@"height"] doubleValue]):CGRectZero;
+    self.host.managerLayout=active?manager[@"layout"]:nil;
     for (NSDictionary *command in [QPStorage takeCommandsForInstance:QPInstance]) {
         NSString *op=command[@"op"]; NSDictionary *args=command[@"args"] ?: @{};
         if ([op isEqual:@"quit"]) [self.host requestFlushThen:^{ [self stop:@"manager-quit"]; }];
@@ -230,6 +231,7 @@ static QPAppDelegate *QPDelegate;
     [self.control invalidate]; [self.orientation invalidate]; QPResetCapturedTouches();
     QPSetOutsideTouchHandler(nil);
     if (self.lockNotify>=0) notify_cancel(self.lockNotify); if (self.bootNotify>=0) notify_cancel(self.bootNotify);
+    if (self.layoutNotify>=0) notify_cancel(self.layoutNotify);
     [self.host invalidate]; self.window.hidden=YES; [self.server stop];
     if (self.pendingReply) self.pendingReply(nil,@"HUD stopped before the manager operation completed.");
     QPStatus[@"phase"]=@"stopped"; QPStatus[@"stopReason"]=reason; QPWriteStatus();
@@ -242,7 +244,11 @@ static QPAppDelegate *QPDelegate;
 }
 - (void)applicationDidBecomeActive:(UIApplication *)application { if (!QPHUD) [self.manager poll]; }
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-    if (!QPHUD) [QPStorage writeJSON:@{@"active":@NO,@"pid":@(getpid()),@"updatedAt":@(NSDate.date.timeIntervalSince1970)} name:@"manager.json" error:NULL];
+    if (!QPHUD) {
+        NSMutableDictionary *manager=[[QPStorage readJSON:@"manager.json"] mutableCopy] ?: [NSMutableDictionary new];
+        manager[@"active"]=@NO; manager[@"pid"]=@(getpid()); manager[@"updatedAt"]=@(NSDate.date.timeIntervalSince1970);
+        [QPStorage writeJSON:manager name:@"manager.json" error:NULL];
+    }
 }
 @end
 

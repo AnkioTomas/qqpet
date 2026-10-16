@@ -78,6 +78,21 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     if (orientation==UIInterfaceOrientationPortraitUpsideDown) return M_PI;
     return 0;
 }
+static UIEdgeInsets QPRotateSafeArea(UIEdgeInsets inset, UIInterfaceOrientation from, UIInterfaceOrientation to) {
+    // Map through the screen's fixed portrait coordinates, like physicalCrop.
+    switch (from) {
+        case UIInterfaceOrientationLandscapeLeft: inset=UIEdgeInsetsMake(inset.right,inset.top,inset.left,inset.bottom); break;
+        case UIInterfaceOrientationLandscapeRight: inset=UIEdgeInsetsMake(inset.left,inset.bottom,inset.right,inset.top); break;
+        case UIInterfaceOrientationPortraitUpsideDown: inset=UIEdgeInsetsMake(inset.bottom,inset.right,inset.top,inset.left); break;
+        default: break;
+    }
+    switch (to) {
+        case UIInterfaceOrientationLandscapeLeft: return UIEdgeInsetsMake(inset.left,inset.bottom,inset.right,inset.top);
+        case UIInterfaceOrientationLandscapeRight: return UIEdgeInsetsMake(inset.right,inset.top,inset.left,inset.bottom);
+        case UIInterfaceOrientationPortraitUpsideDown: return UIEdgeInsetsMake(inset.bottom,inset.right,inset.top,inset.left);
+        default: return inset;
+    }
+}
 
 @class QPDragPlane;
 @interface QPTransparentRootView : UIView
@@ -109,6 +124,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 @property(nonatomic, strong) WKWebView *webView;
 @property(nonatomic, strong) UIView *viewport;
 @property(nonatomic, strong) UIView *cropView;
+@property(nonatomic, strong) UIView *rotationSnapshot;
 @property(nonatomic, strong) QPDragPlane *dragPlane;
 @property(nonatomic, strong) QPState *state;
 @property(nonatomic, strong) QQAssetServer *server;
@@ -128,6 +144,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 @property(nonatomic) BOOL paused;
 @property(nonatomic) BOOL resizing;
 @property(nonatomic) NSUInteger resizeGeneration;
+@property(nonatomic) NSUInteger managerLayoutRevision;
 @property(nonatomic, copy) NSString *flushError;
 @property(nonatomic, copy) void (^flushCompletion)(void);
 @property(nonatomic, strong) NSMutableArray *flushWaiters;
@@ -236,7 +253,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     BOOL changed=_paused!=paused;
     _paused=paused;
     [self.audioOutput setHostPaused:paused];
-    if (paused) { QPResetCapturedTouches(); [self.pointerIDs removeAllObjects]; }
+    if (paused) { [self clearRotationSnapshot]; QPResetCapturedTouches(); [self.pointerIDs removeAllObjects]; }
     [self emit:@"paused" value:@(paused)];
     if (changed) [self emit:@"presence" value:@(paused)];
     [self updateProcessPolicy];
@@ -273,6 +290,55 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     if (self.orientation==UIInterfaceOrientationPortraitUpsideDown) return CGRectMake(physical.width-CGRectGetMaxX(r),physical.height-CGRectGetMaxY(r),r.size.width,r.size.height);
     return r;
 }
+- (BOOL)managerLayoutMatchesViewport {
+    NSDictionary *layout=self.managerLayout;
+    return [layout[@"orientation"] integerValue]==self.orientation &&
+        fabs([layout[@"viewport"][@"width"] doubleValue]-self.cssSize.width)<=.5 &&
+        fabs([layout[@"viewport"][@"height"] doubleValue]-self.cssSize.height)<=.5;
+}
+- (CGRect)managerReservedRect {
+    return [self managerLayoutMatchesViewport]?QPBox(self.managerLayout[@"reserved"]):CGRectZero;
+}
+- (void)clearRotationSnapshot {
+    UIView *snapshot=self.rotationSnapshot;
+    self.rotationSnapshot=nil;
+    [snapshot.layer removeAllAnimations];
+    [snapshot removeFromSuperview];
+}
+- (void)prepareRotationSnapshot {
+    if (self.paused||self.invalidated||self.rendererFailed||self.textInputRequest||self.view.window.hidden) { [self clearRotationSnapshot]; return; }
+    if (self.rotationSnapshot) {
+        // A reversal keeps one physical-screen image. Its old fade completion
+        // belongs to the previous resize generation and cannot remove it.
+        [self.rotationSnapshot.layer removeAllAnimations];
+        self.rotationSnapshot.alpha=1;
+        return;
+    }
+    if (self.cropView.hidden||CGRectIsEmpty(self.cropView.bounds)) return;
+    UIView *snapshot=[self.cropView snapshotViewAfterScreenUpdates:NO];
+    if (!snapshot) return;
+    snapshot.frame=self.cropView.frame;
+    snapshot.userInteractionEnabled=NO;
+    self.rotationSnapshot=snapshot;
+    // Copy only the cropped HUD, at its old physical position. The live WK view
+    // keeps rendering; rotating a full-screen copy would add a false pivot.
+    [self.view addSubview:snapshot];
+}
+- (void)finishRotationPresentation:(NSUInteger)generation {
+    if (self.invalidated||generation!=self.resizeGeneration||!self.resizing) return;
+    self.resizing=NO;
+    UIView *snapshot=self.rotationSnapshot;
+    if (!snapshot||UIAccessibilityIsReduceMotionEnabled()) {
+        [self clearRotationSnapshot]; [self applyGeometry]; return;
+    }
+    [self applyGeometry];
+    __weak QPHostController *weakSelf=self;
+    [UIView animateWithDuration:.12 delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionCurveEaseOut animations:^{ snapshot.alpha=0; } completion:^(BOOL finished){
+        QPHostController *host=weakSelf;
+        if (!host||host.invalidated||generation!=host.resizeGeneration||host.rotationSnapshot!=snapshot) return;
+        [host clearRotationSnapshot]; [host applyGeometry];
+    }];
+}
 - (void)applyGeometry {
     if (![self.role isEqual:@"pet"] || !self.view.window || self.cssSize.width<=0) return;
     CGRect fixed=UIScreen.mainScreen.fixedCoordinateSpace.bounds;
@@ -295,30 +361,37 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
     // The global HUD sits above SpringBoard's system input alert. Hide its
     // display context while editing so both the alert and keyboard are visible.
     self.view.window.hidden=self.paused||self.textInputRequest!=nil;
-    self.view.window.userInteractionEnabled=!self.paused&&!self.invalidated&&!self.textInputRequest&&!self.resizing;
+    self.view.window.userInteractionEnabled=!self.paused&&!self.invalidated&&!self.textInputRequest&&!self.resizing&&!self.rotationSnapshot;
     self.cropView.hidden=CGRectIsEmpty(crop);
-    self.cropView.frame=crop;
-    self.viewport.transform=CGAffineTransformIdentity;
-    self.viewport.bounds=CGRectMake(0,0,self.cssSize.width,self.cssSize.height);
-    self.webView.frame=self.viewport.bounds; self.dragPlane.frame=self.viewport.bounds;
-    self.viewport.center=CGPointMake(center.x-crop.origin.x,center.y-crop.origin.y);
-    self.viewport.transform=CGAffineTransformMakeRotation(angle);
+    if (!CGRectEqualToRect(self.cropView.frame,crop)) self.cropView.frame=crop;
+    CGRect bounds=CGRectMake(0,0,self.cssSize.width,self.cssSize.height);
+    if (!CGRectEqualToRect(self.viewport.bounds,bounds)) self.viewport.bounds=bounds;
+    if (!CGRectEqualToRect(self.webView.frame,bounds)) self.webView.frame=bounds;
+    self.dragPlane.frame=bounds;
+    CGPoint position=CGPointMake(center.x-crop.origin.x,center.y-crop.origin.y);
+    if (!CGPointEqualToPoint(self.viewport.center,position)) self.viewport.center=position;
+    CGAffineTransform transform=CGAffineTransformMakeRotation(angle);
+    if (!CGAffineTransformEqualToTransform(self.viewport.transform,transform)) self.viewport.transform=transform;
 }
 - (void)updateOrientation:(UIInterfaceOrientation)orientation {
     // Foreground game controllers keep UIKit's own bounds and rotation lifecycle.
     if (![self.role isEqual:@"pet"] || !(UIInterfaceOrientationIsPortrait(orientation)||UIInterfaceOrientationIsLandscape(orientation))) return;
     CGSize size=QPViewportSize(orientation);
     if (orientation==self.orientation && CGSizeEqualToSize(size,self.cssSize)) return;
+    NSUInteger generation=++self.resizeGeneration;
+    WKWebView *webView=self.webView;
+    BOOL coordinated=webView.URL && [webView respondsToSelector:@selector(_resizeWhileHidingContentWithUpdates:)] && [webView respondsToSelector:@selector(_setInterfaceOrientationOverride:)] && [webView respondsToSelector:@selector(_doAfterNextPresentationUpdate:)] && [webView respondsToSelector:@selector(_cancelAnimatedResize)];
+    if (coordinated) [self prepareRotationSnapshot]; else [self clearRotationSnapshot];
     QPResetCapturedTouches(); [self.pointerIDs removeAllObjects];
     [self emit:@"pointer" value:@{@"phase":@"cancel",@"id":@(-1),@"x":@0,@"y":@0}];
     self.orientation=orientation;
     self.cssSize=size;
     self.crop=CGRectMake(0,0,self.cssSize.width,self.cssSize.height);
     self.dragPlane.dragRegions=@[]; self.dragPlane.interactiveRegions=@[];
-    NSUInteger generation=++self.resizeGeneration;
-    WKWebView *webView=self.webView;
-    BOOL coordinated=webView.URL && [webView respondsToSelector:@selector(_resizeWhileHidingContentWithUpdates:)] && [webView respondsToSelector:@selector(_setInterfaceOrientationOverride:)] && [webView respondsToSelector:@selector(_doAfterNextPresentationUpdate:)] && [webView respondsToSelector:@selector(_cancelAnimatedResize)];
     self.resizing=coordinated;
+    __weak QPHostController *weakSelf=self;
+    // The full viewport and an inset modal have different centers. Animating
+    // this outer transform adds a false orbit as CSS refits the inner window.
     if (coordinated) {
         // New native bounds must not display the previous direction's fixed/CSS-
         // rotated panels. WK waits for its matching viewport commit, without
@@ -327,26 +400,24 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
             [webView _setInterfaceOrientationOverride:orientation];
             [self applyGeometry];
         }];
-        __weak QPHostController *weakSelf=self;
         void (^finish)(void)=^{
             QPHostController *host=weakSelf;
             if (!host || host.invalidated || generation!=host.resizeGeneration) return;
             host.resizing=NO; [host applyGeometry];
         };
-        [webView _doAfterNextPresentationUpdate:finish];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,3*NSEC_PER_SEC),dispatch_get_main_queue(),^{
             QPHostController *host=weakSelf;
-            if (!host || host.invalidated || generation!=host.resizeGeneration || !host.resizing) return;
+            if (!host || host.invalidated || generation!=host.resizeGeneration || (!host.resizing&&!host.rotationSnapshot)) return;
             // A suspended/terminated page must not leave input or WK's resize
             // container stuck. A later rotation's completion owns its own state.
-            [host.webView _cancelAnimatedResize]; finish();
+            [host clearRotationSnapshot]; [host.webView _cancelAnimatedResize]; finish();
         });
     } else [self applyGeometry];
     [self emit:@"safeArea" value:nil];
 }
-- (void)setManagerReservedRect:(CGRect)rect {
-    if (CGRectEqualToRect(rect,_managerReservedRect)) return;
-    _managerReservedRect=rect; [self applyGeometry];
+- (void)setManagerLayout:(NSDictionary *)layout {
+    if ([_managerLayout isEqual:layout] || (!_managerLayout&&!layout)) return;
+    _managerLayout=[layout copy]; self.managerLayoutRevision++; [self applyGeometry];
     [self emit:@"safeArea" value:nil];
 }
 - (void)viewDidLayoutSubviews { [super viewDidLayoutSubviews]; if ([self.role isEqual:@"game"]) { self.cropView.frame=self.view.bounds; self.viewport.frame=self.cropView.bounds; self.webView.frame=self.viewport.bounds; } }
@@ -363,6 +434,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 - (void)failRenderer:(NSString *)message reason:(NSString *)reason panic:(NSDictionary *)panic {
     if (self.rendererFailed||self.invalidated) return;
     self.rendererFailed=YES;
+    [self clearRotationSnapshot];
     // Isolation precedes the save barrier: a broken canvas or stale drag must
     // never leave a system-wide hit target while JavaScript is unresponsive.
     if ([self.role isEqual:@"pet"]) { self.view.window.hidden=YES; self.view.window.userInteractionEnabled=NO; }
@@ -499,14 +571,44 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
         self.dragPlane.dragRegions=[args[@"dragRegions"] isKindOfClass:NSArray.class]?args[@"dragRegions"]:@[];
         self.dragPlane.interactiveRegions=[args[@"interactiveRegions"] isKindOfClass:NSArray.class]?args[@"interactiveRegions"]:@[];
         [self applyGeometry];
+    } else if ([op isEqual:@"layoutReady"]) {
+        NSUInteger generation=[args[@"generation"] unsignedIntegerValue], revision=[args[@"revision"] unsignedIntegerValue];
+        NSDictionary *viewport=args[@"viewport"];
+        if (!self.resizing || generation!=self.resizeGeneration || revision!=self.managerLayoutRevision || fabs([viewport[@"width"] doubleValue]-self.cssSize.width)>.5 || fabs([viewport[@"height"] doubleValue]-self.cssSize.height)>.5) return;
+        // JS has fitted the matching safe area and sent its crop. Wait for that
+        // frame's presentation, rather than the first resize commit alone.
+        __weak QPHostController *weakHost=self;
+        [self.webView _doAfterNextPresentationUpdate:^{
+            QPHostController *host=weakHost;
+            if (!host || host.invalidated || generation!=host.resizeGeneration || revision!=host.managerLayoutRevision) return;
+            [host finishRotationPresentation:generation];
+        }];
     } else if ([op isEqual:@"safeArea"]) {
         UIEdgeInsets inset; CGFloat scale=1;
+        NSDictionary *viewport=args[@"viewport"];
         if ([self.role isEqual:@"game"]) {
             inset=self.webView.safeAreaInsets;
-            scale=[args[@"viewport"][@"width"] doubleValue]/MAX(1,self.webView.bounds.size.width);
+            scale=[viewport[@"width"] doubleValue]/MAX(1,self.webView.bounds.size.width);
         } else {
-            NSDictionary *safe=[self.state readJSON:@"safe-area.json"];
+            // Layouts and RPCs can cross in transit during a rotation. Never fit
+            // the new viewport with the old direction's navigation/safe area.
+            BOOL matching=fabs([viewport[@"width"] doubleValue]-self.cssSize.width)<=.5 && fabs([viewport[@"height"] doubleValue]-self.cssSize.height)<=.5;
+            if (!matching || (self.managerLayout&&![self managerLayoutMatchesViewport])) { reply(@{@"pending":@YES},nil); return; }
+            NSDictionary *layout=self.managerLayout ?: [self.state readJSON:@"manager.json"][@"layout"];
+            UIInterfaceOrientation source=(UIInterfaceOrientation)[layout[@"orientation"] integerValue];
+            if (layout) {
+                CGSize sourceSize=QPViewportSize(source);
+                if (!(UIInterfaceOrientationIsPortrait(source)||UIInterfaceOrientationIsLandscape(source)) ||
+                    !(fabs([layout[@"viewport"][@"width"] doubleValue]-sourceSize.width)<=.5 &&
+                    fabs([layout[@"viewport"][@"height"] doubleValue]-sourceSize.height)<=.5)) { reply(@{@"pending":@YES},nil); return; }
+            }
+            // A background manager cannot reserve its navigation bar. Reuse only
+            // its last screen insets, mapped from their recorded direction. This
+            // fallback cannot predict orientation-specific UIKit bar metrics.
+            // Legacy records have no direction metadata; keep their old behavior.
+            NSDictionary *safe=layout?layout[@"safeArea"]:[self.state readJSON:@"safe-area.json"];
             inset=UIEdgeInsetsMake([safe[@"top"] doubleValue],[safe[@"left"] doubleValue],[safe[@"bottom"] doubleValue],[safe[@"right"] doubleValue]);
+            if (layout&&!self.managerLayout) inset=QPRotateSafeArea(inset,source,self.orientation);
             // The HUD clips out the manager's navigation bar. Fit panels into
             // that same available area instead of clipping their controls.
             CGRect reserved=CGRectIntersection(self.viewport.bounds,[self.viewport convertRect:self.managerReservedRect fromView:self.view.window]);
@@ -520,7 +622,8 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
                 }
             }
         }
-        reply(@{@"left":@(inset.left*scale),@"top":@(inset.top*scale),@"right":@(inset.right*scale),@"bottom":@(inset.bottom*scale)},nil);
+        NSDictionary *committed=[self.role isEqual:@"pet"]?@{@"width":@(self.cssSize.width),@"height":@(self.cssSize.height)}:viewport;
+        reply(@{@"left":@(inset.left*scale),@"top":@(inset.top*scale),@"right":@(inset.right*scale),@"bottom":@(inset.bottom*scale),@"viewport":committed ?: @{},@"layoutGeneration":@(self.resizeGeneration),@"layoutRevision":@(self.managerLayoutRevision)},nil);
     } else if ([op isEqual:@"setFocusable"]) { if (![args[@"enabled"] boolValue]) [self.webView endEditing:YES]; else [self.view.window makeKeyAndVisible]; reply(nil,nil); }
     else if ([op isEqual:@"setAlwaysOnTop"]) { self.view.window.windowLevel=[args[@"enabled"] boolValue]?10000010:UIWindowLevelNormal; reply(nil,nil); }
     else if ([op isEqual:@"setAutoStart"]) reply(@{@"enabled":@NO,@"reason":@"iOS 版只支持从管理 App 手动启动，不安装后台守护程序。"},nil);
@@ -627,7 +730,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 }
 - (void)webContentTerminated:(WKWebView *)webView reason:(NSInteger)reason {
     if (self.invalidated||self.rendererFailed) return;
-    self.resizeGeneration++; self.resizing=NO;
+    self.resizeGeneration++; self.resizing=NO; [self clearRotationSnapshot];
     NSTimeInterval at=NSDate.date.timeIntervalSince1970;
     self.audioGeneration++; [self.audioOutput reset];
     [self cancelTextInput:nil page:self.currentPage];
@@ -645,7 +748,7 @@ static CGFloat QPOrientationAngle(UIInterfaceOrientation orientation) {
 - (BOOL)shouldAutorotate { return [self.role isEqual:@"game"]; }
 - (void)invalidate {
     [self cancelTextInput:nil page:nil];
-    self.invalidated=YES; [self.session invalidateAndCancel]; [self.network removeAllObjects]; [self.webView stopLoading];
+    self.invalidated=YES; self.resizeGeneration++; [self clearRotationSnapshot]; [self.session invalidateAndCancel]; [self.network removeAllObjects]; [self.webView stopLoading];
     [self.processPolicy invalidate];
     self.audioGeneration++; [self.audioOutput invalidate];
     [self.webView.configuration.userContentController removeScriptMessageHandlerForName:@"qqpetAudio"];

@@ -1,6 +1,7 @@
 #import "QPManagerController.h"
 #import "QPLauncher.h"
 #import <WebKit/WebKit.h>
+#import <notify.h>
 #import <unistd.h>
 #import "QPHostController.h"
 
@@ -41,7 +42,7 @@
 @property(nonatomic,copy) NSString *lastUI;
 @property(nonatomic,copy) NSString *message;
 @property(nonatomic,copy) NSString *exportDirectory;
-@property(nonatomic,strong) NSDictionary *lastSafeArea;
+@property(nonatomic,strong) NSDictionary *lastLayout;
 @end
 @implementation QPManagerController
 - (instancetype)initWithState:(QPState *)state { if ((self=[super initWithStyle:UITableViewStyleInsetGrouped])) _state=state; return self; }
@@ -56,6 +57,14 @@
 }
 - (void)returnToManager { [self command:@"managerHide" args:@{}]; }
 - (void)dealloc { [self.timer invalidate]; }
+- (void)viewDidLayoutSubviews { [super viewDidLayoutSubviews]; [self publishLayout]; }
+- (void)viewSafeAreaInsetsDidChange { [super viewSafeAreaInsetsDidChange]; [self publishLayout]; }
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    __weak QPManagerController *weakSelf=self;
+    [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context){ [weakSelf publishLayout]; }
+        completion:^(id<UIViewControllerTransitionCoordinatorContext> context){ [weakSelf publishLayout]; }];
+}
 - (void)alert:(NSString *)message {
     self.message=message; [self.tableView reloadData];
     if (self.presentedViewController) return;
@@ -112,24 +121,36 @@
         [self.tableView reloadData];
     }
 }
+- (void)publishLayout {
+    UIWindow *window=self.view.window;
+    if (UIApplication.sharedApplication.applicationState!=UIApplicationStateActive || !window) return;
+    // This App also uses UIKit's legacy window lifecycle on iOS 14.
+    UIInterfaceOrientation orientation=window.windowScene?window.windowScene.interfaceOrientation:UIApplication.sharedApplication.statusBarOrientation;
+    CGSize size=window.bounds.size;
+    if (!(UIInterfaceOrientationIsPortrait(orientation)||UIInterfaceOrientationIsLandscape(orientation)) || size.width<=0 || size.height<=0 || size.width==size.height || UIInterfaceOrientationIsLandscape(orientation)!=(size.width>size.height)) return;
+    UIEdgeInsets inset=window.safeAreaInsets;
+    NSDictionary *safe=@{@"left":@(inset.left),@"top":@(inset.top),@"right":@(inset.right),@"bottom":@(inset.bottom)};
+    CGRect nav=[self.navigationController.navigationBar convertRect:self.navigationController.navigationBar.bounds toCoordinateSpace:UIScreen.mainScreen.fixedCoordinateSpace];
+    if (nav.size.width>nav.size.height) { nav.size.height=CGRectGetMaxY(nav); nav.origin.y=0; }
+    NSDictionary *reserved=@{@"x":@(nav.origin.x),@"y":@(nav.origin.y),@"width":@(nav.size.width),@"height":@(nav.size.height)};
+    // Publish the viewport, insets and navigation exclusion together. The HUD
+    // must not fit a new direction using the previous direction's safe area.
+    NSDictionary *layout=@{@"orientation":@(orientation),@"viewport":@{@"width":@(size.width),@"height":@(size.height)},@"safeArea":safe,@"reserved":reserved};
+    BOOL changed=![layout isEqual:self.lastLayout];
+    // Keep the mirror for an older HUD while manager.json owns the snapshot.
+    if (changed && ![self.state writeJSON:safe name:@"safe-area.json" error:NULL]) return;
+    if (![self.state writeJSON:@{@"active":@YES,@"pid":@(getpid()),@"updatedAt":@(NSDate.date.timeIntervalSince1970),@"reserved":reserved,@"layout":layout} name:@"manager.json" error:NULL]) return;
+    if (changed) {
+        self.lastLayout=layout;
+        NSDictionary *status=[self.state readJSON:@"hud.json"];
+        if (QPProcessAlive(status)) [self.state enqueueCommand:@{@"op":@"safeArea"} instance:status[@"instance"] error:NULL];
+        notify_post("net.ankio.qqpet.manager-layout");
+    }
+}
 - (void)poll {
     NSDictionary *status=[self.state readJSON:@"hud.json"];
     if (![status isEqual:self.status]) { self.status=status; [self.tableView reloadData]; }
-    // Orientation/resize can reach the HUD before UIKit settles these measurements.
-    // Publish again when they change, so the page does not retain the previous direction's insets.
-    if (UIApplication.sharedApplication.applicationState==UIApplicationStateActive && self.view.window) {
-        UIEdgeInsets inset=self.view.window.safeAreaInsets;
-        NSDictionary *safe=@{@"left":@(inset.left),@"top":@(inset.top),@"right":@(inset.right),@"bottom":@(inset.bottom)};
-        if (![safe isEqual:self.lastSafeArea] && [self.state writeJSON:safe name:@"safe-area.json" error:NULL]) {
-            self.lastSafeArea=safe;
-            if (QPProcessAlive(status)) [self.state enqueueCommand:@{@"op":@"safeArea"} instance:status[@"instance"] error:NULL];
-        }
-    }
-    if (UIApplication.sharedApplication.applicationState==UIApplicationStateActive) {
-        CGRect nav=[self.navigationController.navigationBar convertRect:self.navigationController.navigationBar.bounds toCoordinateSpace:UIScreen.mainScreen.fixedCoordinateSpace];
-        if (nav.size.width>nav.size.height) { nav.size.height=CGRectGetMaxY(nav); nav.origin.y=0; }
-        [self.state writeJSON:@{@"active":@YES,@"pid":@(getpid()),@"updatedAt":@(NSDate.date.timeIntervalSince1970),@"reserved":@{@"x":@(nav.origin.x),@"y":@(nav.origin.y),@"width":@(nav.size.width),@"height":@(nav.size.height)}} name:@"manager.json" error:NULL];
-    }
+    [self publishLayout];
     NSDictionary *request=[self.state readJSON:@"ui-request.json"];
     if (self.pendingUI) {
         if (![request[@"instance"] isEqual:self.pendingUI[@"instance"]] || ![request[@"requestId"] isEqual:self.pendingUI[@"requestId"]] || !QPProcessAlive(status)) {

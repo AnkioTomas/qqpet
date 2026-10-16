@@ -23,7 +23,11 @@ interface Bootstrap {
   capabilities?: NonNullable<QQPetApi['capabilities']>
 }
 interface HTTPReply { status: number; body: string; headers?: Record<string, string> }
-interface Insets { left: number; top: number; right: number; bottom: number }
+interface Insets {
+  left: number; top: number; right: number; bottom: number
+  viewport?: { width: number; height: number }; pending?: boolean
+  layoutGeneration?: number; layoutRevision?: number
+}
 interface Events {
   cursor: Point
   trayClick: TrayClick
@@ -269,11 +273,23 @@ async function safeArea(): Promise<void> {
   const viewport = { width: innerWidth, height: innerHeight }
   try {
     const insets = await rpc.request<Insets>('safeArea', { viewport }, { timeout: 15_000 })
-    if (request !== safeAreaRequest || !insets) return
+    if (request !== safeAreaRequest || !insets || insets.pending || viewport.width !== innerWidth || viewport.height !== innerHeight) return
+    // Older hosts omit viewport; newer hosts only publish a layout snapshot
+    // matching the requested direction, never another stage of a WK resize.
+    if (insets.viewport && (insets.viewport.width !== viewport.width || insets.viewport.height !== viewport.height)) return
     for (const side of ['left', 'top', 'right', 'bottom'] as const) {
       const value = insets[side]
       if (typeof value === 'number' && Number.isFinite(value) && value >= 0)
         document.documentElement.style.setProperty(`--safe-${side}`, `${value}px`)
+    }
+    if (Number.isInteger(insets.layoutGeneration) && Number.isInteger(insets.layoutRevision)) {
+      // Let inset observers refit panels and the next geometry frame publish
+      // before the native host accepts touches in this rotation. Do not block boot.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (request !== safeAreaRequest || viewport.width !== innerWidth || viewport.height !== innerHeight) return
+        try { rpc.notify('layoutReady', { viewport, generation: insets.layoutGeneration, revision: insets.layoutRevision }) }
+        catch (error) { reportError('layoutReady', error) }
+      }))
     }
   } catch (error) { reportError('safeArea', error) }
 }
@@ -461,9 +477,23 @@ const ready: Promise<void> = rpc.request<Bootstrap>('bootstrap', { role }).then(
 window.__qqpetReady = ready
 const stopTextInput = gamePage ? () => {} : installTextInput(rpc, flushRenderer, (error) => reportError('editText', error))
 void ready.catch((error) => reportError('bootstrap', error))
+let safeAreaRootWidth = document.documentElement.clientWidth
+let safeAreaRootHeight = document.documentElement.clientHeight
+const safeAreaObserver = new ResizeObserver(() => {
+  const { clientWidth: width, clientHeight: height } = document.documentElement
+  // Applying insets can deliver another observer notification without a new
+  // viewport. Only actual root size changes need another native snapshot.
+  if (width === safeAreaRootWidth && height === safeAreaRootHeight) return
+  safeAreaRootWidth = width
+  safeAreaRootHeight = height
+  void safeArea()
+})
+safeAreaObserver.observe(document.documentElement)
 addEventListener('resize', () => void safeArea())
 for (const type of ['pointerdown', 'pointermove'] as const) document.addEventListener(type, (event) => emit('cursor', { x: event.clientX, y: event.clientY }), true)
 addEventListener('pagehide', () => {
+  safeAreaObserver.disconnect()
+  safeAreaRequest++
   stopTextInput()
   geometry?.stop()
   // Farm and the batched patch settle synchronously before the renderer barrier's first await.
