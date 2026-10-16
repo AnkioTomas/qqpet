@@ -105,6 +105,8 @@ export interface Settings {
   hd: boolean
   /** Desktop page zoom, 1 to 2: the pet and every panel grow together. */
   zoom: number
+  /** Phone panels: maximise their size automatically, or follow the screen's direction. */
+  windowDirection: 'auto' | 'screen'
   /** The pet reads out text copied to the clipboard. */
   clip: boolean
   /** After the same desktop app stays in front for a while, idle talk may mention it. Off by default. */
