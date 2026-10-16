@@ -4,7 +4,7 @@ import { buried, startSave } from '../../src/shared/save-logic.ts'
 
 const copy = save => JSON.parse(JSON.stringify(save))
 
-test('new and older saves keep the automatic phone window direction', () => {
+test('new and older saves keep the automatic window direction', () => {
   const fresh = startSave(null)
   assert.equal(fresh.settings.windowDirection, 'auto')
   for (const havePet of [false, true]) {

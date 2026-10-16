@@ -105,7 +105,7 @@ export interface Settings {
   hd: boolean
   /** Desktop page zoom, 1 to 2: the pet and every panel grow together. */
   zoom: number
-  /** Phone panels: maximise their size automatically, or follow the screen's direction. */
+  /** Narrow rotatable screens: maximise panel size automatically, or follow the screen's direction. */
   windowDirection: 'auto' | 'screen'
   /** The pet reads out text copied to the clipboard. */
   clip: boolean

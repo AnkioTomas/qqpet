@@ -1,5 +1,7 @@
 import { info, onSettingsChange, save } from '../pet/store'
+import { WINDOW_MARGIN } from '../../shared/window-direction'
 import { div, touch } from './dom'
+import { windowDirectionAvailable } from './viewport'
 
 const SKINS = {
   normal: { head: ['normal/beijing1.bmp', 'normal/beijing2.bmp', 'normal/beijing3.bmp'], foot: ['normal/beijing6.bmp', 'normal/beijing7.bmp', 'normal/beijing8.bmp'] },
@@ -21,9 +23,6 @@ function row(cls: string, imgs: string[], extra?: HTMLElement): HTMLElement {
   return r
 }
 
-/** Space kept between a frame shrunk to fit and the screen edges. */
-const MARGIN = 16
-
 /** The system bars along one screen edge, set by the Android bridge; none on the desktop. */
 const inset = (side: string): number => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--safe-${side}`)) || 0
 
@@ -37,8 +36,8 @@ const scrolls = (el: HTMLElement): boolean =>
  * dragged unless the press starts in an input or inside `keep` (content that needs
  * its own mouse input, e.g. a SWF). No pointer capture: it would retarget clicks on buttons inside the frame.
  *
- * On touch screens it opens over a backdrop, turned a quarter when that shrinks it
- * less, unless a phone's window preference keeps it facing the screen direction.
+ * On touch screens it opens over a backdrop. Narrow rotatable screens can turn
+ * it a quarter when that shrinks it less, unless the preference follows the screen.
  */
 function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   const root = touch ? div('modal', frame) : frame
@@ -69,16 +68,15 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
     const h = frame.offsetHeight
     const [left, top, right, bottom] = ['left', 'top', 'right', 'bottom'].map(inset)
     const viewport = document.documentElement
-    const room = { w: viewport.clientWidth - left - right - MARGIN, h: viewport.clientHeight - top - bottom - MARGIN }
+    const room = { w: viewport.clientWidth - left - right - WINDOW_MARGIN, h: viewport.clientHeight - top - bottom - WINDOW_MARGIN }
     // Never above 1: the page's own scale sizes windows for the screen, and blowing one up breaks its proportions to the rest.
     flat = Math.min(1, room.w / w, room.h / h)
     const turned = Math.min(1, room.w / h, room.h / w)
     cx = (left - right) / 2
     cy = (top - bottom) / 2
-    // Only hosts with a native phone classification opt into this preference.
-    // Tablets and unknown device kinds keep their existing window layout.
-    const followScreen = window.qqpet.deviceKind === 'phone' && save.settings.windowDirection === 'screen'
-    const nextSpin = touch && !followScreen && turned > flat ? turned : 0
+    // A saved preference only applies on screens that need the choice. Wide or
+    // fixed screens always follow their orientation, independently of device kind.
+    const nextSpin = windowDirectionAvailable() && save.settings.windowDirection === 'auto' && turned > flat ? turned : 0
     if (Boolean(nextSpin) !== Boolean(spin)) cancelPan?.()
     spin = nextSpin
     fit = spin ? `rotate(90deg) scale(${spin})` : `scale(${flat})`
@@ -98,7 +96,8 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   insetObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
   // Browsers don't pan a scroller turned by a transform: pan it by hand, turning the finger's path back.
   frame.addEventListener('pointerdown', (e) => {
-    if (!touch || cancelPan) return
+    // A phone can report a fine primary pointer while an external mouse is connected.
+    if ((!touch && e.pointerType !== 'touch') || cancelPan) return
     let el = e.target as HTMLElement | null
     while (el && el !== frame && !scrolls(el)) el = el.parentElement
     if (!el || el === frame) return
@@ -145,7 +144,7 @@ function show(frame: HTMLElement, keep?: HTMLElement): () => void {
   addEventListener('resize', scheduleRefit)
   window.visualViewport?.addEventListener('resize', scheduleRefit)
   frame.addEventListener('pointerdown', (e) => {
-    if (touch || e.button !== 0 || keep?.contains(e.target as Node) || e.target instanceof HTMLInputElement) return
+    if (touch || e.pointerType === 'touch' || e.button !== 0 || keep?.contains(e.target as Node) || e.target instanceof HTMLInputElement) return
     const sx = e.clientX - dx
     const sy = e.clientY - dy
     const move = (m: PointerEvent): void => {

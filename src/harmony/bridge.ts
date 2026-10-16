@@ -213,6 +213,7 @@ listeners.outside.push(() => {
 })
 
 const api: QQPetApi = {
+  capabilities: { rotatableScreen: true },
   load: async () => cloneJson(save),
   save(patch) {
     if (leaving) return

@@ -51,6 +51,7 @@ declare global {
 const gamePage = location.pathname.endsWith('/game.html')
 const role = gamePage ? 'game' : 'pet'
 const capabilities: NonNullable<QQPetApi['capabilities']> = {
+  rotatableScreen: true,
   autoStart: false,
   autoStartReason: '此 iOS 版本通过图标手动启动宠物，不安装开机自启服务。',
   clipboardWatch: false,

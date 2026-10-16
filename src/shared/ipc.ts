@@ -181,7 +181,13 @@ export interface QQPetApi {
   /** Optional native device idiom; absent preserves the existing platform layout. */
   deviceKind?: DeviceKind
   /** Optional platform constraints; omitted means the established platform behavior is available. */
-  capabilities?: { autoStart?: boolean; autoStartReason?: string; clipboardWatch?: boolean; clipboardWatchReason?: string; frontWatch?: boolean; frontWatchReason?: string }
+  capabilities?: {
+    /** This host adapts to screen rotation; omitted means windows always follow the screen. */
+    rotatableScreen?: boolean
+    autoStart?: boolean; autoStartReason?: string
+    clipboardWatch?: boolean; clipboardWatchReason?: string
+    frontWatch?: boolean; frontWatchReason?: string
+  }
   load(): Promise<SaveData>
   /** Merges object groups field by field, replaces other keys, then persists. */
   save(patch: SavePatch): void

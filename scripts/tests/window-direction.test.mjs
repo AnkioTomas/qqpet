@@ -4,6 +4,7 @@ import { stripTypeScriptTypes } from 'node:module'
 import test from 'node:test'
 import { runInNewContext } from 'node:vm'
 import { startSave } from '../../src/shared/save-logic.ts'
+import { canChooseWindowDirection, WINDOW_MARGIN } from '../../src/shared/window-direction.ts'
 
 const source = path => readFileSync(new URL(path, import.meta.url), 'utf8')
 const executable = text => stripTypeScriptTypes(text).replace(/^import .*$/gm, '').replace(/^export /gm, '')
@@ -38,19 +39,20 @@ class Element extends Events {
   }
 }
 
-function fixture(deviceKind = 'phone', touch = true, direction = 'auto') {
+function fixture({ rotatable = true, width = 375, height = 812, touch = true, direction = 'auto', deviceKind } = {}) {
   const frames = new Map(), timers = new Map(), observers = new Set()
   let nextFrame = 0, nextTimer = 0
   const window = new Events(), document = new Events()
   const body = new Element('body'), viewport = new Element('html')
   body.connect(true)
-  Object.assign(viewport, { clientWidth: 375, clientHeight: 812 })
+  Object.assign(viewport, { clientWidth: width, clientHeight: height })
   Object.assign(document, { body, documentElement: viewport })
   const initialSave = startSave(null)
   initialSave.settings.windowDirection = direction
   Object.assign(window, {
     __qqpetInitialSave: initialSave, visualViewport: new Events(),
-    qqpet: { deviceKind, save() {} },
+    qqpet: { deviceKind, capabilities: { rotatableScreen: rotatable }, save() {} },
+    screen: { width, height }, devicePixelRatio: 3,
     setTimeout: callback => { timers.set(++nextTimer, callback); return nextTimer },
     clearTimeout: id => timers.delete(id),
   })
@@ -85,16 +87,27 @@ function fixture(deviceKind = 'phone', touch = true, direction = 'auto') {
   }
   // Load the real store entry without unrelated pet startup side effects.
   const store = runInNewContext(executable(storeSource.slice(0, storeBoundary)) + '\n({ save, info, update, onSettingsChange })', services)
-  const show = runInNewContext(executable(source('../../src/renderer/ui/box.ts')) + '\nshow', { ...services, ...store })
+  const { windowDirectionAvailable } = runInNewContext(executable(source('../../src/renderer/ui/viewport.ts')) + ';\n({ windowDirectionAvailable })', { ...services, canChooseWindowDirection })
+  const show = runInNewContext(executable(source('../../src/renderer/ui/box.ts')) + '\nshow', { ...services, ...store, windowDirectionAvailable, WINDOW_MARGIN })
   const close = show(frame)
   const tick = () => { const pending = [...frames.values()]; frames.clear(); for (const callback of pending) callback() }
-  const down = () => frame.emit('pointerdown', { target: list, pointerId: 7, clientX: 10, clientY: 10 })
-  return { ...store, frame, list, document, window, frames, observers, close, tick, down }
+  const down = () => frame.emit('pointerdown', { target: list, pointerType: 'touch', button: 0, pointerId: 7, clientX: 10, clientY: 10 })
+  return { ...store, frame, list, document, window, viewport, frames, observers, close, tick, down, windowDirectionAvailable }
 }
+
+test('the direction choice requires a narrow rotatable logical screen, independently of orientation', () => {
+  for (const [width, height] of [[375, 812], [812, 375], [768, 1024], [844, 1200]]) {
+    assert.equal(canChooseWindowDirection(true, width, height), true)
+    assert.equal(canChooseWindowDirection(false, width, height), false)
+  }
+  for (const [width, height] of [[845, 1200], [1200, 845], [1024, 1366], [400, 400], [0, 812], [-1, 812], [NaN, 812], [375, Infinity]]) {
+    assert.equal(canChooseWindowDirection(true, width, height), false)
+  }
+})
 
 test('a newly opened window is fitted before the first observer animation frame', () => {
   for (const direction of ['auto', 'screen']) {
-    const f = fixture('phone', true, direction)
+    const f = fixture({ direction })
     const initial = f.frame.style.transform
     assert.equal(initial.includes('rotate(90deg)'), direction === 'auto')
     const scale = Number(initial.match(/scale\(([^)]+)\)/)[1])
@@ -105,7 +118,7 @@ test('a newly opened window is fitted before the first observer animation frame'
   }
 })
 
-test('phone direction changes refit an open window without a viewport resize', () => {
+test('direction changes refit an open window without a viewport resize or device classification', () => {
   const f = fixture()
   assert.equal(f.save.settings.windowDirection, 'auto')
   f.tick()
@@ -124,19 +137,74 @@ test('phone direction changes refit an open window without a viewport resize', (
   f.close()
 })
 
-test('tablets, unknown devices and desktop pointers preserve their existing layout', () => {
+test('narrow rotatable hosts support the preference regardless of device kind or pointer', () => {
   for (const [deviceKind, touch] of [['tablet', true], [undefined, true], ['other', true], ['other', false], ['phone', false]]) {
-    // Passing undefined explicitly exercises the bridge without a device classification.
-    const f = fixture(deviceKind, touch)
-    f.window.qqpet.deviceKind = deviceKind
+    const f = fixture({ deviceKind, touch })
     f.tick()
-    const before = f.frame.style.transform
-    assert.equal(before.includes('rotate(90deg)'), touch)
+    assert.match(f.frame.style.transform, /rotate\(90deg\)/)
     f.update('settings', { windowDirection: 'screen' })
     f.tick()
-    assert.equal(f.frame.style.transform, before, `${String(deviceKind)} / touch=${touch}`)
+    assert.doesNotMatch(f.frame.style.transform, /rotate/, `${String(deviceKind)} / touch=${touch}`)
     f.close()
   }
+})
+
+test('wide and fixed screens always follow their orientation, including scaled mobile viewports', () => {
+  for (const screen of [{ width: 1024, height: 1366 }, { rotatable: false }, { rotatable: undefined }]) {
+    const f = fixture(screen)
+    if (screen.rotatable === undefined && !screen.width) delete f.window.qqpet.capabilities
+    // Android/Harmony can keep a 480px page short side on a much wider logical screen.
+    Object.assign(f.viewport, { clientWidth: 480, clientHeight: 800 })
+    Object.assign(f.frame, { offsetWidth: 829, offsetHeight: 600 })
+    f.window.emit('resize')
+    f.tick()
+    assert.equal(f.windowDirectionAvailable(), false)
+    assert.doesNotMatch(f.frame.style.transform, /rotate/)
+    f.update('settings', { windowDirection: 'screen' })
+    f.tick()
+    assert.doesNotMatch(f.frame.style.transform, /rotate/)
+    f.close()
+  }
+})
+
+test('screen changes use the current eligibility without overwriting the saved preference', () => {
+  const f = fixture()
+  assert.equal(f.windowDirectionAvailable(), true, 'DPR does not turn a narrow high-density screen into a wide one')
+  Object.assign(f.window.screen, { width: 1024, height: 1366 })
+  f.window.emit('resize')
+  f.tick()
+  assert.equal(f.windowDirectionAvailable(), false)
+  assert.doesNotMatch(f.frame.style.transform, /rotate/)
+  assert.equal(f.save.settings.windowDirection, 'auto')
+  Object.assign(f.window.screen, { width: 812, height: 375 })
+  f.window.emit('resize')
+  f.tick()
+  assert.equal(f.windowDirectionAvailable(), true)
+  assert.match(f.frame.style.transform, /rotate\(90deg\)/)
+  f.close()
+})
+
+test('keyboard-sized viewport changes do not hide the direction choice', () => {
+  const f = fixture()
+  Object.assign(f.viewport, { clientWidth: 375, clientHeight: 300 })
+  f.window.emit('resize')
+  f.tick()
+  assert.equal(f.windowDirectionAvailable(), true)
+  f.close()
+})
+
+test('a finger still pans the rotated list when the primary pointer is fine', () => {
+  const f = fixture({ touch: false })
+  f.tick()
+  const transform = f.frame.style.transform
+  f.down()
+  assert.equal(f.document.count('pointermove'), 1, 'a finger must not start the mouse window drag too')
+  f.document.emit('pointermove', { pointerId: 7, clientX: 30, clientY: 10 })
+  assert.ok(f.list.scrollTop > 0)
+  assert.equal(f.frame.style.transform, transform, 'scrolling does not move the whole window')
+  f.document.emit('pointercancel', { pointerId: 7 })
+  assert.equal(f.document.count('pointermove'), 0)
+  f.close()
 })
 
 test('direction changes cancel the previous pan before using the new axes', () => {

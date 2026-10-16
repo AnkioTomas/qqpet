@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -306,6 +307,14 @@ class PetService : Service() {
 
     /** window.QQPetNative; see the Native interface in src/android/bridge.ts. Called on a WebView thread. */
     private inner class Bridge {
+        @JavascriptInterface
+        fun rotatableScreen(): Boolean {
+            val portrait = packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT)
+            val landscape = packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE)
+            // Android's compatibility rule also allows both when neither feature is declared.
+            return portrait == landscape
+        }
+
         @JavascriptInterface
         fun read(name: String): String? = File(filesDir, name).takeIf { it.exists() }?.readText()
 
