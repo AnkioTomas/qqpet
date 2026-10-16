@@ -196,6 +196,7 @@ static UIEdgeInsets QPRotateSafeArea(UIEdgeInsets inset, UIInterfaceOrientation 
     self.viewport=[[UIView alloc] initWithFrame:CGRectMake(0,0,self.cssSize.width,self.cssSize.height)];
     [self.cropView addSubview:self.viewport];
     WKWebViewConfiguration *config=[WKWebViewConfiguration new];
+    // Keep newer iOS on its default renderer; extend only after confirming the same empty-buffer failure.
     if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion==16 && [self.role isEqual:@"pet"])
         self.renderingPolicy=QPConfigureRendering(config.preferences);
     config.allowsInlineMediaPlayback=YES; config.mediaTypesRequiringUserActionForPlayback=WKAudiovisualMediaTypeNone;
