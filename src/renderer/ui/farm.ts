@@ -91,6 +91,7 @@ export function openFarm(): void {
     button('fcc wsnw act', all('care'), '一键照料'),
     button('fcc wsnw act', all('clear'), '一键铲除'),
     button('fcc wsnw act', all('plant'), '一键播种'),
+    button('fcc wsnw act', async () => void (await player.callback('farmView'))(), '全景/原尺寸'),
   )
   window.qqpet.setFocusable(true)
   openBox(div('ui-farm', host, actions), {

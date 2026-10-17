@@ -11,6 +11,7 @@ package com.MyFarm.view
    import flash.display.Sprite;
    import flash.display.Stage;
    import flash.events.TimerEvent;
+   import flash.geom.Rectangle;
    import flash.net.SharedObject;
    import flash.system.ApplicationDomain;
    import flash.utils.Timer;
@@ -122,10 +123,11 @@ package com.MyFarm.view
             "contenttext":"存放已购买的种子!"
          });
          _tools.addChild(_loc5_);
-         _loc7_ = createClip("PackBarBg");
+         _loc7_ = new Sprite();
          _loc7_.name = "PackBarBg";
-         _loc7_.x = (_loc2_.width - _loc7_.width) / 2;
-         _loc7_.y = -10 - _loc7_.height;
+         var packBackground:Sprite = createClip("PackBarBg");
+         packBackground.name = "background";
+         _loc7_.addChild(packBackground);
          _tools.addChild(_loc7_);
          showBurden();
          _loc7_.visible = false;
@@ -174,7 +176,8 @@ package com.MyFarm.view
             "contenttext":"用于收获果实(R)!"
          });
          _tools.addChild(_loc16_);
-         _tools.x = (_stage.stageWidth - _tools.width) / 2;
+         // Hidden children still contribute to Sprite.width. Only the fixed bar determines its centre.
+         _tools.x = (_stage.stageWidth - _loc2_.width) / 2;
          _tools.y = _stage.stageHeight - _loc2_.height - 10;
       }
       
@@ -197,9 +200,46 @@ package com.MyFarm.view
          installToolsBar();
          installHead();
          theWeather();
+         fitFarm();
          tick();
          ticker.addEventListener(TimerEvent.TIMER,tick);
          ticker.start();
+      }
+
+      /** Fit every plot below the header and above the fixed tools, including room for tall crops. */
+      public function fitFarm() : void
+      {
+         var bounds:Rectangle = null;
+         for each(var plot:DisplayObject in _farmland_array)
+         {
+            bounds = bounds == null ? plot.getBounds(_bg) : bounds.union(plot.getBounds(_bg));
+         }
+         if(bounds == null)
+         {
+            return;
+         }
+         bounds.inflate(12,45);
+         var room:Rectangle = new Rectangle(10,80,_stage.stageWidth - 20,_tools.y - 100);
+         var zoom:Number = Math.min(1,room.width / bounds.width,room.height / bounds.height);
+         _bg.scaleX = _bg.scaleY = zoom;
+         _bg.x = room.x + (room.width - bounds.width * zoom) / 2 - bounds.x * zoom;
+         _bg.y = room.bottom - bounds.bottom * zoom;
+         // Keep the scenery covering the stage when the camera zooms out.
+         _beijing.width = Math.max(_beijing.width,(_stage.stageWidth - _bg.x) / zoom - _beijing.x);
+         _beijing.height = Math.max(_beijing.height,(_stage.stageHeight - _bg.y) / zoom - _beijing.y);
+      }
+
+      public function toggleFarmView() : void
+      {
+         if(_bg.scaleX < 1)
+         {
+            _bg.scaleX = _bg.scaleY = 1;
+            _bg.x = _bg.y = 0;
+         }
+         else
+         {
+            fitFarm();
+         }
       }
       
       public function reclaimedWasteland() : void
@@ -337,6 +377,9 @@ package com.MyFarm.view
       
       public function showBurden() : void
       {
+         var gap:Number = 6;
+         var itemSize:Number = createClip("ItemBg").width;
+         var columns:uint = Math.max(1,Math.min(_user.burden.length,int((_stage.stageWidth - 20 - gap) / (itemSize + gap))));
          var _loc1_:Array = null;
          var _loc2_:Sprite = null;
          var _loc3_:Sprite = null;
@@ -351,6 +394,11 @@ package com.MyFarm.view
          }
          _loc3_ = new Sprite();
          _loc3_.name = "container";
+         var background:DisplayObject = _loc2_.getChildByName("background");
+         background.width = Math.max(_tools.getChildByName("ToolBarBg").width,columns * (itemSize + gap) + gap);
+         background.height = Math.max(1,Math.ceil(_loc1_.length / columns)) * (itemSize + gap) + gap;
+         _loc2_.x = (_tools.getChildByName("ToolBarBg").width - background.width) / 2;
+         _loc2_.y = -10 - background.height;
          while(_loc4_ < _loc1_.length)
          {
             _loc5_ = createClip("ItemBg");
@@ -360,8 +408,10 @@ package com.MyFarm.view
             _loc5_.name = _loc1_[_loc4_].Items;
             _loc6_.x = (_loc5_.width - _loc6_.width) / 2;
             _loc6_.y = (_loc5_.height - _loc6_.height) / 2;
-            _loc5_.x = (_loc2_.height - _loc5_.height) / 2 + (_loc5_.width + (_loc2_.height - _loc5_.height) / 2) * _loc4_;
-            _loc5_.y = (_loc2_.height - _loc5_.height) / 2;
+            _loc5_.x = gap + _loc4_ % columns * (itemSize + gap);
+            _loc5_.y = gap + int(_loc4_ / columns) * (itemSize + gap);
+            _loc5_.mouseChildren = false;
+            _loc5_.buttonMode = true;
             _loc5_.txt.text = _loc1_[_loc4_].number;
             _loc5_.txt.mouseEnabled = false;
             _loc3_.addChild(_loc5_);

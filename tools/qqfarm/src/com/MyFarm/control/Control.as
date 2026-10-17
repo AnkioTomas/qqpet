@@ -4,6 +4,7 @@ package com.MyFarm.control
    import com._public._util.DragTools;
    import flash.events.Event;
    import flash.events.MouseEvent;
+   import flash.external.ExternalInterface;
    import flash.geom.Rectangle;
    import flash.ui.Mouse;
    
@@ -55,6 +56,10 @@ package com.MyFarm.control
             toolsBarControl = new ToolsBarControl();
             titleControl = new TitleControl();
             dragTools = new DragTools(face._bg,{"methods":"bitmap"});
+            if(ExternalInterface.available)
+            {
+               ExternalInterface.addCallback("farmView",face.toggleFarmView);
+            }
          }
       }
       
@@ -98,7 +103,10 @@ package com.MyFarm.control
          }
          startX = face._stage.mouseX;
          startY = face._stage.mouseY;
-         rectangle = new Rectangle(0,0,face._stage.stageWidth - face._bg.width + 40,face._stage.stageHeight - face._bg.height + 10);
+         var bounds:Rectangle = face._bg.getBounds(face._bg);
+         var left:Number = Math.min(0,face._stage.stageWidth - bounds.right * face._bg.scaleX);
+         var top:Number = Math.min(0,face._stage.stageHeight - bounds.bottom * face._bg.scaleY);
+         rectangle = new Rectangle(left,top,Math.max(0,-bounds.x * face._bg.scaleX - left),Math.max(0,-bounds.y * face._bg.scaleY - top));
          face._stage.addEventListener(MouseEvent.MOUSE_MOVE,onMove);
          face._stage.addEventListener(MouseEvent.MOUSE_UP,mouseUpHandler);
       }

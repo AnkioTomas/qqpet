@@ -1,6 +1,7 @@
 package com.MyFarm.control
 {
    import com.MyFarm.view.InstallFace;
+   import flash.display.DisplayObject;
    import flash.events.KeyboardEvent;
    import flash.events.MouseEvent;
    import flash.ui.Mouse;
@@ -15,23 +16,18 @@ package com.MyFarm.control
          super();
          face._tools.addEventListener(MouseEvent.MOUSE_UP,toolsSelected);
          face._stage.addEventListener(KeyboardEvent.KEY_UP,keyUpHandler);
-         face._tools.addEventListener(MouseEvent.MOUSE_OVER,toolsOverHandler);
+         face._tools.addEventListener(MouseEvent.ROLL_OVER,toolsOverHandler);
+         face._tools.addEventListener(MouseEvent.ROLL_OUT,toolsOutHandler);
+         face._stage.addEventListener(MouseEvent.MOUSE_DOWN,clickHandler);
       }
       
       private function clickHandler(param1:MouseEvent) : void
       {
-         face._tools.getChildByName("PackBarBg").visible = false;
-         face._bg.removeEventListener(MouseEvent.CLICK,clickHandler);
-         face._tools.getChildByName("PackBarBg").removeEventListener(MouseEvent.ROLL_OUT,mouseOutHandler);
-         face._tools.getChildByName("PackBarBg").removeEventListener(MouseEvent.ROLL_OVER,mouseOverHandler);
-      }
-      
-      private function mouseOutHandler(param1:MouseEvent) : void
-      {
-         face._tools.getChildByName("PackBarBg").visible = false;
-         face._bg.removeEventListener(MouseEvent.CLICK,clickHandler);
-         face._tools.getChildByName("PackBarBg").removeEventListener(MouseEvent.ROLL_OUT,mouseOutHandler);
-         face._tools.getChildByName("PackBarBg").removeEventListener(MouseEvent.ROLL_OVER,mouseOverHandler);
+         // Crossing the gap or moving over nested item artwork must not dismiss the pack.
+         if(!face._tools.contains(param1.target as DisplayObject))
+         {
+            face._tools.getChildByName("PackBarBg").visible = false;
+         }
       }
       
       private function keyUpHandler(param1:KeyboardEvent) : void
@@ -54,11 +50,6 @@ package com.MyFarm.control
          }
       }
       
-      private function mouseOverHandler(param1:MouseEvent) : void
-      {
-         face._tools.getChildByName("PackBarBg").addEventListener(MouseEvent.ROLL_OUT,mouseOutHandler);
-      }
-      
       private function toolsSelected(param1:MouseEvent) : void
       {
          if(param1.target.name == "CursorArrow" || param1.target.name == "CursorHand" || param1.target.name == "CursorHook" || param1.target.name == "CursorPesticide" || param1.target.name == "CursorWater" || param1.target.name == "CursorHoe")
@@ -69,9 +60,7 @@ package com.MyFarm.control
          {
             if(!face._tools.getChildByName("PackBarBg").visible)
             {
-               face._bg.addEventListener(MouseEvent.CLICK,clickHandler);
                face._tools.getChildByName("PackBarBg").visible = true;
-               face._tools.getChildByName("PackBarBg").addEventListener(MouseEvent.ROLL_OVER,mouseOverHandler);
                face.changeMouse("CursorArrow");
             }
             else
@@ -79,9 +68,12 @@ package com.MyFarm.control
                face._tools.getChildByName("PackBarBg").visible = false;
             }
          }
-         if(String(param1.target.name).indexOf("Seed") > 0 || String(param1.target.name).indexOf("Fertilizer") == 0)
+         if(param1.target.name != "ButtonSeed" && (String(param1.target.name).indexOf("Seed") > 0 || String(param1.target.name).indexOf("Fertilizer") == 0))
          {
             face.changeMouse(param1.target.name);
+            face._tools.getChildByName("PackBarBg").visible = false;
+            Mouse.show();
+            face._myMouse.visible = false;
          }
       }
       
@@ -89,14 +81,12 @@ package com.MyFarm.control
       {
          Mouse.hide();
          face._myMouse.visible = true;
-         face._tools.removeEventListener(MouseEvent.MOUSE_OUT,toolsOutHandler);
       }
       
       private function toolsOverHandler(param1:MouseEvent) : void
       {
          Mouse.show();
          face._myMouse.visible = false;
-         face._tools.addEventListener(MouseEvent.MOUSE_OUT,toolsOutHandler);
       }
    }
 }
