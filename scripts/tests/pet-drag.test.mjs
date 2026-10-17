@@ -27,7 +27,12 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
   const windowEvents = new EventTarget()
   const captured = new Set()
   pet.style = {}
-  pet.closest = () => null
+  pet.closest = selector => selector === '#pet' || selector === '[data-hit]' ? pet : null
+  pet.getRootNode = () => null
+  pet.matches = () => false
+  pet.checkVisibility = () => !pet.hidden
+  const front = { closest: pet.closest, matches: () => false, checkVisibility: () => true }
+  pet.querySelectorAll = () => [front]
   pet.setPointerCapture = id => captured.add(id)
   pet.hasPointerCapture = id => captured.has(id)
   pet.releasePointerCapture = id => captured.delete(id)
@@ -49,8 +54,10 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
   // Timers only run when a test advances them.
   let nextTimer = 0
   const timers = new Map()
+  const intervals = []
   let menuCloses = 0
   const clickThrough = []
+  const shapes = []
   let hitAt = null
   let area = initial.area ?? { width: 1920, height: 1080 }
   let cursorListener
@@ -71,6 +78,11 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     viewportSize: () => area,
     setDesktopSize: value => { area = value },
     pageZoom: () => area.zoom ?? null,
+    hitCover: el => {
+      if (el === pet && !pet.style.backgroundImage) return null
+      const r = el === pet ? { left: 0, top: 0, right: 1, bottom: 1 } : initial.peek ?? { left: 0, top: 0, right: 1, bottom: 1 }
+      return { left: info.lastX + size * r.left, top: info.lastY + size * r.top, right: info.lastX + size * r.right, bottom: info.lastY + size * r.bottom }
+    },
     update: (key, value) => Object.assign(services.save[key], value),
     applyEdge: () => null,
     pageX: event => event.clientX + crop.x,
@@ -78,7 +90,8 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     touch: false,
     document: {
       getElementById: () => pet,
-      elementFromPoint: (x, y) => hitAt?.(x, y) ? { getRootNode: () => null, closest: () => ({}) } : null,
+      elementFromPoint: (x, y) => hitAt?.(x, y) ? { getRootNode: () => null, closest: selector => selector === '[data-hit]' ? {} : null } : initial.petDOM ? pet : null,
+      querySelectorAll: () => [pet, front],
       documentElement: { dataset: { cropX: String(crop.x), cropY: String(crop.y) } },
     },
     window: {
@@ -89,6 +102,7 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
         onPresence: noop, onFront: noop,
         setClickThrough: on => clickThrough.push(on),
         ...(native ? { setDragging: native } : {}),
+        ...(initial.linux ? { setHitShape: rects => shapes.push(rects) } : {}),
       },
     },
     performance: { now: () => clock },
@@ -105,7 +119,8 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
       observe() { observers.add(this) }
       disconnect() { observers.delete(this) }
     },
-    setInterval: noop,
+    setInterval: callback => intervals.push(callback),
+    getComputedStyle: () => ({ pointerEvents: 'auto' }),
     setTimeout: callback => { timers.set(++nextTimer, callback); return nextTimer },
     clearTimeout: id => timers.delete(id),
     adopt: noop,
@@ -134,7 +149,9 @@ export function renderer(size, crop = { x: 0, y: 0 }, native = null, stage = 'Eg
     target.dispatchEvent(event)
   }
   return {
-    info, poses, releases, pointer, save: services.save, clickThrough,
+    info, poses, releases, pointer, save: services.save, clickThrough, shapes,
+    runIntervals: () => intervals.forEach(callback => callback()),
+    setPose: action => { services.machine.pose.a = action },
     readInt: key => services.window.DataCenter_ReadInt32(key),
     movieMove: (dx, dy) => services.window.API.MoveBy(dx, dy),
     startPose: () => poses.at(-1)?.s?.(),
@@ -458,4 +475,65 @@ test('hiding cancels an active gesture and releases its pointer capture', () => 
   assert.deepEqual(app.releases.at(-1), [false, 0, 0])
   app.pointer('pointermove', 610, 380)
   assert.equal(app.info.lastX, 500)
+})
+
+for (const edge of ['hideleft', 'hideright']) test(`${edge} ignores the transparent movie box even with a data-hit ancestor (#74)`, () => {
+  let menus = 0
+  const right = edge === 'hideright'
+  const app = renderer(160, undefined, null, 'Adult', {
+    x: right ? 1760 : 0, y: 100, pose: edge, petDOM: true,
+    peek: { left: right ? 0.8 : 0, top: 0.3, right: right ? 1 : 0.2, bottom: 0.9 },
+    ui: { openMenu: () => { menus++ } },
+  })
+  const blank = app.info.lastX + (right ? 40 : 120), visible = app.info.lastX + (right ? 150 : 10)
+  app.cursor({ x: blank, y: 180 })
+  assert.deepEqual(app.clickThrough, [])
+  app.pointer('contextmenu', blank, 180)
+  app.pointer('pointerdown', blank, 180)
+  assert.equal(menus, 0)
+  assert.equal(app.element.hasPointerCapture(1), false)
+  app.cursor({ x: visible, y: 180 })
+  assert.deepEqual(app.clickThrough, [false])
+  app.pointer('contextmenu', visible, 180)
+  assert.equal(menus, 1)
+  app.pointer('pointerdown', visible, 180)
+  assert.equal(app.element.hasPointerCapture(1), true)
+  app.pointer('pointermove', visible + (right ? -40 : 40), 180)
+  app.pointer('pointerup', visible + (right ? -40 : 40), 180)
+  assert.equal(app.releases.at(-1)[0], true, 'the visible sliver can still be dragged')
+})
+
+test('a movie retracting under a stationary desktop cursor releases click interception (#74)', () => {
+  const peek = { left: 0, top: 0, right: 1, bottom: 1 }
+  const app = renderer(160, undefined, async () => ({ x: 550, y: 340 }), 'Adult', { pose: 'hideright', peek, petDOM: true })
+  app.cursor({ x: 550, y: 340 })
+  assert.deepEqual(app.clickThrough, [false])
+  peek.left = 0.8
+  app.runIntervals()
+  assert.deepEqual(app.clickThrough, [false, true])
+  app.setPose('normal')
+  app.runIntervals()
+  assert.deepEqual(app.clickThrough, [false, true, false])
+})
+
+test('Linux input shapes contain the peek, not its transparent parent and players (#74)', () => {
+  const app = renderer(160, undefined, null, 'Adult', {
+    x: 1760, y: 100, pose: 'hideright', linux: true,
+    peek: { left: 0.8, top: 0.3, right: 1, bottom: 0.9 },
+  })
+  app.runIntervals()
+  assert.deepEqual(JSON.parse(JSON.stringify(app.shapes.at(-1))), [{ x: 1888, y: 148, width: 32, height: 96 }])
+  app.element.style.backgroundImage = 'url(scene.gif)'
+  app.runIntervals()
+  assert.equal(app.shapes.at(-1)[0].width, 160, 'an equipped scene still covers the full pet box')
+  app.element.hidden = true
+  app.runIntervals()
+  assert.deepEqual(JSON.parse(JSON.stringify(app.shapes.at(-1))), [])
+})
+
+test('a panel remains interactive beside a peeking pet (#74)', () => {
+  const app = renderer(160, undefined, null, 'Adult', { pose: 'hideright', peek: { left: 0.8, top: 0.3, right: 1, bottom: 0.9 } })
+  app.hitAt((x, y) => x === 550 && y === 340)
+  app.cursor({ x: 550, y: 340 })
+  assert.deepEqual(app.clickThrough, [false])
 })

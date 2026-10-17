@@ -193,6 +193,9 @@ test('a native cursor that disagrees with the DOM grab point keeps the pet under
   app.cursor(skewed(true))
   assert.equal(app.info.lastX, 600)
   assert.equal(app.info.lastY, 360)
+  app.runIntervals()
+  assert.equal(app.info.lastX, 600, 'stationary hit polling must not replay a cursor without its native display')
+  assert.equal(app.info.lastY, 360)
 })
 
 test('an auto-hidden Windows taskbar keeps its screen edge free of the overlay (#37)', () => {

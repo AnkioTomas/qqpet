@@ -140,6 +140,7 @@ test('a pending outside-touch dismissal cannot close a newly requested tray menu
     petEl: { hidden: true }, save: f.save, info: {}, size: 100,
     dragging: false, out: false, interactive: false, dragMove: null, cursor: {}, menuLeave: 0, MENU_LEAVE_MS: 300,
     syncDesktop: () => true,
+    overPet: () => false,
     setTimeout: fn => { const id = ++nextTimer; timers.set(id, fn); return id },
     clearTimeout: id => timers.delete(id),
     closeMenu: () => { f.appended.at(-1)?.remove() }, closeState() {},

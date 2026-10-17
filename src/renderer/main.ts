@@ -18,6 +18,7 @@ import { windowView } from './ui/window-view'
 import { initLanVisit } from './ui/lan-visit'
 import { initVoice } from './ui/voice'
 import { resizePetPosition } from '../shared/layout'
+import { hitCover, type Box } from '../mobile/overlay'
 
 let lastPlatformError = ''
 let lastPlatformErrorAt = -Infinity
@@ -143,6 +144,16 @@ let out = false
 /** A cursor overshooting the menu edge, or crossing to a submenu, may come back before this. */
 const MENU_LEAVE_MS = 300
 let menuLeave = 0
+/** Peek movies leave most of the pet box transparent (#74). */
+function petHitBoxes(): Box[] {
+  if (petEl.hidden || save.settings.hidden) return []
+  if (machine.pose.a !== 'hideleft' && machine.pose.a !== 'hideright') {
+    return [{ left: info.lastX, top: info.lastY, right: info.lastX + size, bottom: info.lastY + size }]
+  }
+  return [petEl, ...petEl.querySelectorAll('ruffle-player')].map((el) => hitCover(el)).filter((box): box is Box => box !== null)
+}
+const overPet = (x: number, y: number): boolean => petHitBoxes().some((r) => x >= r.left && x < r.right && y >= r.top && y < r.bottom)
+
 const syncDesktop = (p: DesktopCursor): boolean => {
   const area = p.desktop
   if (!area) return true
@@ -166,15 +177,14 @@ function updateCursor(p: DesktopCursor): void {
   dragMove?.(p)
   cursor.x = p.x
   cursor.y = p.y
-  // The pet box is the hit target. elementFromPoint misses Ruffle's shadow canvas,
-  // so the OS arrow shows until we also test the box itself.
-  const overPet = !petEl.hidden && !save.settings.hidden && p.x >= info.lastX && p.x < info.lastX + size && p.y >= info.lastY && p.y < info.lastY + size
   // The cursor is in page coordinates; a cropped page (HarmonyOS) is shifted by the crop.
   const { cropX = 0, cropY = 0 } = document.documentElement.dataset
   const el = document.elementFromPoint(p.x - Number(cropX), p.y - Number(cropY))
   const root = el?.getRootNode()
   const host = root instanceof ShadowRoot ? root.host : el
-  const hit = dragging || overPet || host?.closest('[data-hit]') != null
+  // The pet's data-hit ancestor must not restore its transparent SWF rectangle.
+  const panelHit = host?.closest('[data-hit]') && (!host.closest('#pet') || host.closest('.point'))
+  const hit = dragging || overPet(p.x, p.y) || !!panelHit
   // The menu closes once the cursor rests on the desktop; it may still be on the tray, outside the window.
   const inside = p.x >= 0 && p.y >= 0 && p.x < innerWidth && p.y < innerHeight
   if (!hit && inside) {
@@ -200,13 +210,18 @@ window.qqpet.onCursor(updateCursor)
 // Linux: the window takes the mouse only over the pet and the [data-hit] panels (#45). A hit root may be a
 // zero-sized anchor with overflowing children (the pet toolbar), so the children count too.
 const setHitShape = window.qqpet.setHitShape
-if (setHitShape) {
+if (setHitShape || window.qqpet.setDragging) {
   let sent = ''
   setInterval(() => {
+    // The movie can retract under a stationary cursor; native cursor IPC only sends changes.
+    if (!dragging) updateCursor(cursor)
+    if (!setHitShape) return
     const rects: { x: number; y: number; width: number; height: number }[] = []
     if (dragging) rects.push({ x: 0, y: 0, width: innerWidth, height: innerHeight })
     else if (!save.settings.hidden) {
+      for (const r of petHitBoxes()) rects.push({ x: r.left, y: r.top, width: r.right - r.left, height: r.bottom - r.top })
       for (const el of document.querySelectorAll('#pet, [data-hit], [data-hit] *')) {
+        if (el.closest('#pet') && !el.matches('.point')) continue
         if (!el.checkVisibility({ visibilityProperty: true }) || getComputedStyle(el).pointerEvents === 'none') continue
         const r = el.getBoundingClientRect()
         if (r.width > 0 && r.height > 0) rects.push({ x: r.x, y: r.y, width: r.width, height: r.height })
@@ -226,7 +241,7 @@ window.addEventListener('qqpet-hidden-change', () => {
 if (window.qqpet.setDragging) void window.qqpet.setDragging(false).then(syncDesktop)
 
 petEl.addEventListener('contextmenu', (e) => {
-  if (!save.settings.hidden) openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet)
+  if (overPet(pageX(e), pageY(e))) openMenu({ x: pageX(e), y: pageY(e), pet: true }, adoptPet)
 })
 
 let releaseDomInput = (): void => {}
@@ -286,6 +301,7 @@ addEventListener('pagehide', () => petInput.cancel())
 
 petEl.addEventListener('pointerdown', (e) => {
   if (save.settings.hidden || window.__qqpetNativePetInput || window.__qqpetHostPaused || e.button !== 0 || (e.target as HTMLElement).closest('.point')) return
+  if (!overPet(pageX(e), pageY(e))) return
   if (petInput.active) return
   const nativeDrag = window.qqpet.setDragging
   let lastPoint: DesktopCursor = { x: pageX(e), y: pageY(e) }
