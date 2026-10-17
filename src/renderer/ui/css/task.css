@@ -10,3 +10,11 @@
 .ui-task .t_tabs {white-space:nowrap}
 .ui-task .t_tab {display:inline-block;padding:3px 5px;border-radius:5px}
 .ui-task .active.t_tab {background-color:#edbd8c;color:#fff}
+.ui-task .task-reward {min-width:76px;border:1px solid transparent;font-family:inherit;text-shadow:none;white-space:nowrap;cursor:pointer}
+.ui-task .task-reward--ready {background-color:#fccd60;color:#654315}
+.ui-task .task-reward--ready:hover {background-color:#e9ba4c}
+.ui-task .task-reward--ready:active {background-color:#c59d3f}
+.ui-task .task-reward--ready:focus-visible {outline:2px solid #9c641a;outline-offset:2px}
+.ui-task .task-reward:disabled {box-shadow:none;cursor:default}
+.ui-task .task-reward--pending:disabled {background-color:#eadbc8;border-color:#d8c5ae;color:#786651}
+.ui-task .task-reward--claimed:disabled {background-color:#e4e2de;color:#666}
