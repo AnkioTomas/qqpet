@@ -286,6 +286,13 @@ const TABS: { label: string; options: Option[] }[] = [
             applyPetSound()
           },
         },
+        {
+          type: 'slider',
+          label: `社区音量：${Math.round(s.music * 100)}%（0静音）`,
+          title: '调整企鹅岛社区的背景音乐和音效，立即生效并自动保存。',
+          value: () => s.music,
+          step: (d) => update('settings', { music: Math.round(Math.min(1, Math.max(0, s.music + d)) * 10) / 10 }),
+        },
         { type: 'radio', label: '开启高清画质', title: '高清托盘图标与窗口边框，新打开的窗口生效；高清界面素材重启后生效', on: () => s.hd, run: () => setHd(!s.hd) },
       ]
     },

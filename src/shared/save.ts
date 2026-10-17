@@ -87,7 +87,7 @@ export interface GameSaveDatas {
 export interface Settings {
   /** Pet, control bar and window opacity, 0..1. */
   opacity: number
-  /** 企鹅岛社区 music volume, 0..1. The desktop itself plays no BGM, like the original. */
+  /** 企鹅岛社区 master volume (music and effects), 0..1; 0 mutes the community. */
   music: number
   /**
    * Pet voices: the edge-peek 嘿嘿嘿 and the face-poke lines. Only the pet is muted;

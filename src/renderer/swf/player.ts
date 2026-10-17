@@ -166,6 +166,7 @@ export class SwfPlayer {
   private stoppedAt: number | null = null
   private callbacks = new Set<string>()
   private muted = false
+  private volume = 1
   private destroyed = false
   private revision = 0
   private loading = false
@@ -359,7 +360,13 @@ export class SwfPlayer {
    */
   setMuted(muted: boolean): void {
     this.muted = muted
-    this.el.volume = muted ? 0 : 1
+    this.el.volume = muted ? 0 : this.volume
+  }
+
+  /** Master volume for all sounds in this movie, retained across loads. */
+  setVolume(volume: number): void {
+    this.volume = Math.min(1, Math.max(0, volume))
+    this.el.volume = this.muted ? 0 : this.volume
   }
 
   /** `base` (relative to the page) resolves the SWF's own relative URLs; `options` override Ruffle's config. */
@@ -406,7 +413,7 @@ export class SwfPlayer {
       if (this.destroyed || revision !== this.revision) throw new Error('SWF load was cancelled')
       // The rebuilt instance is live and already at Ruffle's own volume; restore ours before the
       // movie's one-shot audio (the edge-peek 嘿嘿嘿) can be heard.
-      this.el.volume = this.muted ? 0 : 1
+      this.el.volume = this.muted ? 0 : this.volume
       const metadata = await this.waitFor(() => this.el.ruffle().metadata, 'SWF metadata', LOAD_MS)
       if (this.destroyed || revision !== this.revision) throw new Error('SWF load was cancelled')
       this.meta = metadata
